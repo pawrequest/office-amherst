@@ -1,10 +1,14 @@
 import logging
+from pathlib import Path
 
 import pandas as pd
 
 from excel.excel import check_data, set_data
 
-INPUT_FILE = './assets_in.xls'
+
+
+
+INPUT_FILE = Path(__file__).resolve().with_name("assets_in.xls")
 OUTPUT_FILE = './assets_out.xlsx'
 SHEET_NAME = 'Sheet1'
 HEADER_ROW = 2

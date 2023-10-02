@@ -33,7 +33,7 @@ def handle_id(id_to_handle, action, df=None, barcode_header=BARCODE_HEADER, id_h
     if df is None:
         df = get_excel()
 
-    col_to_use = id_header if len(id_to_handle) == 4 else barcode_header
+    col_to_use = id_header if len(str(id_to_handle)) == 4 else barcode_header
     return action(df, id_to_handle, col_to_use, data_header, value)
 
 

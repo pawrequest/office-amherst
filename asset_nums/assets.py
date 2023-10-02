@@ -1,9 +1,11 @@
+import logging
+
 import pandas as pd
 
 from excel.excel import check_data, set_data
 
-INPUT_FILE = r'C:\paul\office_am\fixtures\asset_example.xls'
-OUTPUT_FILE = r'C:\paul\office_am\fixtures\asset_example_out.xlsx'
+INPUT_FILE = './assets_in.xls'
+OUTPUT_FILE = './assets_out.xlsx'
 SHEET_NAME = 'Sheet1'
 HEADER_ROW = 2
 
@@ -64,4 +66,9 @@ def set_or_check():
 
 
 if __name__ == "__main__":
-    set_or_check()
+    try:
+        logging.basicConfig(filename='assets.log', level=logging.DEBUG)
+        set_or_check()
+    except Exception as e:
+        logging.error(f"An error occurred: \n{e}")
+        input("Press Enter to exit.")

@@ -2,7 +2,7 @@ import timeit
 
 from account.check_invoice_paid import check_paid
 
-asset_input = './asset_example.xls'
+asset_input = './assets_in.xls'
 asset_output = './asset_example_output.xlsx'
 serial_numbers = ['719336170G0064']
 

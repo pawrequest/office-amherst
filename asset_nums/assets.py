@@ -1,34 +1,83 @@
 import pandas as pd
 
 from excel.excel import check_data, set_data
-
-# input_file = r'C:\paul\office_am\fixtures\asset_example.xls'
-# sheet_name = 'Sheet1'
-# header_row = 2
-# output_file = r'C:\paul\office_am\fixtures\asset_example_out.xlsx'
 #
-# df = pd.read_excel(input_file, sheet_name=sheet_name, header=header_row)
+# INPUT_FILE = r'C:\paul\office_am\fixtures\asset_example.xls'
+# OUTPUT_FILE = r'C:\paul\office_am\fixtures\asset_example_out.xlsx'
+# SHEET_NAME = 'Sheet1'
+# HEADER_ROW = 2
 #
-# barcode_header = 'Barcode'
-# id_header = 'Number'
-# data_header = 'REPROG'
-# expected_value = 'Y'
+# BARCODE_HEADER = 'Barcode'
+# ID_HEADER = 'Number'
+# DATA_HEADER = 'REPROG'
+# EXPECTED_VALUE = 'Y'
+#
+#
+# def get_excel(in_file=INPUT_FILE, sheet=SHEET_NAME, headers=HEADER_ROW):
+#     return pd.read_excel(in_file, sheet_name=sheet, header=headers)
+#
+#
+# def get_function_to_call():
+#     while True:
+#         choice = input("Set or check? (s/c)").lower()
+#         if choice in ('s', 'c'):
+#             return set_progged if choice == 's' else check_progged
+#         print("Invalid option. Use 's' for set or 'c' for check.")
+#
+#
+# def set_progged(id_to_handle: str | int, df: pd.DataFrame = None, barcode_header: str = BARCODE_HEADER,
+#                 id_header: str = ID_HEADER, data_header: str = DATA_HEADER,
+#                 value: str | int | float = EXPECTED_VALUE):
+#     if df is None:
+#         df = get_excel()
+#     col_to_set = id_header if len(id_to_handle) == 4 else barcode_header
+#     set_data(df, id_to_set=id_to_handle, col_to_set=col_to_set, data_header=data_header, value_to_set=value)
+#     df.to_excel(OUTPUT_FILE, index=False)
+#     print("Excel sheet successfully updated.")
+#
+#
+# def check_progged(id_to_handle: str | int, df: pd.DataFrame = None, barcode_header: str = BARCODE_HEADER,
+#                   id_header: str = ID_HEADER, data_header: str = DATA_HEADER,
+#                   value: str | int | float = EXPECTED_VALUE):
+#     if df is None:
+#         df = get_excel()
+#     col_to_check = id_header if len(id_to_handle) == 4 else barcode_header
+#     return check_data(df, id_to_check=id_to_handle, col_to_check=col_to_check, data_header=data_header,
+#                       expected_value=value)
+#
+#
+# def set_or_check():
+#     function_to_call = get_function_to_call()
+#     while True:
+#         id_to_handle = input("Enter ID\n")
+#         try:
+#             function_to_call(id_to_handle=id_to_handle, barcode_header=BARCODE_HEADER,
+#                              id_header=ID_HEADER, value=EXPECTED_VALUE)
+#         except ValueError:
+#             print(f"No or multiple results found for {id_to_handle}.")
+#         except PermissionError:
+#             print("Close Excel and retry.")
+#
+#
+# if __name__ == "__main__":
+#     set_or_check()
 
-input_file = r'C:\paul\office_am\fixtures\asset_example.xls'
-output_file = r'C:\paul\office_am\fixtures\asset_example_out.xlsx'
-sheet_name = 'Sheet1'
-header_row = 2
 
-barcode_header = 'Barcode'
-id_header = 'Number'
-data_header = 'REPROG'
-expected_value = 'Y'
+INPUT_FILE = r'C:\paul\office_am\fixtures\asset_example.xls'
+OUTPUT_FILE = r'C:\paul\office_am\fixtures\asset_example_out.xlsx'
+SHEET_NAME = 'Sheet1'
+HEADER_ROW = 2
 
-# Read Excel file
-df = pd.read_excel(input_file, sheet_name=sheet_name, header=header_row)
+BARCODE_HEADER = 'Barcode'
+ID_HEADER = 'Number'
+DATA_HEADER = 'REPROG'
+EXPECTED_VALUE = 'Y'
 
-def get_excel(in_file = input_file, sheet=sheet_name, headers = header_row):
+
+def get_excel(in_file=INPUT_FILE, sheet=SHEET_NAME, headers=HEADER_ROW):
     return pd.read_excel(in_file, sheet_name=sheet, header=headers)
+
+
 def get_function_to_call():
     while True:
         choice = input("Set or check? (s/c)").lower()
@@ -37,20 +86,27 @@ def get_function_to_call():
         print("Invalid option. Use 's' for set or 'c' for check.")
 
 
-def set_progged(df: pd.DataFrame, id_to_handle: str | int, barcode_header: str = 'Barcode',
-                id_header: str = 'Number', data_header: str = 'REPROG',
-                value: str | int | float = 'Y'):
-    col_to_set = id_header if len(id_to_handle) == 4 else barcode_header
+def handle_id(id_to_handle, action, df=None, barcode_header=BARCODE_HEADER, id_header=ID_HEADER,
+              data_header=DATA_HEADER, value=EXPECTED_VALUE):
+    if not isinstance(id_to_handle, (str, int)):
+        raise TypeError("ID should be of type str or int")
+
+    if df is None:
+        df = get_excel()
+
+    col_to_use = id_header if len(id_to_handle) == 4 else barcode_header
+    return action(df, id_to_handle, col_to_use, data_header, value)
+
+
+def set_progged(df, id_to_handle, col_to_set, data_header, value):
     set_data(df, id_to_set=id_to_handle, col_to_set=col_to_set, data_header=data_header, value_to_set=value)
-    df.to_excel(output_file, index=False)
+    df.to_excel(OUTPUT_FILE, index=False)
     print("Excel sheet successfully updated.")
+    return True
 
 
-def check_progged(df: pd.DataFrame, id_to_handle: str | int, barcode_header: str = 'Barcode',
-                  id_header: str = 'Number', data_header: str = 'REPROG',
-                  value: str | int | float = 'Y'):
-    col_to_check = id_header if len(id_to_handle) == 4 else barcode_header
-    return check_data(df, id_to_check=id_to_handle, col_to_check=col_to_check, data_header=data_header,
+def check_progged(df, id_to_check, col_to_check, data_header, value):
+    return check_data(df, id_to_check=id_to_check, col_to_check=col_to_check, data_header=data_header,
                       expected_value=value)
 
 
@@ -59,12 +115,14 @@ def set_or_check():
     while True:
         id_to_handle = input("Enter ID\n")
         try:
-            function_to_call(df, id_to_handle=id_to_handle, barcode_header=barcode_header,
-                             id_header=id_header, value=expected_value)
+            handle_id(id_to_handle, function_to_call)
         except ValueError:
             print(f"No or multiple results found for {id_to_handle}.")
         except PermissionError:
             print("Close Excel and retry.")
+        except TypeError as e:
+            print(e)
 
 
-set_or_check()
+if __name__ == "__main__":
+    set_or_check()

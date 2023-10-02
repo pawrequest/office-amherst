@@ -46,18 +46,18 @@ def edit_excel(infile: pathy, outfile: pathy, sheet: str, header_i: int, col_mat
 
 
 # def check_data(df: pd.DataFrame, id_to_check: Union[str, int], col_to_check:str,
-#                data_header: str, expected_value: Union[str, int, float]) -> bool:
+#                DATA_HEADER: str, EXPECTED_VALUE: Union[str, int, float]) -> bool:
 #
 #     row = df[df[col_to_check].astype(str) == str(id_to_check)]
 #     if len(row) != 1:
 #         raise ValueError(f"No or multiple results found for {id_to_check}")
-#     return expected_value == row[data_header].iloc[0]
+#     return EXPECTED_VALUE == row[DATA_HEADER].iloc[0]
 #
-# def set_data(df: pd.DataFrame, id_to_set: str | int, col_to_set: str, data_header: str, value_to_set: str | int | float):
+# def set_data(df: pd.DataFrame, id_to_set: str | int, col_to_set: str, DATA_HEADER: str, value_to_set: str | int | float):
 #     index_to_set = df[df[col_to_set].astype(str) == str(id_to_set)].index
 #     if len(index_to_set) != 1:
 #         raise ValueError(f"No or multiple results found for {id_to_set}")
-#     df.at[index_to_set[0], data_header] = value_to_set
+#     df.at[index_to_set[0], DATA_HEADER] = value_to_set
 #
 #     return True
 

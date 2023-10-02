@@ -1,6 +1,6 @@
 import timeit
 
-from check_invoice_paid import check_paid
+from account.check_invoice_paid import check_paid
 
 asset_input = './asset_example.xls'
 asset_output = './asset_example_output.xlsx'

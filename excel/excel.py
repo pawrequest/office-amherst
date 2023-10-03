@@ -22,9 +22,9 @@ def coerce_df_numtype(df: pd.DataFrame, col_header: str, data: str | int | float
         df[col_header] = df[col_header].astype(type(data))
 
 
-def edit_excel(infile: pathy, outfile: pathy, sheet: str, header_i: int, id_header: str, value_data: Iterable,
-               value_header: str,
-               data_insert: str):
+def edit_excel_batch(infile: pathy, outfile: pathy, sheet: str, header_i: int, id_header: str, value_data: Iterable,
+                     value_header: str,
+                     data_insert: str):
     df = pd.read_excel(infile, sheet_name=sheet, header=header_i)
     coerce_df_numtype(df, col_header=value_header, data=data_insert)
 

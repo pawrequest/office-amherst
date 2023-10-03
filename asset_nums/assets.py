@@ -44,15 +44,15 @@ def handle_id(id_to_handle, action, df=None, barcode_header=BARCODE_HEADER, id_h
 
 
 def set_progged(df, id_to_handle, col_to_set, data_header, value):
-    set_data(df, id_to_set=id_to_handle, col_to_set=col_to_set, data_header=data_header, value_to_set=value)
+    set_data(df, id_data=id_to_handle, id_header=col_to_set, value_header=data_header, value_data=value)
     df.to_excel(OUTPUT_FILE, index=False)
     print("Excel sheet successfully updated.")
     return True
 
 
 def check_progged(df, id_to_check, col_to_check, data_header, value):
-    return check_data(df, id_to_check=id_to_check, col_to_check=col_to_check, data_header=data_header,
-                      expected_value=value)
+    return check_data(df, id_data=id_to_check, id_header=col_to_check, value_header=data_header,
+                      value_data=value)
 
 
 def set_or_check():

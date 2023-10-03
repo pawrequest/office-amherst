@@ -17,7 +17,7 @@ invoice_nums = [r'R:\ACCOUNTS\invoices\a24301.docx']
 #     col_with_name='Barcode',
 #     data_to_check=serial_numbers,
 #     data_insert="yes edited",
-#     col_edit='REPROG'
+#     value_header='REPROG'
 # )
 #
 starting_time = timeit.default_timer()

@@ -1,6 +1,6 @@
 import numbers
 import os
-from typing import Union
+from typing import Union, Iterable
 
 import pandas as pd
 
@@ -15,25 +15,30 @@ def df_is_numeric(col):
         return False
 
 
-def edit_excel(infile: pathy, outfile: pathy, sheet: str, header_i: int, col_match: str, data_match: str, col_edit: str,
+def coerce_df_numtype(df: pd.DataFrame, col_header: str, data: str | int | float):
+    if df_is_numeric(df[col_header]) and not isinstance(data, numbers.Number):
+        if input(f"TypeMismatch : cast {col_header} ({df[col_header].dtype}) to {type(data)}?") != 'y':
+            exit("Aborted.")
+        df[col_header] = df[col_header].astype(type(data))
+
+
+def edit_excel(infile: pathy, outfile: pathy, sheet: str, header_i: int, id_header: str, value_data: Iterable,
+               value_header: str,
                data_insert: str):
     df = pd.read_excel(infile, sheet_name=sheet, header=header_i)
-    if df_is_numeric(df[col_edit]) and not isinstance(data_insert, numbers.Number):
-        if input(f"TypeMismatch : cast {col_edit} ({df[col_edit].dtype}) to {type(data_insert)}?") != 'y':
-            exit("Aborted.")
-        df[col_edit] = df[col_edit].astype(type(data_insert))
-
-    if col_edit not in df.columns: raise Exception(f"{col_edit} not found.")
+    coerce_df_numtype(df, col_header=value_header, data=data_insert)
 
     skipped = []
-    for data in data_match:
-        rows = df[df[col_match] == data]
-        if rows.empty: skipped.append(data); continue
-        if len(rows) != 1: raise ValueError(f"Multiple rows for {data}")
-        df.at[rows.index[0], col_edit] = data_insert
+    for data in value_data:
+        if not set_data(df, id_data=data, id_header=id_header, value_header=value_header, value_data=data_insert):
+            skipped.append(data)
 
     if skipped and input(f"Missed: {skipped}\nContinue?") != 'y': exit()
 
+    write_excel(outfile, df, sheet)
+
+
+def write_excel(outfile: pathy, df: pd.DataFrame, sheet: str):
     try:
         df.to_excel(outfile, sheet_name=sheet, index=False)
     except PermissionError:
@@ -45,35 +50,20 @@ def edit_excel(infile: pathy, outfile: pathy, sheet: str, header_i: int, col_mat
         return 0
 
 
-# def check_data(df: pd.DataFrame, id_to_check: Union[str, int], col_to_check:str,
-#                DATA_HEADER: str, EXPECTED_VALUE: Union[str, int, float]) -> bool:
-#
-#     row = df[df[col_to_check].astype(str) == str(id_to_check)]
-#     if len(row) != 1:
-#         raise ValueError(f"No or multiple results found for {id_to_check}")
-#     return EXPECTED_VALUE == row[DATA_HEADER].iloc[0]
-#
-# def set_data(df: pd.DataFrame, id_to_set: str | int, col_to_set: str, DATA_HEADER: str, value_to_set: str | int | float):
-#     index_to_set = df[df[col_to_set].astype(str) == str(id_to_set)].index
-#     if len(index_to_set) != 1:
-#         raise ValueError(f"No or multiple results found for {id_to_set}")
-#     df.at[index_to_set[0], DATA_HEADER] = value_to_set
-#
-#     return True
-
-
-
-def check_data(df: pd.DataFrame, id_to_check: str | int, col_to_check:str, data_header: str, expected_value: str | int | float) -> bool:
-    row = df[df[col_to_check].astype(str) == str(id_to_check)]
+def check_data(df: pd.DataFrame, id_data: str | int, id_header: str, value_header: str,
+               value_data: str | int | float) -> bool:
+    row = df[df[id_header].astype(str) == str(id_data)]
     if len(row) != 1:
         raise ValueError()
-    res = expected_value == row[data_header].iloc[0]
-    print('yes' if res else 'no')
+    res = value_data == row[value_header].iloc[0]
+    print(f'{value_data} is {"not" if not res else ""} in {value_header} for {id_data}')
     return res
 
-def set_data(df: pd.DataFrame, id_to_set: str | int, col_to_set: str, data_header: str, value_to_set: str | int | float):
-    index_to_set = df[df[col_to_set].astype(str) == str(id_to_set)].index
+
+def set_data(df: pd.DataFrame, id_data: str | int, id_header: str, value_header: str, value_data: str | int | float):
+    coerce_df_numtype(df=df, col_header=value_header, data=value_data)
+    index_to_set = df[df[id_header].astype(str) == str(id_data)].index
     if len(index_to_set) != 1:
         raise ValueError()
-    df.at[index_to_set[0], data_header] = value_to_set
+    df.at[index_to_set[0], value_header] = value_data
     return True

@@ -56,20 +56,20 @@ def get_data(conv, fields: Iterable[str]):
     return {field: conv.Request(f"[ViewField(1, {field})]") for field in fields}
 
 
-fields_to_get_hire = ["Name"]
-fields_to_get_cust = [
-    "Telephone",
-]
-hires_to = Connection(name="Has Hired", table='Hire', fields=fields_to_get_hire)
 
-# Usage
-customer_data = do_commence(table="Customer", name="Test", fields=fields_to_get_cust, connections=[hires_to])
-# speak_to_commence2()
-...
+def test_do_cmc():
+    fields_to_get_hire = ["Name"]
+    fields_to_get_cust = [
+        "Telephone",
+    ]
+    hires_to = Connection(name="Has Hired", table='Hire', fields=fields_to_get_hire)
+    customer_data = do_commence(table="Customer", name="Test", fields=fields_to_get_cust, connections=[hires_to])
+    ...
+
+test_do_cmc()
 
 
-def display_test_customer():
+def display_test_customer_agent():
     fire_commence_agent(agent_trigger='PYTHON_DDE', category='Customer', command='Test')
 
 
-display_test_customer()

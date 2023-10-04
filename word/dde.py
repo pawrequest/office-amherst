@@ -40,15 +40,12 @@ def commence_data(table, name, fields: Iterable[str], connections: Iterable[Conn
     results = {}
     conv = get_conversation()
     conv = get_record(conv, table, name)
-    results['data'] = get_data(conv, fields)
-    if connections:
-        results['connected_data'] = {}
-        for connection in connections:
-            all_connected_data = get_all_connected(conv, table, name, connection)
-
-            # connected_data = get_connected_data(conv, connection)
-            results['connected_data'][f'{connection.name} - {connection.table}'] = all_connected_data
-        ...
+    results[table] = get_data(conv, fields)
+    if not connections:
+        return results
+    for connection in connections:
+        connected_data = get_all_connected(conv, table, name, connection)
+        results[connection.table] = connected_data
     return results
 
 
@@ -62,8 +59,8 @@ def get_hire_data_inv(hire_name):
     return commence_data(table="Hire", name=hire_name, fields=INVOICE_FIELDS_HIRE, connections=[hires_to])
 
 
-def get_connected_data(conv, connection: Connection):
-    connected_name = conv.Request(f"[ViewConnectedItem(1, {connection.name}, {connection.table}, 1)]")
+def get_connected_data_limited(conv, connection: Connection, limit=1):
+    connected_name = conv.Request(f"[ViewConnectedItem(1, {connection.name}, {connection.table}, {limit},)]")
     connected_conv = get_record(conv, connection.table, connected_name)
     connected_data = get_data(connected_conv, connection.fields)
     return connected_data
@@ -92,7 +89,7 @@ def get_conversation():
 
 def get_record(conv, table, name):
     conv.Request(f"[ViewCategory({table})]")
-    conv.Request(f"[ViewFilter(1, F,,Name, Equal to, \"{name}\",)]")
+    conv.Request(f"[ViewFilter(1, F,,Name, Equal to, {name},)]")
     item_count = conv.Request("[ViewItemCount]")
     if int(item_count) != 1:
         raise ValueError(f"{item_count} entries found")
@@ -106,8 +103,7 @@ def get_data(conv, fields: Iterable[str]):
 def do_cmc():
     hires_to = Connection(name="Has Hired", table='Hire', fields=INVOICE_FIELDS_HIRE)
     sales_to = Connection(name="Involves", table='Sale', fields=INVOICE_FIELDS_SALE)
-    customer_data = commence_data(table="Customer", name="Test", fields=INVOICE_FIELDS_CUST, connections=[hires_to])
-    sales_data = commence_data(table='Customer', name='Test', fields=INVOICE_FIELDS_CUST, connections=[sales_to])
+    customer_data = commence_data(table="Customer", name="Test", fields=INVOICE_FIELDS_CUST, connections=[hires_to, sales_to])
     ...
     ...
 

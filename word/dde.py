@@ -104,6 +104,8 @@ def do_cmc():
     hires_to = Connection(name="Has Hired", table='Hire', fields=INVOICE_FIELDS_HIRE)
     sales_to = Connection(name="Involves", table='Sale', fields=INVOICE_FIELDS_SALE)
     customer_data = commence_data(table="Customer", name="Test", fields=INVOICE_FIELDS_CUST, connections=[hires_to, sales_to])
+    some_sale_name = 'Woodlands Primary School - 03/10/2023 ref 361'
+    some_data = get_sale_data_inv(some_sale_name)
     ...
     ...
 

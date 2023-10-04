@@ -25,9 +25,7 @@ order2 = DBF('/word/hire_i.dbf', load=True)
 order = {i:k for i,k in order1.items() if k}
 order_items = {}
 for field, qty in order.items():
-    if field[0:3].lower() == 'inv':
-        order_items[field[4:]] = qty.strip('\x00')
-
+    qty = qty.strip('\x00')
 ...
 
 class Order(BaseModel):

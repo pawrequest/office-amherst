@@ -29,6 +29,25 @@ def do_commence(table, name, fields: Iterable[str], connections: Iterable[Connec
         ...
     return results
 
+def get_hire_data_inv(hire_name):
+    fields_to_get_hire = [
+        "Delivery Contact",
+        "Delivery Name",
+        "Delivery Address",
+        "Delivery Postcode",
+        "Number UHF",
+        "Booked Date",
+
+
+    ]
+    fields_to_get_cust = [
+        "Contact Name",
+        "Name",
+        "Address",
+        "Postcode",
+    ]
+    hires_to = Connection(name="To", table='Customer', fields=fields_to_get_cust)
+    return do_commence(table="Hire", name=hire_name, fields=fields_to_get_hire, connections=[hires_to])
 
 def get_connected_data(conv, connection: Connection):
     connected_name = conv.Request(f"[ViewConnectedItem(1, {connection.name}, {connection.table}, 1)]")
@@ -66,7 +85,6 @@ def test_do_cmc():
     customer_data = do_commence(table="Customer", name="Test", fields=fields_to_get_cust, connections=[hires_to])
     ...
 
-test_do_cmc()
 
 
 def display_test_customer_agent():

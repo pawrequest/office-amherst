@@ -3,6 +3,26 @@ from typing import Iterable
 
 import win32com.client
 
+INVOICE_FIELDS_HIRE = [
+    "Delivery Contact",
+    "Delivery Name",
+    "Delivery Address",
+    "Delivery Postcode",
+    "Number UHF",
+    "Booked Date",
+
+]
+INVOICE_FIELDS_CUST = [
+    "Contact Name",
+    "Name",
+    "Address",
+    "Postcode",
+]
+
+INVOICE_FIELDS_SALE = [
+    "Invoice Address",
+]
+
 
 def fire_commence_agent(agent_trigger, category, command):
     conv = get_conversation()
@@ -16,7 +36,7 @@ class Connection:
     fields: Iterable[str]
 
 
-def do_commence(table, name, fields: Iterable[str], connections: Iterable[Connection] = None):
+def commence_data(table, name, fields: Iterable[str], connections: Iterable[Connection] = None):
     results = {}
     conv = get_conversation()
     conv = get_record(conv, table, name)
@@ -24,36 +44,44 @@ def do_commence(table, name, fields: Iterable[str], connections: Iterable[Connec
     if connections:
         results['connected_data'] = {}
         for connection in connections:
-            connected_data = get_connected_data(conv, connection)
-            results['connected_data'][connection.name] = connected_data
+            all_connected_data = get_all_connected(conv, table, name, connection)
+
+            # connected_data = get_connected_data(conv, connection)
+            results['connected_data'][f'{connection.name} - {connection.table}'] = all_connected_data
         ...
     return results
 
+
+def get_sale_data_inv(sale_name):
+    sales_to = Connection(name="To", table='Customer', fields=INVOICE_FIELDS_CUST)
+    return commence_data(table="Sale", name=sale_name, fields=INVOICE_FIELDS_SALE, connections=[sales_to])
+
+
 def get_hire_data_inv(hire_name):
-    fields_to_get_hire = [
-        "Delivery Contact",
-        "Delivery Name",
-        "Delivery Address",
-        "Delivery Postcode",
-        "Number UHF",
-        "Booked Date",
+    hires_to = Connection(name="To", table='Customer', fields=INVOICE_FIELDS_HIRE)
+    return commence_data(table="Hire", name=hire_name, fields=INVOICE_FIELDS_HIRE, connections=[hires_to])
 
-
-    ]
-    fields_to_get_cust = [
-        "Contact Name",
-        "Name",
-        "Address",
-        "Postcode",
-    ]
-    hires_to = Connection(name="To", table='Customer', fields=fields_to_get_cust)
-    return do_commence(table="Hire", name=hire_name, fields=fields_to_get_hire, connections=[hires_to])
 
 def get_connected_data(conv, connection: Connection):
     connected_name = conv.Request(f"[ViewConnectedItem(1, {connection.name}, {connection.table}, 1)]")
     connected_conv = get_record(conv, connection.table, connected_name)
     connected_data = get_data(connected_conv, connection.fields)
     return connected_data
+
+
+def get_all_connected(conv, from_table, from_item, connection:Connection):
+    connected_names = conv.Request(f"[GetConnectedItemNames({from_table}, {from_item}, {connection.name}, {connection.table}, ;)]")
+    cons = connected_names.split(';')
+    results = {}
+    for c_name in cons:
+        connected_conv = get_record(conv, connection.table, c_name)
+        connected_data = get_data(connected_conv, connection.fields)
+        # results.append(connected_data)
+        results[c_name] = connected_data
+    return results
+
+def get_customer_sales(conv, customer_name):
+    return get_all_connected(conv, 'Customer', customer_name, Connection(name='Involves', table='Sale', fields=INVOICE_FIELDS_SALE))
 
 
 def get_conversation():
@@ -75,19 +103,17 @@ def get_data(conv, fields: Iterable[str]):
     return {field: conv.Request(f"[ViewField(1, {field})]") for field in fields}
 
 
-
-def test_do_cmc():
-    fields_to_get_hire = ["Name"]
-    fields_to_get_cust = [
-        "Telephone",
-    ]
-    hires_to = Connection(name="Has Hired", table='Hire', fields=fields_to_get_hire)
-    customer_data = do_commence(table="Customer", name="Test", fields=fields_to_get_cust, connections=[hires_to])
+def do_cmc():
+    hires_to = Connection(name="Has Hired", table='Hire', fields=INVOICE_FIELDS_HIRE)
+    sales_to = Connection(name="Involves", table='Sale', fields=INVOICE_FIELDS_SALE)
+    customer_data = commence_data(table="Customer", name="Test", fields=INVOICE_FIELDS_CUST, connections=[hires_to])
+    sales_data = commence_data(table='Customer', name='Test', fields=INVOICE_FIELDS_CUST, connections=[sales_to])
     ...
-
+    ...
 
 
 def display_test_customer_agent():
     fire_commence_agent(agent_trigger='PYTHON_DDE', category='Customer', command='Test')
 
 
+do_cmc()

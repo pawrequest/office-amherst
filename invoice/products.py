@@ -34,7 +34,7 @@ def get_all_sale_products(products_wb: pathy):
     for (product_name, product_description), product_group in df.groupby(['Name', 'Description']):
         prices = [Price(Decimal(str(row['Price'])), row['Min qty']) for index, row in product_group.iterrows()]
         products.append(SaleProduct(product_name, product_description, prices))
-    return products
+    return {p.name: p for p in products}
 
 
 @dataclass
@@ -69,12 +69,3 @@ def get_all_hire_products(products_wb: pathy, ):
         products.append(HireProduct(product_name, product_description, prices))
     return {p.name: p for p in products}
 
-
-prices_wb = r'C:\paul\office_am\input_files\prices.xlsx'
-pro = get_all_sale_products(prices_wb)
-price1 = pro[0].get_price(1)
-price11 = pro[0].get_price(11)
-hire_pro = get_all_hire_products(prices_wb)
-hire_price1_1 = hire_pro['UHF'].get_price(quantity=1, duration=1)
-
-...

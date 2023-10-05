@@ -3,9 +3,17 @@ from decimal import Decimal
 import pytest
 
 from invoice.products import get_all_hire_products, get_all_sale_products
-from word.dde import get_commence_data, get_hire_data_inv, get_sale_data_inv
-from tmplt.entities import Connection, HirePrice, HireProduct, Price, SaleProduct, Fields, PRICES_WB
+from word.dde import get_commence_data, get_conversation, get_customer_sales, get_data_generic
+from tmplt.entities import Connection, HirePrice, HireProduct, Price, SaleProduct, Fields, PRICES_WB, Connections
 
+
+@pytest.fixture
+def conv():
+    return get_conversation()
+
+def test_get_conv():
+    conv = get_conversation()
+    assert conv is not None
 
 
 def test_sales_products():
@@ -25,8 +33,8 @@ def test_hire_products():
 
 
 def test_customer_data():
-    hires_to = Connection(name="Has Hired", table='Hire', fields=Fields.HIRE.value)
-    sales_to = Connection(name="Involves", table='Sale', fields=Fields.SALE.value)
+    hires_to = Connections.CUSTOMER_HIRES.value
+    sales_to = Connections.CUSTOMER_SALES.value
     customer_data = get_commence_data(table="Customer", name="Test", fields=Fields.CUSTOMER.value,
                                       connections=[hires_to, sales_to])
     assert all(field in customer_data['Customer'] for field in
@@ -45,16 +53,30 @@ def test_wrong_customer_name():
 
 def test_get_hire():
     some_hire_name = 'Trampoline League - 27/06/2023 ref 31247'
-    some_hire = get_hire_data_inv(some_hire_name)
+    some_hire = get_data_generic(some_hire_name, 'Hire')
     assert some_hire['Hire']['Name'] == some_hire_name
 
 def test_get_sale():
     some_sale_name = 'Truckline Services - 26/10/2022 ref 11'
-    some_sale = get_sale_data_inv(some_sale_name)
+    some_sale = get_data_generic(some_sale_name, 'Sale')
     assert some_sale['Sale']['Name'] == some_sale_name
+
+def test_get_generic():
+    some_hire_name = 'Trampoline League - 27/06/2023 ref 31247'
+    some_hire = get_data_generic(some_hire_name, 'Hire')
+    assert some_hire['Hire']['Name'] == some_hire_name
+    some_sale_name = 'Truckline Services - 26/10/2022 ref 11'
+    some_sale = get_data_generic(some_sale_name, 'Sale')
+    assert some_sale['Sale']['Name'] == some_sale_name
+
 
 
 def test_get_wrong_hire_name():
     with pytest.raises(ValueError):
         some_hire_name = 'FAKE HIRE NAME'
-        some_hire = get_hire_data_inv(some_hire_name)
+        some_hire = get_data_generic(some_hire_name, 'Hire')
+
+def test_get_customer_sales(conv):
+    sales = get_customer_sales(conv=conv, customer_name='Test')
+
+    assert sales

@@ -2,7 +2,7 @@ from typing import Iterable
 
 import win32com.client
 
-from tmplt.entities import Connection, Fields
+from tmplt.entities import Connection, Connections, Fields
 
 
 def fire_commence_agent(agent_trigger, category, command):
@@ -23,38 +23,11 @@ def get_commence_data(table, name, fields: Iterable[str], connections: Iterable[
     return results
 
 
-def get_sale_data_inv(sale_name):
-    # sales_to = Connection(name="To", table='Customer', fields=INVOICE_FIELDS_CUST)
-    # return get_commence_data(table="Sale", name=sale_name, fields=INVOICE_FIELDS_SALE, connections=[sales_to])
-    sales_to = Connection(name="To", table='Customer', fields=Fields.CUSTOMER.value)
-    return get_commence_data(table="Sale", name=sale_name, fields=Fields.SALE.value, connections=[sales_to])
 
 
-def get_hire_data_inv(hire_name):
-    hires_to = Connection(name="To", table='Customer', fields=Fields.CUSTOMER.value)
-    try:
-        data = get_commence_data(table="Hire", name=hire_name, fields=Fields.HIRE.value, connections=[hires_to])
-    except Exception as e:
-        raise ValueError(f"Error getting hire data: for {hire_name}:\n{e}")
-    else:
-        return data
-
-
-#
-# def get_hire_data_inv(hire_name):
-#     hires_to = Connection(name="To", table='Customer', fields=INVOICE_FIELDS_CUST)
-#     try:
-#         data = get_commence_data(table="Hire", name=hire_name, fields=INVOICE_FIELDS_HIRE, connections=[hires_to])
-#     except Exception as e:
-#         raise ValueError(f"Error getting hire data: for {hire_name}:\n{e}")
-#     else:
-#         return data
-
-
-def get_data_inv(record_name, table_name):
+def get_data_generic(record_name, table_name):
     table_name_enum = Fields[table_name.upper()]
-
-    connection_to = Connection(name="To", table='Customer', fields=Fields.CUSTOMER.value)
+    connection_to = Connections.TO_CUSTOMER.value
     try:
         data = get_commence_data(table=table_name, name=record_name, fields=table_name_enum.value,
                                  connections=[connection_to])
@@ -130,3 +103,20 @@ def stuff():
     ...
 
 # stuff()
+
+
+# deprecated
+# def get_sale_data_inv(sale_name):
+#     sales_to = Connections.TO_CUSTOMER.value
+#     return get_commence_data(table="Sale", name=sale_name, fields=Fields.SALE.value, connections=[sales_to])
+#
+#
+# def get_hire_data_inv(hire_name):
+#     hires_to = Connections.TO_CUSTOMER.value
+#     try:
+#         data = get_commence_data(table="Hire", name=hire_name, fields=Fields.HIRE.value, connections=[hires_to])
+#     except Exception as e:
+#         raise ValueError(f"Error getting hire data: for {hire_name}:\n{e}")
+#     else:
+#         return data
+#

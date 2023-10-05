@@ -2,7 +2,7 @@ from typing import Iterable
 
 import win32com.client
 
-from tmplt.entities import Connection, FIELDS
+from tmplt.entities import Connection, Fields
 
 
 def fire_commence_agent(agent_trigger, category, command):
@@ -26,18 +26,20 @@ def get_commence_data(table, name, fields: Iterable[str], connections: Iterable[
 def get_sale_data_inv(sale_name):
     # sales_to = Connection(name="To", table='Customer', fields=INVOICE_FIELDS_CUST)
     # return get_commence_data(table="Sale", name=sale_name, fields=INVOICE_FIELDS_SALE, connections=[sales_to])
-    sales_to = Connection(name="To", table='Customer', fields=FIELDS['Customer'])
-    return get_commence_data(table="Sale", name=sale_name, fields=FIELDS['Sale'], connections=[sales_to])
+    sales_to = Connection(name="To", table='Customer', fields=Fields.CUSTOMER.value)
+    return get_commence_data(table="Sale", name=sale_name, fields=Fields.SALE.value, connections=[sales_to])
 
 
 def get_hire_data_inv(hire_name):
-    hires_to = Connection(name="To", table='Customer', fields=FIELDS['Customer'])
+    hires_to = Connection(name="To", table='Customer', fields=Fields.CUSTOMER.value)
     try:
-        data = get_commence_data(table="Hire", name=hire_name, fields=FIELDS['Hire'], connections=[hires_to])
+        data = get_commence_data(table="Hire", name=hire_name, fields=Fields.HIRE.value, connections=[hires_to])
     except Exception as e:
         raise ValueError(f"Error getting hire data: for {hire_name}:\n{e}")
     else:
         return data
+
+
 #
 # def get_hire_data_inv(hire_name):
 #     hires_to = Connection(name="To", table='Customer', fields=INVOICE_FIELDS_CUST)
@@ -50,24 +52,17 @@ def get_hire_data_inv(hire_name):
 
 
 def get_data_inv(record_name, table_name):
-    connection_to = Connection(name="To", table='Customer', fields=FIELDS['Customer'])
+    table_name_enum = Fields[table_name.upper()]
+
+    connection_to = Connection(name="To", table='Customer', fields=Fields.CUSTOMER.value)
     try:
-        data = get_commence_data(table=table_name, name=record_name, fields=FIELDS[table_name], connections=[connection_to])
+        data = get_commence_data(table=table_name, name=record_name, fields=table_name_enum.value,
+                                 connections=[connection_to])
     except Exception as e:
         raise ValueError(f"Error getting {table_name} data for {record_name}:\n{e}")
     else:
         return data
 
-#
-# def get_data_inv(record_name, table_name):
-#     connection_to = Connection(name="To", table='Customer', fields=INVOICE_FIELDS_CUST)
-#     try:
-#         data = get_commence_data(table=table_name, name=record_name, fields=eval(f'INVOICE_FIELDS_{table_name.upper()}'), connections=[connection_to])
-#     except Exception as e:
-#         raise ValueError(f"Error getting {table_name} data for {record_name}:\n{e}")
-#     else:
-#         return data
-#
 
 
 
@@ -96,7 +91,7 @@ def get_all_connected(conv, from_table, from_item, connection: Connection):
 
 def get_customer_sales(conv, customer_name):
     return get_all_connected(conv, 'Customer', customer_name,
-                             Connection(name='Involves', table='Sale', fields=FIELDS['Sale']))
+                             Connection(name='Involves', table='Sale', fields=Fields.SALE.value))
 
 
 def get_conversation():
@@ -127,5 +122,11 @@ def display_test_customer_agent():
     fire_commence_agent(agent_trigger='PYTHON_DDE', category='Customer', command='Test')
 
 
-sdgjohb = get_data_inv('Trampoline League - 27/06/2023 ref 31247', 'Hire')
-...
+def stuff():
+    hires_to = Connection(name="Has Hired", table='Hire', fields=Fields.HIRE.value)
+    sales_to = Connection(name="Involves", table='Sale', fields=Fields.SALE.value)
+    customer_data = get_commence_data(table="Customer", name="Test", fields=Fields.CUSTOMER.value,
+                                      connections=[hires_to, sales_to])
+    ...
+
+stuff()

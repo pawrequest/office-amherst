@@ -1,16 +1,18 @@
 from dataclasses import dataclass
 from decimal import Decimal
+from enum import Enum
 from pathlib import Path
 from typing import Iterable, List
 
-FIELDS = {
-    'Customer': [
+
+class Fields(Enum):
+    CUSTOMER = [
         "Contact Name",
         "Name",
         "Address",
         "Postcode",
-    ],
-    'Hire': [
+    ]
+    HIRE = [
         "Delivery Contact",
         "Delivery Name",
         "Delivery Address",
@@ -18,12 +20,11 @@ FIELDS = {
         "Number UHF",
         "Booked Date",
         'Name',
-    ],
-    'Sale': [
+    ]
+    SALE = [
         "Invoice Address",
         'Name',
-    ],
-}
+    ]
 
 
 @dataclass

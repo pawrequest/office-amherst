@@ -3,10 +3,8 @@ from decimal import Decimal
 import pytest
 
 from invoice.products import get_all_hire_products, get_all_sale_products
-from word.dde import get_commence_data, \
-    get_hire_data_inv, get_sale_data_inv
-from tmplt.entities import Connection, HirePrice, HireProduct, Price, SaleProduct
-from tmplt.fields import INVOICE_FIELDS_CUST, INVOICE_FIELDS_HIRE, INVOICE_FIELDS_SALE
+from word.dde import get_commence_data, get_hire_data_inv, get_sale_data_inv
+from tmplt.entities import Connection, HirePrice, HireProduct, Price, SaleProduct, Fields
 
 PRICES_WB = r'input_files/prices.xlsx'
 
@@ -28,23 +26,23 @@ def test_hire_products():
 
 
 def test_customer_data():
-    hires_to = Connection(name="Has Hired", table='Hire', fields=INVOICE_FIELDS_HIRE)
-    sales_to = Connection(name="Involves", table='Sale', fields=INVOICE_FIELDS_SALE)
-    customer_data = get_commence_data(table="Customer", name="Test", fields=INVOICE_FIELDS_CUST,
+    hires_to = Connection(name="Has Hired", table='Hire', fields=Fields.HIRE.value)
+    sales_to = Connection(name="Involves", table='Sale', fields=Fields.SALE.value)
+    customer_data = get_commence_data(table="Customer", name="Test", fields=Fields.CUSTOMER.value,
                                       connections=[hires_to, sales_to])
     assert all(field in customer_data['Customer'] for field in
-               INVOICE_FIELDS_CUST), f"Missing fields in customer_data['Customer']"
+               Fields.CUSTOMER.value), f"Missing fields in customer_data['Customer']"
     for hire_record in customer_data['Hire'].values():
         assert all(field in hire_record for field in
-                   INVOICE_FIELDS_HIRE), f"Missing fields in a Hire record"
+                   Fields.HIRE.value), f"Missing fields in a Hire record"
 
     for sale_record in customer_data['Sale'].values():
         assert all(field in sale_record for field in
-                   INVOICE_FIELDS_SALE), f"Missing fields in a Sale record"
+                   Fields.SALE.value), f"Missing fields in a Sale record"
 
 def test_wrong_customer_name():
     with pytest.raises(ValueError):
-        customer_data = get_commence_data(table="Customer", name="FAKENAME", fields=INVOICE_FIELDS_CUST)
+        customer_data = get_commence_data(table="Customer", name="FAKENAME", fields=Fields.CUSTOMER.value)
 
 def test_get_hire():
     some_hire_name = 'Trampoline League - 27/06/2023 ref 31247'

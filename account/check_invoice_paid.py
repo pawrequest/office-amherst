@@ -47,23 +47,21 @@ def get_data_from_excel(df:pd.DataFrame, id_data: str, id_header: str, value_hea
         print(f"No or multiple results found for {id_data}")
         input("Press enter to continue...")
     actual_data = row[value_header].iloc[0]
-    print(f"Value for {id_data} is {actual_data}")
-    input("Press enter to exit...")
+    return actual_data
 
-def check_p(df, id_data):
-    return get_data_from_excel(
-        df=df,
-        id_header="No.",
-        value_header="Status",
-        id_data=id_data
-    )
+
+def check_paid(df, id_data):
+    return get_data_from_excel(df=df, id_header="No.", value_header="Status", id_data=id_data)
 
 
 def main(args):
     if os.path.isfile(args.id_data):
         args.id_data = os.path.splitext(os.path.basename(args.id_data))[0]
     df = pd.read_excel(args.workbook, sheet_name='Sales', header=2)
-    check_p(df=df, id_data=args.id_data)
+    print (f"Checking {args.workbook} for {args.id_data}")
+    result = check_paid(df=df, id_data=args.id_data)
+    print(f"Value for {args.id_data} is {result}")
+    input("Press enter to exit...")
 
 
 if __name__ == '__main__':
@@ -73,5 +71,3 @@ if __name__ == '__main__':
     args = parser.parse_args()
     main(args)
 
-
-test_string = '--workbook R:\ACCOUNTS\ye2023\ac2223.xls --id_data "R:\ACCOUNTS\invoices\a24160.docx"'

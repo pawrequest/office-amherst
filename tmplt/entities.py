@@ -6,7 +6,7 @@ from typing import Iterable, List
 
 root = Path(__file__).parent.parent
 templates = root / 'tmplt'
-PRICES_WB = root / 'input_files' / 'prices.xlsx'
+PRICES_WB = root / 'tmplt' / 'prices.xlsx'
 
 
 
@@ -17,6 +17,9 @@ class Fields(Enum):
         "Name",
         "Address",
         "Postcode",
+        "Charity?",
+        "Discount Percentage",
+        "Email",
     ]
     HIRE = [
         "Delivery Contact",

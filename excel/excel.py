@@ -50,8 +50,10 @@ def write_excel(outfile: pathy, df: pd.DataFrame, sheet: str):
         return 0
 
 
+
 def check_data(df: pd.DataFrame, id_data: str | int, id_header: str, value_header: str,
                value_data: str | int | float) -> bool:
+    """ Returns True if value_data is in col value_header for row id_data."""
     row = df[df[id_header].astype(str) == str(id_data)]
     if len(row) != 1:
         raise ValueError()

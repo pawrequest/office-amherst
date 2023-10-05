@@ -14,8 +14,8 @@ invoice_nums = [r'R:\ACCOUNTS\invoices\a24301.docx']
 #     outfile=asset_output,
 #     sheet='Sheet1',
 #     header_i=2,
-#     col_with_name='Barcode',
-#     data_to_check=serial_numbers,
+#     id_header='Barcode',
+#     id_data=serial_numbers,
 #     data_insert="yes edited",
 #     value_header='REPROG'
 # )

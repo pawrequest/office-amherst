@@ -1,3 +1,4 @@
+from pprint import pprint
 from typing import Iterable
 
 import win32com.client
@@ -23,8 +24,6 @@ def get_commence_data(table, name, fields: Iterable[str], connections: Iterable[
     return results
 
 
-
-
 def get_data_generic(record_name, table_name):
     table_name_enum = Fields[table_name.upper()]
     connection_to = Connections.TO_CUSTOMER.value
@@ -38,12 +37,13 @@ def get_data_generic(record_name, table_name):
 
 
 def get_data(conv, fields: Iterable[str]):
-    try:
-        data = {field: conv.Request(f"[ViewField(1, {field})]") for field in fields}
-    except Exception as e:
-        raise ValueError(f"Error getting data: {e}")
-    else:
-        return data
+    data = {}
+    for field in fields:
+        try:
+            data[field] = conv.Request(f"[ViewField(1, {field})]")
+        except Exception as e:
+            raise ValueError(f"Error getting {field}: {e}")
+    return data
 
 
 def get_connected_data_limited(conv, connection: Connection, limit=1):
@@ -89,8 +89,6 @@ def get_record(conv, table, name):
     return conv
 
 
-
-
 def display_test_customer_agent():
     fire_commence_agent(agent_trigger='PYTHON_DDE', category='Customer', command='Test')
 
@@ -100,10 +98,10 @@ def stuff():
     sales_to = Connection(name="Involves", table='Sale', fields=Fields.SALE.value)
     customer_data = get_commence_data(table="Customer", name="Test", fields=Fields.CUSTOMER.value,
                                       connections=[hires_to, sales_to])
-    ...
+    return customer_data
 
-# stuff()
 
+pprint(stuff())
 
 # deprecated
 # def get_sale_data_inv(sale_name):

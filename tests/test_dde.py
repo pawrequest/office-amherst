@@ -4,9 +4,8 @@ import pytest
 
 from invoice.products import get_all_hire_products, get_all_sale_products
 from word.dde import get_commence_data, get_hire_data_inv, get_sale_data_inv
-from tmplt.entities import Connection, HirePrice, HireProduct, Price, SaleProduct, Fields
+from tmplt.entities import Connection, HirePrice, HireProduct, Price, SaleProduct, Fields, PRICES_WB
 
-PRICES_WB = r'input_files/prices.xlsx'
 
 
 def test_sales_products():

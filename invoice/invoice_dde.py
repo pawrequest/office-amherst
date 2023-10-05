@@ -2,7 +2,8 @@ from pathlib import Path
 
 from docxtpl import DocxTemplate
 
-from invoice.products import PRICES_WB, get_all_sale_products, get_all_hire_products, templates
+from invoice.products import get_all_sale_products, get_all_hire_products
+from tmplt.entities import PRICES_WB, templates
 
 doc = DocxTemplate(templates / 'invoice_tmplt.docx')
 ...

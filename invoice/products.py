@@ -1,35 +1,9 @@
-from dataclasses import dataclass
 from decimal import Decimal
-from pathlib import Path
-from typing import List, Literal
 
 import pandas as pd
 
 from excel.excel import pathy
-
-root = Path(__file__).parent.parent
-templates = root / 'tmplt'
-PRICES_WB = root / 'input_files' / 'prices.xlsx'
-
-@dataclass
-class Price:
-    price: Decimal
-    min_quantity: int
-
-
-@dataclass
-class ProductABC:
-    name: str
-    description: str
-
-
-@dataclass
-class SaleProduct(ProductABC):
-    prices: List[Price]
-
-    def get_price(self, quantity):
-        valid_prices = [p for p in self.prices if p.min_quantity <= quantity]
-        return min([p.price for p in valid_prices])
+from tmplt.entities import HirePrice, HireProduct, PRICES_WB, Price, SaleProduct
 
 
 def get_all_sale_products(products_wb: pathy):
@@ -41,30 +15,6 @@ def get_all_sale_products(products_wb: pathy):
     return {p.name: p for p in products}
 
 
-@dataclass
-class SaleLineItem:
-    product: SaleProduct
-    quantity: int
-
-    @property
-    def line_price(self):
-        return self.product.get_price(self.quantity) * self.quantity
-
-
-@dataclass
-class HirePrice(Price):
-    min_duration: int
-
-
-@dataclass
-class HireProduct(ProductABC):
-    prices: List[HirePrice]
-
-    def get_price(self, quantity, duration):
-        valid_prices = [p for p in self.prices if p.min_quantity <= quantity and p.min_duration <= duration]
-        actual_price = min([p.price for p in valid_prices])
-        return quantity * actual_price
-
 def get_all_hire_products(products_wb: pathy, ):
     df = pd.read_excel(products_wb, sheet_name='Hire', header=0)
     products = []
@@ -73,10 +23,5 @@ def get_all_hire_products(products_wb: pathy, ):
         products.append(HireProduct(product_name, product_description, prices))
     return {p.name: p for p in products}
 
-def stuff():
-    sales = get_all_sale_products(PRICES_WB)
-    hires = get_all_hire_products(PRICES_WB)
-    ...
-stuff()
 
 

@@ -1,39 +1,13 @@
-from dataclasses import dataclass
 from typing import Iterable
 
 import win32com.client
 
-INVOICE_FIELDS_HIRE = [
-    "Delivery Contact",
-    "Delivery Name",
-    "Delivery Address",
-    "Delivery Postcode",
-    "Number UHF",
-    "Booked Date",
-
-]
-INVOICE_FIELDS_CUST = [
-    "Contact Name",
-    "Name",
-    "Address",
-    "Postcode",
-]
-
-INVOICE_FIELDS_SALE = [
-    "Invoice Address",
-]
+from tmplt.entities import Connection, FIELDS
 
 
 def fire_commence_agent(agent_trigger, category, command):
     conv = get_conversation()
     conv.Execute(f"[FireTrigger({agent_trigger}, {category}, {command})]")
-
-
-@dataclass
-class Connection:
-    name: str
-    table: str
-    fields: Iterable[str]
 
 
 def get_commence_data(table, name, fields: Iterable[str], connections: Iterable[Connection] = None):
@@ -50,13 +24,51 @@ def get_commence_data(table, name, fields: Iterable[str], connections: Iterable[
 
 
 def get_sale_data_inv(sale_name):
-    sales_to = Connection(name="To", table='Customer', fields=INVOICE_FIELDS_CUST)
-    return get_commence_data(table="Sale", name=sale_name, fields=INVOICE_FIELDS_SALE, connections=[sales_to])
+    # sales_to = Connection(name="To", table='Customer', fields=INVOICE_FIELDS_CUST)
+    # return get_commence_data(table="Sale", name=sale_name, fields=INVOICE_FIELDS_SALE, connections=[sales_to])
+    sales_to = Connection(name="To", table='Customer', fields=FIELDS['Customer'])
+    return get_commence_data(table="Sale", name=sale_name, fields=FIELDS['Sale'], connections=[sales_to])
 
 
 def get_hire_data_inv(hire_name):
-    hires_to = Connection(name="To", table='Customer', fields=INVOICE_FIELDS_HIRE)
-    return get_commence_data(table="Hire", name=hire_name, fields=INVOICE_FIELDS_HIRE, connections=[hires_to])
+    hires_to = Connection(name="To", table='Customer', fields=FIELDS['Customer'])
+    try:
+        data = get_commence_data(table="Hire", name=hire_name, fields=FIELDS['Hire'], connections=[hires_to])
+    except Exception as e:
+        raise ValueError(f"Error getting hire data: for {hire_name}:\n{e}")
+    else:
+        return data
+#
+# def get_hire_data_inv(hire_name):
+#     hires_to = Connection(name="To", table='Customer', fields=INVOICE_FIELDS_CUST)
+#     try:
+#         data = get_commence_data(table="Hire", name=hire_name, fields=INVOICE_FIELDS_HIRE, connections=[hires_to])
+#     except Exception as e:
+#         raise ValueError(f"Error getting hire data: for {hire_name}:\n{e}")
+#     else:
+#         return data
+
+
+def get_data_inv(record_name, table_name):
+    connection_to = Connection(name="To", table='Customer', fields=FIELDS['Customer'])
+    try:
+        data = get_commence_data(table=table_name, name=record_name, fields=FIELDS[table_name], connections=[connection_to])
+    except Exception as e:
+        raise ValueError(f"Error getting {table_name} data for {record_name}:\n{e}")
+    else:
+        return data
+
+#
+# def get_data_inv(record_name, table_name):
+#     connection_to = Connection(name="To", table='Customer', fields=INVOICE_FIELDS_CUST)
+#     try:
+#         data = get_commence_data(table=table_name, name=record_name, fields=eval(f'INVOICE_FIELDS_{table_name.upper()}'), connections=[connection_to])
+#     except Exception as e:
+#         raise ValueError(f"Error getting {table_name} data for {record_name}:\n{e}")
+#     else:
+#         return data
+#
+
 
 
 def get_connected_data_limited(conv, connection: Connection, limit=1):
@@ -66,10 +78,12 @@ def get_connected_data_limited(conv, connection: Connection, limit=1):
     return connected_data
 
 
-def get_all_connected(conv, from_table, from_item, connection:Connection):
-    connected_names = conv.Request(f"[GetConnectedItemNames({from_table}, {from_item}, {connection.name}, {connection.table}, ;)]")
+def get_all_connected(conv, from_table, from_item, connection: Connection):
+    connected_names = conv.Request(
+        f"[GetConnectedItemNames({from_table}, {from_item}, {connection.name}, {connection.table}, ;)]")
     if not connected_names or connected_names == '(none)':
-        raise ValueError(f'{from_table}:  {from_item} has no connected items  "{connection.name}" in {connection.table}')
+        raise ValueError(
+            f'{from_table}:  {from_item} has no connected items  "{connection.name}" in {connection.table}')
     cons = connected_names.split(';')
     results = {}
     for c_name in cons:
@@ -79,8 +93,10 @@ def get_all_connected(conv, from_table, from_item, connection:Connection):
         results[c_name] = connected_data
     return results
 
+
 def get_customer_sales(conv, customer_name):
-    return get_all_connected(conv, 'Customer', customer_name, Connection(name='Involves', table='Sale', fields=INVOICE_FIELDS_SALE))
+    return get_all_connected(conv, 'Customer', customer_name,
+                             Connection(name='Involves', table='Sale', fields=FIELDS['Sale']))
 
 
 def get_conversation():
@@ -107,19 +123,9 @@ def get_data(conv, fields: Iterable[str]):
         return data
 
 
-def do_cmc():
-    hires_to = Connection(name="Has Hired", table='Hire', fields=INVOICE_FIELDS_HIRE)
-    sales_to = Connection(name="Involves", table='Sale', fields=INVOICE_FIELDS_SALE)
-    customer_data = get_commence_data(table="Customer", name="Test", fields=INVOICE_FIELDS_CUST, connections=[hires_to, sales_to])
-    some_sale_name = 'Truckline Services - 26/10/2022 ref 11'
-    some_data = get_sale_data_inv(some_sale_name)
-    ...
-    ...
-
-
 def display_test_customer_agent():
     fire_commence_agent(agent_trigger='PYTHON_DDE', category='Customer', command='Test')
 
 
-
-do_cmc()
+sdgjohb = get_data_inv('Trampoline League - 27/06/2023 ref 31247', 'Hire')
+...

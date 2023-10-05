@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 
-from invoice.products import ProductABC, Price
+from tmplt.entities import Price, ProductABC
 
 
 @dataclass

@@ -4,6 +4,10 @@ from enum import Enum
 from pathlib import Path
 from typing import Iterable, List
 
+root = Path(__file__).parent.parent
+templates = root / 'tmplt'
+PRICES_WB = root / 'input_files' / 'prices.xlsx'
+
 
 class Fields(Enum):
     CUSTOMER = [
@@ -32,11 +36,6 @@ class Connection:
     name: str
     table: str
     fields: Iterable[str]
-
-
-root = Path(__file__).parent.parent
-templates = root / 'tmplt'
-PRICES_WB = root / 'input_files' / 'prices.xlsx'
 
 
 @dataclass

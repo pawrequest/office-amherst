@@ -1,11 +1,15 @@
 from dataclasses import dataclass
 from decimal import Decimal
+from pathlib import Path
 from typing import List, Literal
 
 import pandas as pd
 
 from excel.excel import pathy
 
+root = Path(__file__).parent.parent
+templates = root / 'tmplt'
+PRICES_WB = root / 'input_files' / 'prices.xlsx'
 
 @dataclass
 class Price:
@@ -68,4 +72,11 @@ def get_all_hire_products(products_wb: pathy, ):
         prices = [HirePrice(Decimal(str(row['Price'])), row['Min qty'], row['Min Duration']) for index, row in product_group.iterrows()]
         products.append(HireProduct(product_name, product_description, prices))
     return {p.name: p for p in products}
+
+def stuff():
+    sales = get_all_sale_products(PRICES_WB)
+    hires = get_all_hire_products(PRICES_WB)
+    ...
+stuff()
+
 

@@ -1,15 +1,15 @@
+from pathlib import Path
+
 from docxtpl import DocxTemplate
 
-from invoice.products import get_all_sale_products, get_all_hire_products
-from word.dde import get_hire_data_inv
+from invoice.products import PRICES_WB, get_all_sale_products, get_all_hire_products, templates
 
-doc = DocxTemplate(r"C:\paul\office_am\tmplt\hire_inv_tmplt.docx")
-
-PRICES_WB = r'C:\paul\office_am\input_files\prices.xlsx'
+doc = DocxTemplate(templates / 'invoice_tmplt.docx')
+...
 SALES_PRODUCTS = get_all_sale_products(PRICES_WB)
 HIRE_PRODUCTS = get_all_hire_products(PRICES_WB)
 
-
+...
 
 
 

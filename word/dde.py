@@ -36,7 +36,7 @@ class Connection:
     fields: Iterable[str]
 
 
-def commence_data(table, name, fields: Iterable[str], connections: Iterable[Connection] = None):
+def get_commence_data(table, name, fields: Iterable[str], connections: Iterable[Connection] = None):
     results = {}
     conv = get_conversation()
     conv = get_record(conv, table, name)
@@ -51,12 +51,12 @@ def commence_data(table, name, fields: Iterable[str], connections: Iterable[Conn
 
 def get_sale_data_inv(sale_name):
     sales_to = Connection(name="To", table='Customer', fields=INVOICE_FIELDS_CUST)
-    return commence_data(table="Sale", name=sale_name, fields=INVOICE_FIELDS_SALE, connections=[sales_to])
+    return get_commence_data(table="Sale", name=sale_name, fields=INVOICE_FIELDS_SALE, connections=[sales_to])
 
 
 def get_hire_data_inv(hire_name):
     hires_to = Connection(name="To", table='Customer', fields=INVOICE_FIELDS_HIRE)
-    return commence_data(table="Hire", name=hire_name, fields=INVOICE_FIELDS_HIRE, connections=[hires_to])
+    return get_commence_data(table="Hire", name=hire_name, fields=INVOICE_FIELDS_HIRE, connections=[hires_to])
 
 
 def get_connected_data_limited(conv, connection: Connection, limit=1):
@@ -68,6 +68,8 @@ def get_connected_data_limited(conv, connection: Connection, limit=1):
 
 def get_all_connected(conv, from_table, from_item, connection:Connection):
     connected_names = conv.Request(f"[GetConnectedItemNames({from_table}, {from_item}, {connection.name}, {connection.table}, ;)]")
+    if not connected_names or connected_names == '(none)':
+        raise ValueError(f'{from_table}:  {from_item} has no connected items  "{connection.name}" in {connection.table}')
     cons = connected_names.split(';')
     results = {}
     for c_name in cons:
@@ -92,19 +94,24 @@ def get_record(conv, table, name):
     conv.Request(f"[ViewFilter(1, F,,Name, Equal to, {name},)]")
     item_count = conv.Request("[ViewItemCount]")
     if int(item_count) != 1:
-        raise ValueError(f"{item_count} entries found")
+        raise ValueError(f"{item_count} entries found for {table} : {name}")
     return conv
 
 
 def get_data(conv, fields: Iterable[str]):
-    return {field: conv.Request(f"[ViewField(1, {field})]") for field in fields}
+    try:
+        data = {field: conv.Request(f"[ViewField(1, {field})]") for field in fields}
+    except Exception as e:
+        raise ValueError(f"Error getting data: {e}")
+    else:
+        return data
 
 
 def do_cmc():
     hires_to = Connection(name="Has Hired", table='Hire', fields=INVOICE_FIELDS_HIRE)
     sales_to = Connection(name="Involves", table='Sale', fields=INVOICE_FIELDS_SALE)
-    customer_data = commence_data(table="Customer", name="Test", fields=INVOICE_FIELDS_CUST, connections=[hires_to, sales_to])
-    some_sale_name = 'Woodlands Primary School - 03/10/2023 ref 361'
+    customer_data = get_commence_data(table="Customer", name="Test", fields=INVOICE_FIELDS_CUST, connections=[hires_to, sales_to])
+    some_sale_name = 'Truckline Services - 26/10/2022 ref 11'
     some_data = get_sale_data_inv(some_sale_name)
     ...
     ...
@@ -112,6 +119,7 @@ def do_cmc():
 
 def display_test_customer_agent():
     fire_commence_agent(agent_trigger='PYTHON_DDE', category='Customer', command='Test')
+
 
 
 do_cmc()

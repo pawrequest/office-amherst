@@ -37,6 +37,13 @@ def get_data_generic(record_name, table_name):
         return data
 
 
+def get_data(conv, fields: Iterable[str]):
+    try:
+        data = {field: conv.Request(f"[ViewField(1, {field})]") for field in fields}
+    except Exception as e:
+        raise ValueError(f"Error getting data: {e}")
+    else:
+        return data
 
 
 def get_connected_data_limited(conv, connection: Connection, limit=1):
@@ -82,13 +89,6 @@ def get_record(conv, table, name):
     return conv
 
 
-def get_data(conv, fields: Iterable[str]):
-    try:
-        data = {field: conv.Request(f"[ViewField(1, {field})]") for field in fields}
-    except Exception as e:
-        raise ValueError(f"Error getting data: {e}")
-    else:
-        return data
 
 
 def display_test_customer_agent():

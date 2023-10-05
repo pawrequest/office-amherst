@@ -19,6 +19,10 @@ def hire_name():
 def sale_name():
     return 'Truckline Services - 26/10/2022 ref 11'
 
+@pytest.fixture
+def customer_name():
+    return 'Test'
+
 def test_get_conv():
     conv = get_conversation()
     assert conv is not None
@@ -40,10 +44,10 @@ def test_hire_products():
         assert isinstance(p.get_price(1, 1), Decimal)
 
 
-def test_customer_data():
+def test_customer_data(customer_name):
     hires_to = Connections.CUSTOMER_HIRES.value
     sales_to = Connections.CUSTOMER_SALES.value
-    customer_data = get_commence_data(table="Customer", name="Test", fields=Fields.CUSTOMER.value,
+    customer_data = get_commence_data(table="Customer", name=customer_name, fields=Fields.CUSTOMER.value,
                                       connections=[hires_to, sales_to])
     assert all(field in customer_data['Customer'] for field in Fields.CUSTOMER.value)
     for hire_record in customer_data['Hire'].values():
@@ -62,7 +66,6 @@ def test_get_hire():
     assert some_hire['Hire']['Name'] == some_hire_name
 
 def test_get_sale(sale_name):
-    # some_sale_name = 'Truckline Services - 26/10/2022 ref 11'
     some_sale = get_data_generic(sale_name, 'Sale')
     assert some_sale['Sale']['Name'] == sale_name
 
@@ -79,7 +82,6 @@ def test_get_wrong_hire_name():
         some_hire_name = 'FAKE HIRE NAME'
         some_hire = get_data_generic(some_hire_name, 'Hire')
 
-def test_get_customer_sales(conv):
-    sales = get_customer_sales(conv=conv, customer_name='Test')
-
+def test_get_customer_sales(conv, customer_name):
+    sales = get_customer_sales(conv=conv, customer_name=customer_name)
     assert sales

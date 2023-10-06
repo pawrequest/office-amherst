@@ -19,6 +19,21 @@ DFLT_DATA_HEADER = 'REPROG'
 DFLT_EXPECTED_VALUE = 'Y'
 
 
+
+class AssetManager:
+    def __init__(self, workbook, sheet, header_row):
+        self.workbook = workbook
+        self.sheet = sheet
+        self.header_row = header_row
+        self.df = pd.read_excel(workbook, sheet_name='Sales', header=header_row)
+
+    def set_progged(self, id_to_handle, value_header, data_header, value, output_file=DFLT_OUTPUT_FILE):
+        set_data(self.df, id_data=id_to_handle, id_header=value_header, value_header=data_header, value_data=value)
+        self.df.to_excel(output_file, index=False)
+        print("Excel sheet successfully updated.")
+        return True
+
+
 def get_excel(in_file=DFLT_INPUT_FILE, sheet=DFLT_SHEET_NAME, headers=DFLT_HEADER_ROW):
     return pd.read_excel(in_file, sheet_name=sheet, header=headers)
 
@@ -50,8 +65,12 @@ def set_progged(df, id_to_handle, value_header, data_header, value, output_file=
     return True
 
 
-def set_fw_updated(df, id_data):
-    set_data(df, id_data=id_data, id_header=value_header, value_header=data_header, value_data=value)
+def battery_test():
+    ...
+
+#
+# def set_fw_updated(df, id_data):
+#     set_data(df, id_data=id_data, id_header=value_header, value_header=data_header, value_data=value)
 
 def check_progged(df, id_to_check, col_to_check, data_header, value):
     return check_data(df, id_data=id_to_check, id_header=col_to_check, value_header=data_header,

@@ -3,7 +3,8 @@ from typing import Iterable
 
 import win32com.client
 
-from tmplt.entities import Connection, Connections, Fields
+from invoice.products import get_all_hire_products
+from tmplt.entities import Connection, Connections, Fields, PRICES_WB, HireProduct
 
 
 def fire_commence_agent(agent_trigger, category, command):
@@ -14,8 +15,8 @@ def fire_commence_agent(agent_trigger, category, command):
 def get_commence_data(table, name, fields: Iterable[str], connections: Iterable[Connection] = None):
     results = {}
     conv = get_conversation()
-    conv = get_record(conv, table, name)
-    results[table] = get_data(conv, fields)
+    record = get_record(conv, table, name)
+    results[table] = get_data(record, fields)
     if not connections:
         return results
     for connection in connections:
@@ -34,6 +35,18 @@ def get_data_generic(record_name, table_name):
         raise ValueError(f"Error getting {table_name} data for {record_name}:\n{e}")
     else:
         return data
+
+
+def get_all_fields(conv_record, table):
+    fields = conv_record.Request(f"[GetFieldNames({table}, ;)]")
+    field_list = fields.split(';')
+    return field_list
+
+
+def get_all_field_values(conv_record, table, fields):
+    get_all_fields(conv_record, table)
+    values = conv_record.Request(f"[GetFieldValues({table}, {fields}, ;)]")
+    return values
 
 
 def get_data(conv, fields: Iterable[str]):
@@ -98,23 +111,37 @@ def stuff():
     sales_to = Connection(name="Involves", table='Sale', fields=Fields.SALE.value)
     customer_data = get_commence_data(table="Customer", name="Test", fields=Fields.CUSTOMER.value,
                                       connections=[hires_to, sales_to])
+    ahire = get_data_generic('Test - 16/08/2023 ref 31619', 'Hire')['Hire']
     return customer_data
 
+def items_from_hire(hire_name):
+    conv = get_conversation()
+    record = get_record(conv, 'Hire', hire_name)
+    fields = get_all_fields(conv, 'Hire')
+    # field_values = get_all_field_values(record, 'Hire', fields)
+    data = get_data(record, fields)
+    order_items = {i[7:]: n for i, n in data.items() if i.startswith('Number ') and int(n) > 0}
+    return order_items
 
-pprint(stuff())
 
-# deprecated
-# def get_sale_data_inv(sale_name):
-#     sales_to = Connections.TO_CUSTOMER.value
-#     return get_commence_data(table="Sale", name=sale_name, fields=Fields.SALE.value, connections=[sales_to])
+def match_hire_products(hire_items, products):
+    matched_products = {k: products[k] for k in hire_items if k in products}
+    return matched_products
+
+
+
+# hire_items = items_from_hire('Test - 16/08/2023 ref 31619')
+# products = get_all_hire_products(PRICES_WB)
+# matched_products = match_hire_products(hire_items, products)
+# a_product = list(matched_products.values())[0]
+# a_price = a_product.get_price(1, 1)
+
 #
-#
-# def get_hire_data_inv(hire_name):
-#     hires_to = Connections.TO_CUSTOMER.value
-#     try:
-#         data = get_commence_data(table="Hire", name=hire_name, fields=Fields.HIRE.value, connections=[hires_to])
-#     except Exception as e:
-#         raise ValueError(f"Error getting hire data: for {hire_name}:\n{e}")
-#     else:
-#         return data
-#
+# hire_items = products_from_hire('Test - 16/08/2023 ref 31619')
+# products = get_all_hire_products(PRICES_WB)
+
+...
+
+
+
+

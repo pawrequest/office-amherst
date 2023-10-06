@@ -69,3 +69,18 @@ def set_data(df: pd.DataFrame, id_data: str | int, id_header: str, value_header:
         raise ValueError()
     df.at[index_to_set[0], value_header] = value_data
     return True
+
+
+def get_data_from_excel(df:pd.DataFrame, id_data: str, id_header: str, value_header: str):
+    """ Returns True if value_data is in col value_header for row id_data.
+    :param df: DataFrame to search
+    :param id_data: Data to search for
+    :param id_header: Header for id of record to search
+    :param value_header: Column name for data to return
+    """
+    row = df[df[id_header].str.upper() == id_data.upper()]
+    if len(row) != 1:
+        print(f"No or multiple results found for {id_data}")
+        input("Press enter to continue...")
+    actual_data = row[value_header].iloc[0]
+    return actual_data

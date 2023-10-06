@@ -9,8 +9,6 @@ templates = root / 'tmplt'
 PRICES_WB = root / 'tmplt' / 'prices.xlsx'
 
 
-
-
 class Fields(Enum):
     CUSTOMER = [
         "Contact Name",
@@ -87,6 +85,7 @@ class HireProduct(ProductABC):
         valid_prices = [p for p in self.prices if p.min_quantity <= quantity and p.min_duration <= duration]
         actual_price = min([p.price for p in valid_prices])
         return quantity * actual_price
+
 
 class Connections(Enum):
     CUSTOMER_SALES = Connection(name="Has Hired", table='Hire', fields=Fields.HIRE.value)

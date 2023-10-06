@@ -1,0 +1,22 @@
+02/08/2023 15:07:32 -> USB:2(1.0) PD705 R204170793 Upgrading Finished!
+02/08/2023 15:31:18 -> USB:2(1.0) PD705 R204170791 Upgrading Finished!
+02/08/2023 15:31:44 -> USB:1   Automatic download mode failure, please manually enter the download mode.
+02/08/2023 15:32:05 -> USB:1   Automatic download mode failure, please manually enter the download mode.
+02/08/2023 15:51:15 -> USB:2(1.0) PD705 R204170794 Writing data error! RCDB data is already saved to file, from which you can restore your data when necessary.
+02/08/2023 15:51:15 -> USB:2(1.0) PD705 R204170794 Recv data error[cps_data]!
+02/08/2023 16:15:10 -> USB:2(1.0) PD705 R204170794 Upgrading Finished!
+11/08/2023 17:10:36 -> USB:2(1.0) PD705 R204170792 Upgrading Finished!
+11/08/2023 17:40:08 -> USB:2(1.0) PD705 R204170795 Upgrading Finished!
+11/08/2023 17:40:20 -> USB:1   Automatic download mode failure, please manually enter the download mode.
+11/08/2023 17:40:50 -> USB:1   Automatic download mode failure, please manually enter the download mode.
+11/08/2023 17:47:29 -> USB:1   Automatic download mode failure, please manually enter the download mode.
+31/08/2023 16:09:44 -> USB:1(1.0) PD705 R208220305 Upgrading Finished!
+31/08/2023 16:48:50 -> USB:1(1.0) PD705 R217130550 Upgrading Finished!
+31/08/2023 17:28:52 -> USB:1(1.0) PD705 R158270343 Upgrading Finished!
+20/09/2023 15:42:59 -> USB:1(1.0) PD785 R15O260320 Upgrading Finished!
+20/09/2023 16:32:07 -> USB:1(1.0) PD785 R15O260313 Upgrading Finished!
+21/09/2023 18:07:33 -> USB:1(1.0) PD785 R15O260319 Upgrading Finished!
+21/09/2023 18:19:17 -> USB:1(1.0) PD705 R158270308 Upgrading Finished!
+21/09/2023 18:40:47 -> USB:1(1.0) PD705 R158270211 Upgrading Finished!
+21/09/2023 19:00:17 -> USB:1(1.0) PD705 R158270217 Upgrading Finished!
+03/10/2023 16:52:08 -> USB:2(1.0) PD705 R155080834 Upgrading Finished!

@@ -94,12 +94,16 @@ def get_conversation():
 
 
 def get_record(conv, table, name):
-    conv.Request(f"[ViewCategory({table})]")
+    get_table(conv, table)
     conv.Request(f"[ViewFilter(1, F,,Name, Equal to, {name},)]")
     item_count = conv.Request("[ViewItemCount]")
     if int(item_count) != 1:
         raise ValueError(f"{item_count} entries found for {table} : {name}")
     return conv
+
+
+def get_table(conv, table):
+    conv.Request(f"[ViewCategory({table})]")
 
 
 def display_test_customer_agent():

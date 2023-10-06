@@ -1,6 +1,6 @@
 import pytest
 
-from asset_nums.assets import handle_id, check_progged
+from assets.assets import handle_id, check_progged
 
 
 def test_handle_id_with_valid_id():

@@ -18,39 +18,6 @@ def id_exception_handler(func):
     return wrapper
 
 
-# def id_exception_handler(func):
-#     def wrapper(self, *args, **kwargs):
-#         try:
-#             return func(self, *args, **kwargs)
-#         except (SerialNotFound, IDNotFound) as e:
-#             user_input = input(f"{str(e)} Enter new value, or 's' to skip: ")
-#             if user_input.lower() == 's':
-#                 return None  # or whatever value is appropriate to signify a skip
-#             # Replace the first argument (the ID or serial) with the new user input:
-#             args = (user_input,) + args[1:]
-#             # Re-call func with the updated arguments and the same keyword arguments:
-#             return func(self, *args, **kwargs)
-#
-#     return wrapper
-
-
-#
-# class SerialNotFound(Exception):
-#     def __init__(self, radio_id):
-#         self.radio_id = radio_id
-#
-#     def __str__(self):
-#         return f"No serial number found for ID {self.radio_id}"
-# class IDNotFound(Exception):
-#     def __init__(self, id_values):
-#         self.id_values = id_values
-#
-#     def __str__(self):
-#         if self.id_values.size == 0:
-#             return "No ID found for the given serial."
-#         else:
-#             return f"Multiple IDs found for the given serial: {', '.join(map(str, self.id_values))}"
-
 
 class NotFoundException(Exception):
     def __init__(self, value, found_values):
@@ -70,3 +37,14 @@ class IDNotFound(NotFoundException):
         if self.found_values.size == 0 or pd.isna(self.found_values[0]):
             return f"No ID found for serial {self.value}"
         return f"Multiple IDs found for serial {self.value}: {', '.join(map(str, self.found_values))}"
+
+#
+# def convert(df, value, key_column, result_column, exception_class=NotFoundException, replacement_value=None):
+#     if replacement_value is not None:
+#         return replacement_value
+#     result_values = get_matching(df=df, key_column=key_column, result_column=result_column, value=value)
+#     if result_values.size == 0 or pd.isna(result_values[0]):
+#         raise exception_class(value, result_values)
+#     if result_values.size != 1:
+#         raise exception_class(value, result_values)
+#     return result_values[0]

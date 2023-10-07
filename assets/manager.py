@@ -4,9 +4,38 @@ from pathlib import Path
 
 import pandas as pd
 from openpyxl.reader.excel import load_workbook
+from openpyxl.utils.dataframe import dataframe_to_rows
 
 from excel.excel import check_data, set_data
-from exceptions import IDNotFound, SerialNotFound, id_exception_handler
+from exceptions import id_exception_handler
+
+
+def _an_id(id_or_serial):
+    return len(id_or_serial) == 4
+
+
+@dataclass
+class Identity:
+    def __init__(self, df, id_or_serial=None):
+        self.df = df
+        if id_or_serial is None:
+            raise ValueError("Must provide either ID or serial number.")
+        self.id_number = self._get_id(id_or_serial)
+        self.serial_number = self._get_serial(id_or_serial)
+
+    @id_exception_handler
+    def _id_to_serial(self, radio_id):
+        return convert(df=self.df, value=radio_id, key_column=DFLT.ID.value, result_column=DFLT.SERIAL.value)
+
+    @id_exception_handler
+    def _serial_to_id(self, serial):
+        return convert(df=self.df, value=serial, key_column=DFLT.SERIAL.value, result_column=DFLT.ID.value)
+
+    def _get_id(self, id_or_serial):
+        return id_or_serial if _an_id(id_or_serial) else self._serial_to_id(id_or_serial)
+
+    def _get_serial(self, id_or_serial):
+        return id_or_serial if not _an_id(id_or_serial) else self._id_to_serial(id_or_serial)
 
 
 class DFLT(Enum):
@@ -20,98 +49,47 @@ class DFLT(Enum):
     HEAD = 2
 
 
-def get_user_input():
-    res = input("Enter ID or serial number\n")
-    return res
+def get_matching(df, key_column, result_column, value):
+    result_values = df.loc[df[key_column].astype(str) == value, result_column].values
+    return result_values
 
 
-@dataclass
-class Identity:
-    def __init__(self, df, id_or_serial=None, serial_or_id=None):
-        self.df = df
-        if id_or_serial is None and serial_or_id is None:
-            raise ValueError("Must provide either ID or serial number.")
-        if id_or_serial:
-            self.id_number = self._get_id(id_or_serial)
-            self.serial_number = self._get_serial(id_or_serial)
-        if serial_or_id:
-            self.id_number = self._get_id(serial_or_id)
-            self.serial_number = self._get_serial(serial_or_id)
+def convert(df, value, key_column, result_column):
+    result_values = get_matching(df=df, key_column=key_column, result_column=result_column, value=value)
+    if result_values.size == 0 or pd.isna(result_values[0]):
+        replacement_value = input(f"No result found for {value}. Enter new value: ")
+        if replacement_value:
+            df.loc[df[key_column].astype(str) == value, result_column] = replacement_value
+            return replacement_value  # return the new value
+        raise ValueError(f"No result found for {value}")
+    if result_values.size != 1:
+        raise ValueError(f"Multiple results found for {value}: {', '.join(map(str, result_values))}")
+    return result_values[0]
 
-    def id_and_serial(self, id_or_serial):
-        return self._get_id(id_or_serial), self._get_serial(id_or_serial)
-
-
-
-    def _convert(self, value, key_column, result_column, exception_class, replacement_value=None):
-        if replacement_value is not None:
-            return replacement_value  # Use the provided replacement value instead of looking it up
-        result_values = self.df.loc[self.df[key_column].astype(str) == value, result_column].values
-        if result_values.size == 0 or pd.isna(result_values[0]):
-            raise exception_class(value, result_values)
-        if result_values.size != 1:
-            raise exception_class(value, result_values)
-        return result_values[0]
-
-    @id_exception_handler
-    def _id_to_serial(self, radio_id, replacement_value=None):
-        return self._convert(radio_id, DFLT.ID.value, DFLT.SERIAL.value, SerialNotFound, replacement_value)
-
-    @id_exception_handler
-    def _serial_to_id(self, serial, replacement_value=None):
-        return self._convert(serial, DFLT.SERIAL.value, DFLT.ID.value, IDNotFound, replacement_value)
-
-    def _get_id(self, id_or_serial):
-        return id_or_serial if self._an_id(id_or_serial) else self._serial_to_id(id_or_serial)
-
-    def _get_serial(self, id_or_serial):
-        return id_or_serial if not self._an_id(id_or_serial) else self._id_to_serial(id_or_serial)
-
-    def _an_id(self, input):
-        return len(input) == 4
-
-
-class AssetManagerContextOLD:
-    def __init__(self, workbook=DFLT.WB.value, sheet=DFLT.SHEET.value, header_row=int(DFLT.HEAD.value), out_file=None):
-        self.out_file = out_file or workbook
-        self.workbook = workbook
-        self.sheet = sheet
-        self.header_row = header_row
-        self.df = pd.read_excel(self.workbook, sheet_name=self.sheet, header=self.header_row)
-
-    def __enter__(self):
-        self.asset_manager = AssetManager(self.df)
-        return self.asset_manager
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.asset_manager.df.to_excel(self.out_file, index=False)
 
 class AssetManagerContext:
     def __init__(self, workbook=DFLT.WB.value, sheet=DFLT.SHEET.value, header_row=int(DFLT.HEAD.value), out_file=None):
         self.out_file = out_file or workbook
-        self.workbook_path = workbook
-        self.sheet_name = sheet
+        self.wb = load_workbook(workbook)
+        self.ws = self.wb[sheet]
         self.header_row = header_row
+        self.df = pd.read_excel(workbook, sheet_name=sheet, header=header_row)
 
     def __enter__(self):
-        # Load the workbook and sheet
-        self.wb = load_workbook(self.workbook_path)
-        self.ws = self.wb[self.sheet_name]
-
-        # Use pandas.read_excel on the openpyxl worksheet object
-        self.df = pd.read_excel(self.workbook_path, sheet_name=self.sheet_name, header=self.header_row)
-
         self.asset_manager = AssetManager(self.df)
         return self.asset_manager
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        # Write the DataFrame back to the sheet
-        for r_idx, row in enumerate(self.df.values, self.header_row + 1):
-            for c_idx, value in enumerate(row, 1):
-                self.ws.cell(row=r_idx, column=c_idx, value=value)
+        rows = dataframe_to_rows(self.asset_manager.df, index=False, header=True)
+        df_to_wb(wb=self.wb, ws=self.ws, rows=rows, header_row=self.header_row, out_file=self.out_file)
 
-        # Save the workbook
-        self.wb.save(self.out_file)
+
+def df_to_wb(wb, ws, rows, header_row, out_file):
+    for r_idx, row in enumerate(rows, 1):
+        for c_idx, value in enumerate(row, 1):
+            ws.cell(row=r_idx + header_row, column=c_idx, value=value)
+    wb.save(out_file)
+
 
 class AssetManager:
 
@@ -199,3 +177,22 @@ class AssetManager:
 #     serial: str
 #     id: str
 #     fw: str
+
+
+# class AssetManagerContextOLD:
+#     def __init__(self, workbook=DFLT.WB.value, sheet=DFLT.SHEET.value, header_row=int(DFLT.HEAD.value), out_file=None):
+#         self.out_file = out_file or workbook
+#         self.workbook = workbook
+#         self.sheet = sheet
+#         self.header_row = header_row
+#         self.df = pd.read_excel(self.workbook, sheet_name=self.sheet, header=self.header_row)
+#
+#     def __enter__(self):
+#         # shutil.copyfile(self.workbook, self.out_file)
+#
+#         self.asset_manager = AssetManager(self.df)
+#         return self.asset_manager
+#
+#     def __exit__(self, exc_type, exc_val, exc_tb):
+#         self.asset_manager.df.to_excel(self.out_file, header=False, index=False, startrow=self.header_row + 1)
+#

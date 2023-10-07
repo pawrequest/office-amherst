@@ -11,10 +11,5 @@ from assets.manager import AssetManagerContext, DFLT, Identity
 ...
 #
 with AssetManagerContext(out_file=DFLT.OUTPUT.value) as am:
-    radio3 = Identity(am.df, id_or_serial='3333')
-
-    ...
-
-#
-# AMC = AssetManagerContext2(out_file=DFLT.OUTPUT.value)
-# ...
+    while True:
+        radio = Identity(am.df, id_or_serial=input("Enter ID or Serial: "))

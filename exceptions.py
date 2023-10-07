@@ -1,4 +1,6 @@
 # todo handle!!
+from functools import wraps
+
 import pandas as pd
 
 def get_user_input(prompt):
@@ -6,15 +8,10 @@ def get_user_input(prompt):
 
 
 def id_exception_handler(func):
-    def wrapper(self, *args, **kwargs):
-        while True:
-            try:
-                return func(self, *args, **kwargs)
-            except (SerialNotFound, IDNotFound) as e:
-                user_input = get_user_input(f"{str(e)} Enter new value, or 's' to skip: ")
-                if user_input.lower() == 's':
-                    return None
-                kwargs['replacement_value'] = user_input  # Provide the replacement_value for the next attempt
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        func(*args, **kwargs)
+    wrapper: func
     return wrapper
 
 

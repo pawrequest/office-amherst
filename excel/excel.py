@@ -3,6 +3,8 @@ import os
 from typing import Union, Iterable
 
 import pandas as pd
+from openpyxl import load_workbook
+from openpyxl.utils.dataframe import dataframe_to_rows
 
 pathy = Union[str, os.PathLike]
 
@@ -84,3 +86,31 @@ def get_data_from_excel(df:pd.DataFrame, id_data: str, id_header: str, value_hea
         input("Press enter to continue...")
     actual_data = row[value_header].iloc[0]
     return actual_data
+
+
+def get_matching(df, key_column, result_column, value):
+    result_values = df.loc[df[key_column].astype(str) == value, result_column].values
+    return result_values
+
+
+def convert(df, value, key_column, result_column):
+    result_values = get_matching(df=df, key_column=key_column, result_column=result_column, value=value)
+    if result_values.size == 0 or pd.isna(result_values[0]):
+        replacement_value = input(f"No result found for {value}. Enter new value: ")
+        if replacement_value:
+            df.loc[df[key_column].astype(str) == value, result_column] = replacement_value
+            return replacement_value  # return the new value
+        raise ValueError(f"No result found for {value}")
+    if result_values.size != 1:
+        raise ValueError(f"Multiple results found for {value}: {', '.join(map(str, result_values))}")
+    return result_values[0]
+
+
+def df_to_wb(workbook, sheet, df, header_row, out_file):
+    wb = load_workbook(workbook)
+    ws = wb[sheet]
+    rows = dataframe_to_rows(df, index=False, header=True)
+    for r_idx, row in enumerate(rows, 1):
+        for c_idx, value in enumerate(row, 1):
+            ws.cell(row=r_idx + header_row, column=c_idx, value=value)
+    wb.save(out_file)

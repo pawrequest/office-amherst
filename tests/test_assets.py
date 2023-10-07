@@ -3,9 +3,7 @@ import shutil
 import openpyxl
 import pandas as pd
 
-from assets.manager import AssetManagerContextOLD
-from assets.entities import DFLT
-from assets.identity import Identity
+from assets.manager import AssetManagerContext, DFLT, Identity
 
 
 # from assets.manager import handle_id, check_progged
@@ -52,13 +50,18 @@ def get_first_three_rows(filename):
 
 
 def test_context_manager():
-    with AssetManagerContextOLD(out_file=DFLT.OUTPUT.value) as am:
+    with AssetManagerContext(out_file=DFLT.OUTPUT.value) as am:
         df = am.df
     assert isinstance(df, pd.DataFrame)
 
 
 def test_identity():
-    with AssetManagerContextOLD(out_file=DFLT.OUTPUT.value) as am:
-        # with AssetManagerContext(out_file=DFLT.OUTPUT.value) as am:
+    with AssetManagerContext(out_file=DFLT.OUTPUT.value) as am:
         radio = Identity(am.df, id_or_serial='1111')
         assert radio.id_number == '1111'
+
+
+def test_check_fw():
+    with AssetManagerContext(out_file=DFLT.OUTPUT.value) as am:
+        radio = Identity(am.df, id_or_serial='1111')
+        assert am.check_progged(radio) is True

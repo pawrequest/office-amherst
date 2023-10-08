@@ -1,8 +1,8 @@
 from decimal import Decimal
 
+import pandas as pd
 import pytest
 
-from invoice.products import get_all_hire_products, get_all_sale_products
 from word.dde import get_commence_data, get_conversation, get_customer_sales, get_data_generic, items_from_hire, \
     match_hire_products
 from tmplt.entities import Connection, HirePrice, HireProduct, Price, SaleProduct, Fields, PRICES_WB, Connections
@@ -91,8 +91,13 @@ def test_get_customer_sales(conv, customer_name):
 def test_get_a_line_item():
     hire_items = items_from_hire('Test - 16/08/2023 ref 31619')
     products = get_all_hire_products(PRICES_WB)
+    df_pr = pd.read_excel(PRICES_WB, sheet_name='Hire', header=0)
+    # mp = df_pr[df_pr['Name'] == 'UHF']
     matched_products = match_hire_products(hire_items, products)
+
     a_product = list(matched_products.values())[0]
     a_price = a_product.get_price(1, 1)
     assert isinstance(a_price, Decimal)
+
+
 

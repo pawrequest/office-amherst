@@ -13,8 +13,8 @@ def check_paid(df, id_data):
 def main(args):
     if os.path.isfile(args.id_data):
         args.id_data = os.path.splitext(os.path.basename(args.id_data))[0]
-    df = pd.read_excel(args.workbook, sheet_name='Sales', header=2)
-    print(f"Checking {args.workbook} for {args.id_data}")
+    df = pd.read_excel(args.workbook_ast, sheet_name='Sales', header=2)
+    print(f"Checking {args.workbook_ast} for {args.id_data}")
     result = check_paid(df=df, id_data=args.id_data)
     print(f"Value for {args.id_data} is {result}")
     input("Press enter to exit...")

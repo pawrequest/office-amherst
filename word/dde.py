@@ -3,7 +3,6 @@ from typing import Iterable
 
 import win32com.client
 
-from invoice.products import get_all_hire_products
 from tmplt.entities import Connection, Connections, Fields, PRICES_WB, HireProduct
 
 
@@ -37,15 +36,15 @@ def get_data_generic(record_name, table_name):
         return data
 
 
-def get_all_fields(conv_record, table):
-    fields = conv_record.Request(f"[GetFieldNames({table}, ;)]")
+def get_all_fields(conv, table):
+    fields = conv.Request(f"[GetFieldNames({table}, ;)]")
     field_list = fields.split(';')
     return field_list
 
 
-def get_all_field_values(conv_record, table, fields):
-    get_all_fields(conv_record, table)
-    values = conv_record.Request(f"[GetFieldValues({table}, {fields}, ;)]")
+def get_all_field_values(conv, table, fields):
+    get_all_fields(conv, table)
+    values = conv.Request(f"[GetFieldValues({table}, {fields}, ;)]")
     return values
 
 
@@ -87,9 +86,9 @@ def get_customer_sales(conv, customer_name):
                              Connection(name='Involves', table='Sale', fields=Fields.SALE.value))
 
 
-def get_conversation():
-    cmc = win32com.client.Dispatch("Commence.DB")
-    conv = cmc.GetConversation("Commence", "GetData")
+def get_conversation(topic ='Commence', command ='GetData'):
+    cmc = win32com.client.Dispatch(f"{topic}.DB")
+    conv = cmc.GetConversation(f"{topic}", f"{command}")
     return conv
 
 
@@ -118,7 +117,7 @@ def stuff():
     ahire = get_data_generic('Test - 16/08/2023 ref 31619', 'Hire')['Hire']
     return customer_data
 
-def items_from_hire(hire_name):
+def items_from_hire(hire_name) -> dict[str, int]:
     conv = get_conversation()
     record = get_record(conv, 'Hire', hire_name)
     fields = get_all_fields(conv, 'Hire')
@@ -128,7 +127,7 @@ def items_from_hire(hire_name):
     return order_items
 
 
-def match_hire_products(hire_items, products):
+def match_hire_products(hire_items, products) -> dict[str, HireProduct]:
     matched_products = {k: products[k] for k in hire_items if k in products}
     return matched_products
 

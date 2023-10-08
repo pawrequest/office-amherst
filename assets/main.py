@@ -1,15 +1,16 @@
-from assets.manager import AssetManagerContext, DFLT, Identity
+from assets.manager import Asset, AssetManagerContext, DFLT
 
-# with AssetManagerContextOLD(out_file=DFLT.OUTPUT.value) as am:
-# # with AssetManagerContext(out_file=DFLT.OUTPUT.value) as am:
-#     radio = Identity(am.df, id_or_serial='1111')
-    # radio2 = Identity(am.df, id_or_serial='2222')
-    # radio3 = Identity(am.df, id_or_serial='3333')
-    # ...
-    # print(radio.id_number)
-
-...
 #
 with AssetManagerContext(out_file=DFLT.OUTPUT.value) as am:
     while True:
-        radio = Identity(am.df, id_or_serial=input("Enter ID or Serial: "))
+        # radio = Asset(am.df, id_or_serial=input("Enter ID or Serial: "))
+        radio2 = Asset(am.df, id_or_serial='1111')
+        rad = am.row_to_asset(0)
+        res = rad == radio2
+        rads = am.row_to_asset(am.df, 0, 2)
+
+        am.set_fw(radio, fw="some firmware")
+        if input("Continue? (y/n)").lower() != 'y':
+            break
+
+9

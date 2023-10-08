@@ -30,7 +30,13 @@ class SerialNotFound(NotFoundException):
 
 
 class IDNotFound(NotFoundException):
+                                                                                                                                                                                                                                                                                                            # ans = input("No ID found for serial {self.value}. Enter new ID or enter to skip: ")
+                                                                                                                                                                                                                                                                                                            # if not ans:
+                                                                                                                                                                                                                                                                                                            #     pass
+                                                                                                                                                                                                                                                                                                            # else:
+                                                                                                                                                                                                                                                                                                            #     raise
     def __str__(self):
+
         if self.found_values.size == 0 or pd.isna(self.found_values[0]):
             return f"No ID found for serial {self.value}"
         return f"Multiple IDs found for serial {self.value}: {', '.join(map(str, self.found_values))}"

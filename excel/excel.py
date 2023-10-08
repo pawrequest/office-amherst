@@ -2,6 +2,7 @@ import numbers
 import os
 from typing import Union, Iterable
 
+import openpyxl
 import pandas as pd
 from openpyxl import load_workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
@@ -19,9 +20,13 @@ def df_is_numeric(col):
 
 def coerce_df_numtype(df: pd.DataFrame, col_header: str, data: str | int | float):
     if df_is_numeric(df[col_header]) and not isinstance(data, numbers.Number):
-        if input(f"TypeMismatch : cast {col_header} ({df[col_header].dtype}) to {type(data)}?") != 'y':
+        ans = input(f"TypeMismatch : cast {col_header} ({df[col_header].dtype}) to {type(data)}? 's' to skip")
+        if ans.lower() == 'y':
+            df[col_header] = df[col_header].astype(type(data))
+        elif ans == 's':
+            return
+        else:
             exit("Aborted.")
-        df[col_header] = df[col_header].astype(type(data))
 
 
 def edit_excel_batch(infile: pathy, outfile: pathy, sheet: str, header_i: int, id_header: str, value_data: Iterable,
@@ -57,6 +62,7 @@ def check_data(df: pd.DataFrame, id_data: str | int, id_header: str, value_heade
                value_data: str | int | float) -> bool:
     """ Returns True if value_data is in col value_header for row id_data."""
     row = df[df[id_header].astype(str) == str(id_data)]
+
     if len(row) != 1:
         raise ValueError()
     res = value_data == row[value_header].iloc[0]
@@ -74,7 +80,7 @@ def set_data(df: pd.DataFrame, id_data: str | int, id_header: str, value_header:
 
 
 def get_data_from_excel(df:pd.DataFrame, id_data: str, id_header: str, value_header: str):
-    """ Returns True if value_data is in col value_header for row id_data.
+    """ Returns data in col value_header for row id_data.
     :param df: DataFrame to search
     :param id_data: Data to search for
     :param id_header: Header for id of record to search
@@ -90,27 +96,45 @@ def get_data_from_excel(df:pd.DataFrame, id_data: str, id_header: str, value_hea
 
 def get_matching(df, key_column, result_column, value):
     result_values = df.loc[df[key_column].astype(str) == value, result_column].values
-    return result_values
-
-
-def convert(df, value, key_column, result_column):
-    result_values = get_matching(df=df, key_column=key_column, result_column=result_column, value=value)
     if result_values.size == 0 or pd.isna(result_values[0]):
-        replacement_value = input(f"No result found for {value}. Enter new value: ")
+        replacement_value = input(f"No result found for {value}. Enter new value or 's' to skip: ")
         if replacement_value:
+            if replacement_value == 's':
+                return [None]
             df.loc[df[key_column].astype(str) == value, result_column] = replacement_value
             return replacement_value  # return the new value
         raise ValueError(f"No result found for {value}")
     if result_values.size != 1:
         raise ValueError(f"Multiple results found for {value}: {', '.join(map(str, result_values))}")
+    return result_values
+
+
+def convert(df, value, key_column, result_column):
+    result_values = get_matching(df=df, key_column=key_column, result_column=result_column, value=value)
+    # if result_values.size == 0 or pd.isna(result_values[0]):
+    #     replacement_value = input(f"No result found for {value}. Enter new value: ")
+    #     if replacement_value:
+    #         df.loc[df[key_column].astype(str) == value, result_column] = replacement_value
+    #         return replacement_value  # return the new value
+    #     raise ValueError(f"No result found for {value}")
+    # if result_values.size != 1:
+    #     raise ValueError(f"Multiple results found for {value}: {', '.join(map(str, result_values))}")
     return result_values[0]
 
 
-def df_to_wb(workbook, sheet, df, header_row, out_file):
-    wb = load_workbook(workbook)
+def df_overwrite_wb(input_workbook, sheet, df, header_row, out_file):
+    wb = load_workbook(input_workbook)
     ws = wb[sheet]
     rows = dataframe_to_rows(df, index=False, header=True)
     for r_idx, row in enumerate(rows, 1):
         for c_idx, value in enumerate(row, 1):
             ws.cell(row=r_idx + header_row, column=c_idx, value=value)
     wb.save(out_file)
+
+
+def get_rows(filename, start=0,end=3):
+    wb = openpyxl.load_workbook(filename)
+    ws = wb.active
+    vals = [i for i in ws.values][start:end]
+    return vals
+

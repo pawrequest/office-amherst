@@ -1,67 +1,105 @@
+import os
 import shutil
+import tempfile
+from pathlib import Path
 
-import openpyxl
 import pandas as pd
+import pytest
+from openpyxl.reader.excel import load_workbook
 
-from assets.manager import AssetManagerContext, DFLT, Identity
-
-
-# from assets.manager import handle_id, check_progged
-
-#
-# def test_handle_id_with_valid_id():
-#     # Valid ID '1111', expecting True
-#     result = handle_id('1111', check_progged)
-#     assert result is True
-#
-#
-# #
-# def test_handle_id_with_invalid_id():
-#     # Invalid ID '2222', expecting False
-#     result = handle_id('2222', check_progged)
-#     assert result is False
-#
-#
-# def test_handle_id_with_invalid_input():
-#     # Invalid input type, expecting TypeError
-#     with pytest.raises(ValueError):
-#         handle_id(1234, check_progged)
-#
-#
-# def test_handle_id_with_invalid_type():
-#     # Invalid input type, expecting TypeError
-#     with pytest.raises(TypeError):
-#         handle_id(dict(), check_progged)
-#
+from assets.manager import AssetManager, AssetManagerContext, DFLT, Asset
+from excel.excel import df_overwrite_wb, get_rows
 
 
-def test_top_three_rows():
-    shutil.copy(DFLT.WB.value, DFLT.OUTPUT.value)
-    in_rows = get_first_three_rows(DFLT.WB.value)
-    out_rows = get_first_three_rows(DFLT.OUTPUT.value)
+@pytest.fixture
+def dataframe_fxt():
+    return pd.read_excel(DFLT.WB.value, sheet_name=DFLT.SHEET.value, header=DFLT.HEAD.value, dtype=str)
+
+
+@pytest.fixture
+def asset_manager_fxt(dataframe_fxt):
+    return AssetManager(dataframe_fxt)
+
+
+@pytest.fixture
+def asset_fxt(asset_manager_fxt):
+    return asset_manager_fxt.get_asset('1111')
+
+
+def top_three_rows(in_wb, out_wb):
+    in_rows = get_rows(in_wb)
+    out_rows = get_rows(out_wb)
     assert in_rows == out_rows, f"Rows do not match: {in_rows} != {out_rows}"
 
 
-def get_first_three_rows(filename):
-    wb = openpyxl.load_workbook(filename)
+@pytest.fixture
+def temp_am_context(dataframe_fxt):
+    fd, temp_filepath = tempfile.mkstemp(suffix='.xlsx')
+    os.close(fd)
+    temp_path = Path(temp_filepath)
+    df_overwrite_wb(DFLT.WB.value, DFLT.SHEET.value, dataframe_fxt, DFLT.HEAD.value, temp_path)
+    with AssetManagerContext(out_file=temp_path) as am:
+        yield am, temp_path
+    temp_path.unlink()
+
+def test_context_manager2(temp_am_context, dataframe_fxt):
+    am, temp_path = temp_am_context
+    df = am.df
+    assert df.equals(dataframe_fxt)
+    df2 = pd.read_excel(temp_path, sheet_name=DFLT.SHEET.value, header=DFLT.HEAD.value, dtype=str)
+    assert df.equals(df2)
+
+
+
+def test_context_manager(dataframe_fxt):
+    fd, temp_filepath = tempfile.mkstemp(suffix='.xlsx')
+    os.close(fd)
+    temp_path = Path(temp_filepath)
+    try:
+        df_overwrite_wb(DFLT.WB.value, DFLT.SHEET.value, dataframe_fxt, DFLT.HEAD.value, temp_path)
+        with AssetManagerContext(out_file=temp_path) as am:
+            df = am.df
+        assert df.equals(dataframe_fxt)
+        df2 = pd.read_excel(temp_path, sheet_name=DFLT.SHEET.value, header=DFLT.HEAD.value, dtype=str)
+        assert df.equals(df2)
+    finally:
+        temp_path.unlink()
+def get_styles(filename, start=0, end=3):
+    wb = load_workbook(filename)
     ws = wb.active
-    vals = [i for i in ws.values][0:3]
-    return vals
+    styles = [[cell.style for cell in row] for row in ws.iter_rows(min_row=start+1, max_row=end)]
+    return styles
+
+# def test_styles():
+#     in_styles = get_styles(in_wb)
+#     out_styles = get_styles(out_wb)
+#     assert in_styles == out_styles, f"Styles do not match: {in_styles} != {out_styles}"
 
 
-def test_context_manager():
-    with AssetManagerContext(out_file=DFLT.OUTPUT.value) as am:
-        df = am.df
-    assert isinstance(df, pd.DataFrame)
+def test_id(asset_fxt):
+    radio = asset_fxt
+    assert radio.id_number == '1111'
 
 
-def test_identity():
-    with AssetManagerContext(out_file=DFLT.OUTPUT.value) as am:
-        radio = Identity(am.df, id_or_serial='1111')
-        assert radio.id_number == '1111'
+def test_empty_serial(asset_manager_fxt):
+    radio = asset_manager_fxt.get_asset('3333')
+    assert radio.id_number == '3333'
+
+def test_serial_num(asset_manager_fxt, asset_fxt):
+    radio = asset_manager_fxt.get_asset(asset_fxt.serial_number)
+    assert radio.id_number == asset_fxt.id_number
+
+def test_check_fw(asset_manager_fxt, asset_fxt):
+    assert asset_manager_fxt.check_progged(asset_fxt) is True
 
 
-def test_check_fw():
-    with AssetManagerContext(out_file=DFLT.OUTPUT.value) as am:
-        radio = Identity(am.df, id_or_serial='1111')
-        assert am.check_progged(radio) is True
+def test_get_aseets(asset_manager_fxt):
+    nums = ['1111', '2222', '3333']
+    assets = [asset_manager_fxt.get_asset(num) for num in nums]
+
+def test_smth(asset_manager_fxt, asset_fxt):
+    radio = asset_fxt
+    rad = asset_manager_fxt.row_to_asset(0)
+    rads = asset_manager_fxt.row_to_asset(0, 2)
+    assert len(rads) == 2
+    assert rads[0] == rad == radio

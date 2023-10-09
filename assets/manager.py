@@ -2,12 +2,13 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 from enum import Enum
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Optional
 
 import pandas as pd
 from pandas import Series
 
-from excel.excel import check_data, df_overwrite_wb
+from in_out.excel import df_overwrite_wb
+from word.dde import items_from_hire
 
 
 def an_id(id_or_serial):
@@ -100,6 +101,25 @@ class AssetManagerContext:
                         out_file=DFLT.OUT_PRC.value, df=self.asset_manager.df_pr_sale)
 
 
+@dataclass
+class HireLineItem:
+    name: str
+    quantity: int
+    duration: int
+    price_each: Decimal
+    @property
+    def price_total(self):
+        return self.quantity * self.price_each
+
+
+def handle_row(row):
+    if row.empty:
+        raise ValueError(f"Asset not found")
+    if row.shape[0] > 1:
+        raise ValueError(f"More than one asset found")
+    return row.iloc[0]
+
+
 class AssetManager:
 
     def __init__(self, df_a, df_pr_hire, df_pr_sale):
@@ -107,16 +127,21 @@ class AssetManager:
         self.df_pr_hire = df_pr_hire
         self.df_pr_sale = df_pr_sale
 
+    # def row_from_product_name(self, category, product_name: str) -> Series:
+    #     if category == 'Hire':
+    #         row = self.df_pr_hire.loc[self.df_pr_hire['Name'] == product_name]
+    #     elif category == 'Sale':
+    #         row = self.df_pr_sale.loc[self.df_pr_sale['Name'] == product_name]
+    #     else:
+    #         raise ValueError(f"Category {category} not found")
+    #     return handle_row(row)
+
     def row_from_serial_or_id(self, id_or_serial: str) -> Series:
         if an_id(id_or_serial):
             row = self.df_a.loc[self.df_a[DFLT.ID.value] == id_or_serial]
         else:
             row = self.df_a.loc[self.df_a[DFLT.SERIAL.value] == id_or_serial]
-        if row.empty:
-            raise ValueError(f"Asset {id_or_serial} not found")
-        if row.shape[0] > 1:
-            raise ValueError(f"More than one asset found for {id_or_serial}")
-        return row.iloc[0]
+        return handle_row(row)
 
     def set_field(self, id_or_serial: str, field: str, value):
         if an_id(id_or_serial):
@@ -133,13 +158,13 @@ class AssetManager:
             raise ValueError(f"Quantity {quantity} not found for {product_name}")
 
     def get_hire_price(self, product_name: str, quantity: int, duration: int):
-        mp = self.df_pr_hire.loc[self.df_pr_hire['Name'] == product_name]
-        mp_prc = mp.loc[mp[DFLT.MIN_QTY.value] <= quantity]
-        mp_prc_hire = mp_prc.loc[mp_prc[DFLT.MIN_DUR.value] <= duration]
-        mp_prc_hire_price = mp_prc_hire['Price'].values
-        return mp_prc_hire_price[0]
+        product = self.df_pr_hire.loc[self.df_pr_hire['Name'] == product_name]
+        qty_prices = product.loc[product[DFLT.MIN_QTY.value] <= quantity]
+        qty_dur_products = qty_prices.loc[qty_prices[DFLT.MIN_DUR.value] <= duration]
+        hire_price = qty_dur_products['Price'].min()
+        return hire_price
 
-    def get_field_from_row(self, row:Series, field) -> str:
+    def get_field_from_row(self, row: Series, field) -> str:
         res = row[field]
         ...
         return res
@@ -162,3 +187,12 @@ class AssetManager:
         else:
             assert fw_1 == fw_version
         ...
+
+    def get_hire_line_item(self, product_name: str, quantity: int, duration: int):
+        product_name, qty, dur = items_from_hire('Test - 16/08/2023 ref 31619')
+        hire_price = self.get_hire_price(product_name, qty, dur)
+        line_item = HireLineItem(name=product_name, quantity=qty, duration=dur, price_each=hire_price)
+        ...
+        # a_product = list(matched_products.values())[0]
+        # a_price = a_product.get_price(1, 1)
+        # assert isinstance(a_price, Decimal)

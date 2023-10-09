@@ -3,7 +3,7 @@ import os
 
 import pandas as pd
 
-from excel.excel import get_data_from_excel
+from in_out.excel import get_data_from_excel
 
 
 def check_paid(df, id_data):

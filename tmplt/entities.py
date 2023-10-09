@@ -26,7 +26,7 @@ class Fields(Enum):
         "Delivery Postcode",
         "Number UHF",
         "Booked Date",
-        'Name',
+        "Name",
     ]
     SALE = [
         "Invoice Address",

@@ -8,8 +8,9 @@ import pytest
 from openpyxl.reader.excel import load_workbook
 from pandas import Series
 
-from assets.manager import AssetManagerContext, DFLT
-from excel.excel import get_rows
+from assets.manager import AssetManagerContext, DFLT, HireLineItem
+from in_out.excel import get_rows
+from word.dde import items_from_hire
 
 
 def top_three_rows(in_wb, out_wb):
@@ -110,7 +111,21 @@ def test_smth(am_fxt, df_asset_fxt):
     assert am_fxt.get_field('1111', DFLT.FW.value) == 'jjjjjjjj'
     ...
 
-def test_from_row(am_fxt):
-    row = am_fxt.row_from_serial_or_id('1111')
-    res = am_fxt.get_field_from_row(row, 'FW')
+
+# def test_from_row(am_fxt):
+#     # row = am_fxt.row_from_serial_or_id('1111')
+#     # res = am_fxt.get_field_from_row(row, 'FW')
+#
+#     ...
+
+@pytest.fixture
+def hire_item_fxt():
+    return ('UHF', 10, 1)
+
+
+def test_line_item(am_fxt, hire_item_fxt):
+    product_name, qty, dur = hire_item_fxt
+    hire_price = am_fxt.get_hire_price(product_name, qty, dur)
+    line_item = HireLineItem(name=product_name, quantity=qty, duration=dur, price_each=hire_price)
+    items = items_from_hire('Test - 16/08/2023 ref 31619')
     ...

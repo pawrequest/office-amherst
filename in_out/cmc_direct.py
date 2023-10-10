@@ -5,7 +5,7 @@ from typing import List, Optional
 import pandas as pd
 import win32com.client
 
-from tmplt.entities import Connection, LineItem
+from assets.entities import Connection
 
 
 # def get_cursor(cmc_db, table_name):

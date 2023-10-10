@@ -11,7 +11,7 @@ from pandas import Series
 
 from in_out.cmc_direct import Commence
 from in_out.excel import df_overwrite_wb
-from tmplt.entities import LineItem, Product
+from assets.entities import LineItem, Product
 
 
 # from word.dde import items_from_hire
@@ -66,12 +66,14 @@ class DFLT(Enum):
     ID = 'Number'
     FW = 'FW'
     FW_VERSION = 'XXXX'
-    WB_AST = Path(__file__).resolve().with_name("assets_in.xlsx")
-    OUT_AST = Path(__file__).resolve().with_name("assets_out.xlsx")
+    ROOT = Path(__file__).parent.parent
+    DATA = ROOT / 'static/data'
+    WB_AST = DATA / 'assets.xlsx'
+    OUT_AST = DATA / 'assets_out.xlsx'
     SHEET = 'Sheet1'
     HEAD = 2
-    WB_PRC = Path(__file__).resolve().with_name("prices.xlsx")
-    OUT_PRC = Path(__file__).resolve().with_name("prices.xlsx")
+    WB_PRC = DATA / 'prices.xlsx'
+    OUT_PRC = WB_PRC
     MIN_QTY = 'Min Qty'
     PRICE = 'Price'
 
@@ -98,6 +100,8 @@ class AssetManagerContext:
         return self.asset_manager
 
     def get_dfs(self):
+        assert self.workbook_ast.exists()
+        assert self.workbook_prcs.exists()
         if os.path.exists(self.json_file):  # Check if JSON file exists
             self.load_dfs_from_json()
         else:
@@ -134,25 +138,24 @@ class AssetManagerContext:
                         out_file=DFLT.OUT_PRC.value, df=self.asset_manager.df_pr_sale)
         self.save_dfs_to_json()
 
-
 @dataclass
-class HireOrder:
+class Order:
     line_items: [LineItem]
-    duration: int
+
 
     @property
     def total_price(self):
         return sum([itm.line_price for itm in self.line_items])
 
     def __str__(self):
-        return f"Order for {self.duration} weeks: {self.line_items}"
+        return f"Order for {len(self.line_items)} products: {self.line_items}"
 
-    # @classmethod
-    # def from_dur_and_dict(cls, dur, hire_dict):
-    #     items = []
-    #     for k, v in hire_dict.items():
-    #         price_each = self.get_hire_price(k, v, duration)
-    #         return [cls(name=k, quantity=v, duration=duration, price_each=price_each) for k, v in hire_dict.items()]
+@dataclass
+class HireOrder(Order):
+    duration: int
+
+    def __str__(self):
+        return f"Order for {self.duration} weeks: {self.line_items}"
 
 
 class AssetManager:
@@ -180,6 +183,15 @@ class AssetManager:
         order = HireOrder(line_items=lineitems, duration=duration)
         return order
 
+    def make_sales_order(self, sale_dict):
+        lineitems = []
+        for name, qty in sale_dict.items():
+            price = self.get_sale_price(name, quantity=qty)
+            product = Product(name=name, description='desc', price_each=price)
+            lineitems.append(LineItem(product=product, quantity=qty))
+
+        order = Order(line_items=lineitems)
+        return order
     def row_from_product_name(self, category, product_name: str) -> Series:
         if category == 'Hire':
             row = self.df_pr_hire.loc[self.df_pr_hire['Name'] == product_name]
@@ -204,9 +216,9 @@ class AssetManager:
 
     def get_sale_price(self, product_name: str, quantity: int):
         mp = self.df_pr_sale.loc[self.df_pr_sale['Name'] == product_name]
-        mp_prc = mp.loc[mp[DFLT.MIN_QTY.value] <= quantity, 'Price'].min().values
+        mp_prc = mp.loc[mp[DFLT.MIN_QTY.value] <= quantity, 'Price'].min().astype(Decimal)
         try:
-            return Decimal(mp_prc[0])
+            return Decimal(mp_prc)
         except IndexError:
             raise ValueError(f"Quantity {quantity} not found for {product_name}")
 

@@ -1,8 +1,6 @@
-from pathlib import Path
-
 from docxtpl import DocxTemplate
 
-from tmplt.entities import PRICES_WB, templates
+from assets.entities import templates
 
 doc = DocxTemplate(templates / 'invoice_tmplt.docx')
 ...

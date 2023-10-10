@@ -139,4 +139,7 @@ def test_make_hire_order(am_fxt:AssetManager):
     order4 = am_fxt.make_hire_order(order_dict2, 4)
     assert order3.total_price >= order2.total_price >= order.total_price
 
+    order_dict5 ={'Hytera 405' :5}
+    order5 = am_fxt.make_sales_order(order_dict5)
+
     ...

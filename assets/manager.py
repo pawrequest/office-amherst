@@ -1,3 +1,5 @@
+import json
+import os
 from dataclasses import dataclass, field
 from decimal import Decimal
 from enum import Enum
@@ -83,6 +85,7 @@ class AssetManagerContext:
                  df_pr_hire=None, df_pr_sale=None):
         self.workbook_ast = workbook_ast or DFLT.WB_AST.value
         self.out_file = out_file or DFLT.OUT_AST.value
+        self.json_file = self.out_file.with_suffix('.json')  # JSON file path with new suffix
         self.sheet = sheet or DFLT.SHEET.value
         self.workbook_prcs = workbook_prcs or DFLT.WB_PRC.value
         self.header_row = header_row or int(DFLT.HEAD.value)
@@ -95,13 +98,43 @@ class AssetManagerContext:
         return self.asset_manager
 
     def get_dfs(self):
-        self.df_a = pd.read_excel(self.workbook_ast, sheet_name=self.sheet, header=self.header_row, dtype=str)
-        self.df_pr_hire = pd.read_excel(self.workbook_prcs, sheet_name='Hire', header=0,
-                                        converters={'Price': decimal_from_value})
-        self.df_pr_sale = pd.read_excel(self.workbook_prcs, sheet_name='Sale', header=0,
-                                        converters={'Price': decimal_from_value})
-        return self.df_a, self.df_pr_hire, self.df_pr_sale
+        if os.path.exists(self.json_file):  # Check if JSON file exists
+            self.load_dfs_from_json()
+        else:
+            self.df_a = pd.read_excel(self.workbook_ast, sheet_name=self.sheet, header=self.header_row, dtype=str)
+            self.df_pr_hire = pd.read_excel(self.workbook_prcs, sheet_name='Hire', header=0,
+                                            converters={'Price': decimal_from_value})
+            self.df_pr_sale = pd.read_excel(self.workbook_prcs, sheet_name='Sale', header=0,
+                                            converters={'Price': decimal_from_value})
 
+    def load_dfs_from_json(self):
+        with open(self.json_file, 'r') as json_file:
+            data = json.load(json_file)
+            self.df_a = pd.DataFrame(data['df_a'])
+            self.df_pr_hire = pd.DataFrame(data['df_pr_hire'])
+            self.df_pr_sale = pd.DataFrame(data['df_pr_sale'])
+
+        # Convert integer values back to Decimal by dividing them by the same factor
+        factor = 100  # Should match the factor used in save_dfs_to_json
+        self.df_a['Price'] = self.df_a['Price'] / factor
+        self.df_pr_hire['Price'] = self.df_pr_hire['Price'] / factor
+        self.df_pr_sale['Price'] = self.df_pr_sale['Price'] / factor
+
+    def save_dfs_to_json(self):
+        # Convert Decimal values to integers by multiplying them by a suitable factor
+        factor = 100  # Adjust this factor based on your precision requirements
+        self.df_a['Price'] = (self.df_a['Price'] * factor).astype(int)
+        self.df_pr_hire['Price'] = (self.df_pr_hire['Price'] * factor).astype(int)
+        self.df_pr_sale['Price'] = (self.df_pr_sale['Price'] * factor).astype(int)
+
+        data = {
+            'df_a': self.df_a.to_dict(orient='records'),
+            'df_pr_hire': self.df_pr_hire.to_dict(orient='records'),
+            'df_pr_sale': self.df_pr_sale.to_dict(orient='records')
+        }
+
+        with open(self.json_file, 'w') as json_file:
+            json.dump(data, json_file, indent=4)
     def __exit__(self, exc_type, exc_val, exc_tb):
         # if input("Save changes? (y/n)").lower() != 'y':
         #     return
@@ -111,16 +144,20 @@ class AssetManagerContext:
                         out_file=DFLT.WB_PRC.value, df=self.asset_manager.df_pr_hire)
         df_overwrite_wb(input_workbook=DFLT.WB_PRC.value, sheet='Sale', header_row=0,
                         out_file=DFLT.OUT_PRC.value, df=self.asset_manager.df_pr_sale)
+        self.save_dfs_to_json()
 
 
 @dataclass
 class HireOrder:
-    line_items:[LineItem]
+    line_items: [LineItem]
     duration: int
 
     @property
     def total_price(self):
         return sum([itm.line_price for itm in self.line_items])
+
+    def __str__(self):
+        return f"Order for {self.duration} weeks: {self.line_items}"
 
     # @classmethod
     # def from_dur_and_dict(cls, dur, hire_dict):
@@ -138,7 +175,6 @@ class AssetManager:
         self.df_pr_sale = df_pr_sale
         # self.cmc = Commence()
 
-
     def add_price_each_to_df(self):
         ...
 
@@ -150,8 +186,8 @@ class AssetManager:
 
         for name, qty in hire_dict.items():
             price = self.get_hire_price(name, quantity=qty, duration=duration)
-            name = f'{name}_hire_{duration}'
-            product = Product(name = name, description = 'desc', price_each=price)
+            name = f'{name}_hire_{duration}_weeks'
+            product = Product(name=name, description='desc', price_each=price)
             lineitems.append(LineItem(product=product, quantity=qty))
         order = HireOrder(line_items=lineitems, duration=duration)
         return order
@@ -179,14 +215,12 @@ class AssetManager:
             self.df_a.loc[self.df_a[DFLT.SERIAL.value] == id_or_serial, field] = value
 
     def get_sale_price(self, product_name: str, quantity: int):
-        mp = mp = self.df_pr_sale.loc[self.df_pr_sale['Name'] == product_name]
-        mp_prc = mp.loc[mp[DFLT.MIN_QTY.value] <= quantity, 'Price'].values
+        mp = self.df_pr_sale.loc[self.df_pr_sale['Name'] == product_name]
+        mp_prc = mp.loc[mp[DFLT.MIN_QTY.value] <= quantity, 'Price'].min().values
         try:
             return mp_prc[0]
         except IndexError:
             raise ValueError(f"Quantity {quantity} not found for {product_name}")
-
-
 
     def get_hire_price(self, product_name: str, quantity: int, duration: int):
         product = self.df_pr_hire.loc[self.df_pr_hire['Name'] == product_name]

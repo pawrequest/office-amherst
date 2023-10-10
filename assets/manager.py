@@ -110,31 +110,19 @@ class AssetManagerContext:
     def load_dfs_from_json(self):
         with open(self.json_file, 'r') as json_file:
             data = json.load(json_file)
-            self.df_a = pd.DataFrame(data['df_a'])
-            self.df_pr_hire = pd.DataFrame(data['df_pr_hire'])
-            self.df_pr_sale = pd.DataFrame(data['df_pr_sale'])
-
-        # Convert integer values back to Decimal by dividing them by the same factor
-        factor = 100  # Should match the factor used in save_dfs_to_json
-        self.df_a['Price'] = self.df_a['Price'] / factor
-        self.df_pr_hire['Price'] = self.df_pr_hire['Price'] / factor
-        self.df_pr_sale['Price'] = self.df_pr_sale['Price'] / factor
+            [setattr(self, dfname, pd.read_json(df, dtype ={'Price': Decimal})) for dfname, df in data.items()]
+            ...
 
     def save_dfs_to_json(self):
-        # Convert Decimal values to integers by multiplying them by a suitable factor
-        factor = 100  # Adjust this factor based on your precision requirements
-        self.df_a['Price'] = (self.df_a['Price'] * factor).astype(int)
-        self.df_pr_hire['Price'] = (self.df_pr_hire['Price'] * factor).astype(int)
-        self.df_pr_sale['Price'] = (self.df_pr_sale['Price'] * factor).astype(int)
-
         data = {
-            'df_a': self.df_a.to_dict(orient='records'),
-            'df_pr_hire': self.df_pr_hire.to_dict(orient='records'),
-            'df_pr_sale': self.df_pr_sale.to_dict(orient='records')
+            'df_a': self.df_a.to_json(),
+            'df_pr_hire': self.df_pr_hire.to_json(),
+            'df_pr_sale': self.df_pr_sale.to_json()
         }
-
+        ...
         with open(self.json_file, 'w') as json_file:
             json.dump(data, json_file, indent=4)
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         # if input("Save changes? (y/n)").lower() != 'y':
         #     return
@@ -218,7 +206,7 @@ class AssetManager:
         mp = self.df_pr_sale.loc[self.df_pr_sale['Name'] == product_name]
         mp_prc = mp.loc[mp[DFLT.MIN_QTY.value] <= quantity, 'Price'].min().values
         try:
-            return mp_prc[0]
+            return Decimal(mp_prc[0])
         except IndexError:
             raise ValueError(f"Quantity {quantity} not found for {product_name}")
 
@@ -229,7 +217,7 @@ class AssetManager:
         if not valid_products.empty:
             best_product = valid_products.sort_values(by=['Min Qty', 'Min Duration'], ascending=[False, False]).iloc[0]
             price = best_product['Price']
-            return price
+            return Decimal(price)
         else:
             raise ValueError("Product not found or no valid price found")
 

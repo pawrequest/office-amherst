@@ -4,7 +4,7 @@ from typing import Iterable
 import pandas as pd
 import win32com.client
 
-from assets.entities import Connection, Connections, Fields, HireProduct
+from assets.entities import Connection, Connections, Fields
 
 
 def fire_commence_agent(agent_trigger, category, command):
@@ -33,7 +33,7 @@ def get_dde_data(record_name, table_name):
         data = get_commence_data(table=table_name, name=record_name, fields=table_name_enum.value,
                                  connections=[connection_to])
     except Exception as e:
-        raise ValueError(f"Error getting {table_name} data for {record_name}:\n{e}")
+        raise ValueError(f"Error getting {table_name} data for {record_name}: \n{e}")
     else:
         return data
 
@@ -145,7 +145,6 @@ import win32com.client
 # Usage
 
 
-
 def get_record(conv, table, name):
     get_table(conv, table)
     ans = conv.Request(f"[ViewFilter(1, F,,Name, Equal to, {name},)]")
@@ -175,7 +174,6 @@ def display_test_customer_agent():
     fire_commence_agent(agent_trigger='PYTHON_DDE', category='Customer', command='Test')
 
 
-
 def stuff():
     hires_to = Connection(name="Has Hired", table='Hire', fields=Fields.HIRE.value)
     sales_to = Connection(name="Involves", table='Sale', fields=Fields.SALE.value)
@@ -186,7 +184,6 @@ def stuff():
 
 
 hire_order_items = namedtuple('hire_order_items', 'product_name, quantity, duration')
-
 
 #
 # def items_from_hire(hire_name) -> [hire_order_items]:
@@ -211,11 +208,6 @@ hire_order_items = namedtuple('hire_order_items', 'product_name, quantity, durat
 #     # h_order_items = hire_order_items(product_name=i[:7], quantity=int(n), duration=dur) for i, n in data.items() if i.startswith('Number ') and int(n) > 0)
 #     # # oi = order_items('UHF', 10, 1)
 #     # return order_items
-
-
-def match_hire_products(hire_items, products) -> dict[str, HireProduct]:
-    matched_products = {k: products[k] for k in hire_items if k in products}
-    return matched_products
 
 
 # hire_items = items_from_hire('Test - 16/08/2023 ref 31619')

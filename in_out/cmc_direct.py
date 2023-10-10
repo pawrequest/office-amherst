@@ -5,7 +5,7 @@ from typing import List, Optional
 import pandas as pd
 import win32com.client
 
-from tmplt.entities import Connection, HireLineItem, LineItemABC
+from tmplt.entities import Connection, LineItem
 
 
 # def get_cursor(cmc_db, table_name):
@@ -202,21 +202,15 @@ class Commence:
         return hires_dicts
 
 
-def line_items_from_items(items:dict, duration:int) -> List[LineItemABC]:
-    line_items = []
-    for field_name, qty in items.items():
-        if field_name.startswith('Number ') and int(qty) > 0:
-            line_name = field_name[7:]
-            line_item = HireLineItem(product=line_name, quantity=int(qty), duration=duration)
-    return line_items
-def main():
-    cmc = Commence()
-    record = cmc.get_record(record_name='Test')
-    qs = cmc.customer_sales('Test')
-    more = cmc.customer_hires('MLS Contracts Ltd')
-    items, duration  = items_from_hire(more[0])
-    line_items = line_items_from_items(items)
-    print(record['Name'])
+
+# def main():
+#     cmc = Commence()
+#     record = cmc.get_record(record_name='Test')
+#     qs = cmc.customer_sales('Test')
+#     more = cmc.customer_hires('MLS Contracts Ltd')
+#     items, duration  = items_from_hire(more[0])
+#     line_items = line_items_from_items(items)
+#     print(record['Name'])
 
 
 def items_from_hire(hire:dict):
@@ -232,8 +226,14 @@ def items_from_hire(hire:dict):
     # h_order_items = hire_order_items(product_name=i[:7], quantity=int(n), duration=dur) for i, n in data.items() if i.startswith('Number ') and int(n) > 0)
     # # oi = order_items('UHF', 10, 1)
     # return order_items
-
-main()
+# def line_items_from_items(items:dict, duration:int) -> List[LineItem]:
+#     line_items = []
+#     for field_name, qty in items.items():
+#         if field_name.startswith('Number ') and int(qty) > 0:
+#             line_name = field_name[7:]
+#             line_item = LineItem(product=line_name, quantity=int(qty), duration=duration)
+#     return line_items
+# # main()
 
 
 class FIL_(Enum):

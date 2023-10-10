@@ -34,46 +34,23 @@ class Fields(Enum):
     ]
 
 
-@dataclass
-class Price:
-    price: Decimal
-    min_quantity: int
-    min_duration: int = 0
-
-
-@dataclass
-class HirePrice(Price):
-    min_duration: int
 
 
 @dataclass
 class Product:
     name: str
     description: str
-    prices: List[Price]
-
-    def get_sale_price(self, quantity):
-        if all([p.min_quantity != 0 for p in self.prices]):
-            raise ValueError(f"Product {self.name} is not available for sale (min_duration must = 0 for sale)")
-        valid_prices = [p for p in self.prices if p.min_quantity <= quantity]
-        return min([p.price for p in valid_prices])
-
-    def get_hire_price(self, quantity, duration):
-        if all([p.min_duration == 0 for p in self.prices]):
-            raise ValueError(f"Product {self.name} is not available for hire")
-        valid_prices = [p for p in self.prices if p.min_quantity <= quantity and p.min_duration <= self.duration]
-        actual_price = min([p.price for p in valid_prices])
-        return quantity * actual_price
+    price_each:Decimal
 
 
 @dataclass
-class LineItemABC:
+class LineItem:
     product: Product
     quantity: int
 
     @property
     def line_price(self):
-        raise NotImplementedError
+        return self.product.price_each * self.quantity
 
 
 @dataclass
@@ -84,33 +61,10 @@ class Connection:
 
 
 
-@dataclass
-class SaleLineItem(LineItemABC):
-    product: Product
-
-    @property
-    def line_price(self):
-        return self.product.get_sale_price(self.quantity) * self.quantity
-
 
 @dataclass
-class HireLineItem:
-    product: Product
-    quantity: int
-    duration: int
-
-    @property
-    def price_each(self):
-        return self.product.get_hire_price(self.quantity, self.duration)
-
-    @property
-    def line_price(self):
-        return self.price_each * self.quantity
-
-
-@dataclass
-class Hire:
-    line_items = List[HireLineItem]
+class Order:
+    line_items = List[LineItem]
 
 
 class Connections(Enum):

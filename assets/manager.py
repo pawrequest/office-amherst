@@ -7,8 +7,12 @@ from typing import Optional
 import pandas as pd
 from pandas import Series
 
+from in_out.cmc_direct import Commence
 from in_out.excel import df_overwrite_wb
-from word.dde import items_from_hire
+from tmplt.entities import LineItem, Product
+
+
+# from word.dde import items_from_hire
 
 
 def an_id(id_or_serial):
@@ -32,6 +36,14 @@ def get_id_and_serial(id_or_serial, df):
 
     else:
         return id_num, serial
+
+
+def handle_row(row):
+    if row.empty:
+        raise ValueError(f"Asset not found")
+    if row.shape[0] > 1:
+        raise ValueError(f"More than one asset found")
+    return row.iloc[0]
 
 
 @dataclass
@@ -102,22 +114,20 @@ class AssetManagerContext:
 
 
 @dataclass
-class HireLineItem:
-    name: str
-    quantity: int
+class HireOrder:
+    line_items:[LineItem]
     duration: int
-    price_each: Decimal
+
     @property
-    def price_total(self):
-        return self.quantity * self.price_each
+    def total_price(self):
+        return sum([itm.line_price for itm in self.line_items])
 
-
-def handle_row(row):
-    if row.empty:
-        raise ValueError(f"Asset not found")
-    if row.shape[0] > 1:
-        raise ValueError(f"More than one asset found")
-    return row.iloc[0]
+    # @classmethod
+    # def from_dur_and_dict(cls, dur, hire_dict):
+    #     items = []
+    #     for k, v in hire_dict.items():
+    #         price_each = self.get_hire_price(k, v, duration)
+    #         return [cls(name=k, quantity=v, duration=duration, price_each=price_each) for k, v in hire_dict.items()]
 
 
 class AssetManager:
@@ -126,15 +136,34 @@ class AssetManager:
         self.df_a = df_a
         self.df_pr_hire = df_pr_hire
         self.df_pr_sale = df_pr_sale
+        # self.cmc = Commence()
 
-    # def row_from_product_name(self, category, product_name: str) -> Series:
-    #     if category == 'Hire':
-    #         row = self.df_pr_hire.loc[self.df_pr_hire['Name'] == product_name]
-    #     elif category == 'Sale':
-    #         row = self.df_pr_sale.loc[self.df_pr_sale['Name'] == product_name]
-    #     else:
-    #         raise ValueError(f"Category {category} not found")
-    #     return handle_row(row)
+
+    def add_price_each_to_df(self):
+        ...
+
+    def connect_cmc(self, table_name):
+        self.cmc = Commence()
+
+    def make_hire_order(self, hire_dict, duration):
+        lineitems = []
+
+        for name, qty in hire_dict.items():
+            price = self.get_hire_price(name, quantity=qty, duration=duration)
+            name = f'{name}_hire_{duration}'
+            product = Product(name = name, description = 'desc', price_each=price)
+            lineitems.append(LineItem(product=product, quantity=qty))
+        order = HireOrder(line_items=lineitems, duration=duration)
+        return order
+
+    def row_from_product_name(self, category, product_name: str) -> Series:
+        if category == 'Hire':
+            row = self.df_pr_hire.loc[self.df_pr_hire['Name'] == product_name]
+        elif category == 'Sale':
+            row = self.df_pr_sale.loc[self.df_pr_sale['Name'] == product_name]
+        else:
+            raise ValueError(f"Category {category} not found")
+        return handle_row(row)
 
     def row_from_serial_or_id(self, id_or_serial: str) -> Series:
         if an_id(id_or_serial):
@@ -157,17 +186,18 @@ class AssetManager:
         except IndexError:
             raise ValueError(f"Quantity {quantity} not found for {product_name}")
 
+
+
     def get_hire_price(self, product_name: str, quantity: int, duration: int):
         product = self.df_pr_hire.loc[self.df_pr_hire['Name'] == product_name]
-        qty_prices = product.loc[product[DFLT.MIN_QTY.value] <= quantity]
-        qty_dur_products = qty_prices.loc[qty_prices[DFLT.MIN_DUR.value] <= duration]
-        hire_price = qty_dur_products['Price'].min()
-        return hire_price
+        valid_products = product[(product['Min Qty'] <= quantity) & (product['Min Duration'] <= duration)]
 
-    def get_field_from_row(self, row: Series, field) -> str:
-        res = row[field]
-        ...
-        return res
+        if not valid_products.empty:
+            best_product = valid_products.sort_values(by=['Min Qty', 'Min Duration'], ascending=[False, False]).iloc[0]
+            price = best_product['Price']
+            return price
+        else:
+            raise ValueError("Product not found or no valid price found")
 
     def get_field(self, id_or_serial: str, field: str):
         try:
@@ -189,10 +219,13 @@ class AssetManager:
         ...
 
     def get_hire_line_item(self, product_name: str, quantity: int, duration: int):
-        product_name, qty, dur = items_from_hire('Test - 16/08/2023 ref 31619')
-        hire_price = self.get_hire_price(product_name, qty, dur)
-        line_item = HireLineItem(name=product_name, quantity=qty, duration=dur, price_each=hire_price)
+        product_name, qty, dur = self.items_from_hire('Test - 16/08/2023 ref 31619')
+        # hire_price = self.get_hire_price(product_name, qty, dur)
+        # line_item = HireLineItem(name=product_name, quantity=qty, duration=dur, price_each=hire_price)
         ...
         # a_product = list(matched_products.values())[0]
         # a_price = a_product.get_price(1, 1)
         # assert isinstance(a_price, Decimal)
+
+    def items_from_hire(self):
+        return 1

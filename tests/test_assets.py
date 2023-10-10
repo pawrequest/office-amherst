@@ -8,9 +8,8 @@ import pytest
 from openpyxl.reader.excel import load_workbook
 from pandas import Series
 
-from assets.manager import AssetManagerContext, DFLT, HireLineItem
+from assets.manager import AssetManagerContext, DFLT, AssetManager
 from in_out.excel import get_rows
-from word.dde import items_from_hire
 
 
 def top_three_rows(in_wb, out_wb):
@@ -123,8 +122,21 @@ def hire_item_fxt():
     return ('UHF', 10, 1)
 
 
-def test_line_item(am_fxt, hire_item_fxt):
-    product_name, qty, dur = hire_item_fxt
-    hire_price = am_fxt.get_hire_price(product_name, qty, dur)
-    line_item = HireLineItem(name=product_name, quantity=qty, duration=dur, price_each=hire_price)
+# def test_line_item(am_fxt, hire_item_fxt):
+#     product_name, qty, dur = hire_item_fxt
+#     hire_price = am_fxt.get_hire_price(product_name, qty, dur)
+#     line_item = HireLineItem(name=product_name, quantity=qty, duration=dur, price_each=hire_price)
+#     ...
+
+def test_make_hire_order(am_fxt:AssetManager):
+    order_dict = {'UHF': 10}
+    order_dict2 = {'UHF': 100}
+    order = am_fxt.make_hire_order(order_dict, 1)
+    order_price = order.total_price
+    assert isinstance(order_price, Decimal)
+    order2 = am_fxt.make_hire_order(order_dict, 3)
+    order3 = am_fxt.make_hire_order(order_dict2, 3)
+    order4 = am_fxt.make_hire_order(order_dict2, 4)
+    assert order3.total_price >= order2.total_price >= order.total_price
+
     ...

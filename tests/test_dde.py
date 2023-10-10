@@ -1,10 +1,7 @@
-import pandas as pd
 import pytest
 
+from in_out.dde import get_commence_data, get_conversation_func, get_customer_sales, get_dde_data
 from tmplt.entities import Connections, Fields
-from in_out.dde import DDEContext, DDEManager, commence_running, fields_df, get_commence_data, get_conversation_func, \
-    get_customer_sales, \
-    get_dde_data, get_fields_gpt, get_record
 
 
 # @pytest.fixture
@@ -100,8 +97,8 @@ def test_get_wrong_hire_name():
 
 
 def test_get_customer_sales(customer_name):
-    dde_context = get_conversation_func()
-    sales = get_customer_sales(conv=dde_context, customer_name=customer_name)
+    conv = get_conversation_func()
+    sales = get_customer_sales(conv=conv, customer_name=customer_name)
     assert sales
 
 #

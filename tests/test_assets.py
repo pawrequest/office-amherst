@@ -127,5 +127,4 @@ def test_line_item(am_fxt, hire_item_fxt):
     product_name, qty, dur = hire_item_fxt
     hire_price = am_fxt.get_hire_price(product_name, qty, dur)
     line_item = HireLineItem(name=product_name, quantity=qty, duration=dur, price_each=hire_price)
-    items = items_from_hire('Test - 16/08/2023 ref 31619')
     ...

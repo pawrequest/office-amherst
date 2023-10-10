@@ -175,6 +175,7 @@ def display_test_customer_agent():
     fire_commence_agent(agent_trigger='PYTHON_DDE', category='Customer', command='Test')
 
 
+
 def stuff():
     hires_to = Connection(name="Has Hired", table='Hire', fields=Fields.HIRE.value)
     sales_to = Connection(name="Involves", table='Sale', fields=Fields.SALE.value)

@@ -76,7 +76,7 @@ class ManagerContext:
 
     def __enter__(self):
         self.asset_manager = AssetManager(self.df_a)
-        self.transaction_manager = TransactionManager(self.df_pr_hire, self.df_pr_sale)
+        self.transaction_manager = TransactionManager(self.df_pr_hire, self.df_pr_sale, self.df_b)
         return (self.asset_manager, self.transaction_manager)
 
     def get_dfs(self):
@@ -93,6 +93,7 @@ class ManagerContext:
                                         converters={'Price': decimal_from_value})
         self.df_pr_sale = pd.read_excel(self.workbook_prcs, sheet_name='Sale', header=0,
                                         converters={'Price': decimal_from_value})
+        self.df_b = pd.read_excel(self.workbook_prcs, sheet_name='Bands', header=0, converters={'Price': decimal_from_value})
 
 
     def dfs_from_json(self):
@@ -114,12 +115,15 @@ class ManagerContext:
                         out_file=DFLT.WB_PRC.value, df=self.df_pr_hire)
         df_overwrite_wb(input_workbook=DFLT.WB_PRC.value, sheet='Sale', header_row=0,
                         out_file=DFLT.OUT_PRC.value, df=self.df_pr_sale)
+        df_overwrite_wb(input_workbook=DFLT.WB_PRC.value, sheet='Bands', header_row=0,
+                        out_file=DFLT.OUT_PRC.value, df=self.df_b)
 
     def save_dfs_to_json(self):
         data = {
             'df_a': self.df_a.to_json(),
             'df_pr_hire': self.df_pr_hire.to_json(),
-            'df_pr_sale': self.df_pr_sale.to_json()
+            'df_pr_sale': self.df_pr_sale.to_json(),
+            'df_b': self.df_b.to_json(),
         }
         ...
         with open(self.json_file, 'w') as json_file:

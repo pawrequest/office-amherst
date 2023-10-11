@@ -1,11 +1,4 @@
-#
-#
-# def test_gippy():
-#     db = get_database()
-#     curs = get_cursor(db, 'Customer')
-#     record = get_record(curs, 'Test')
-#     assert record['Name'] == 'Test'
-#
+
 from in_out.cmc_direct import Commence
 from transactions.tran_manager import HireOrder, items_and_dur_from_hire
 

@@ -101,19 +101,19 @@ class Commence:
         self.hire_csr = HireCursor(category='Hire', db=self.db)
         self.sale_csr = SaleCursor(category='Sale', db=self.db)
 
-    def get_customer(self, record_name):
+    def get_customer(self, record_name) -> pd.Series:
         return get_record(self.customer_csr, record_name)
-
-    def customer_sales(self, customer_name):
-        connection = Connection(name='To', table='Customer')
-        return df_from_connected(self.sale_csr, customer_name, connection=connection)
-
-    def customer_hires(self, customer_name):
-        connection = Connection(name='To', table='Customer')
-        return df_from_connected(self.hire_csr, customer_name, connection=connection)
 
     def hire(self, record_name) -> pd.Series:
         return get_record(self.hire_csr, record_name)
 
-    def sale(self, record_name):
+    def sale(self, record_name) -> pd.Series:
         return get_record(self.sale_csr, record_name)
+
+    def customer_sales(self, customer_name) -> pd.DataFrame:
+        connection = Connection(name='To', table='Customer')
+        return df_from_connected(self.sale_csr, customer_name, connection=connection)
+
+    def customer_hires(self, customer_name) -> pd.DataFrame:
+        connection = Connection(name='To', table='Customer')
+        return df_from_connected(self.hire_csr, customer_name, connection=connection)

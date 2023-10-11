@@ -35,26 +35,36 @@ class Fields(Enum):
 
 
 
-
 @dataclass
-class Product:
+class InventoryItem:
     name: str
     description: str
+
+@dataclass
+class FreeItem(InventoryItem):
+    quantity: int
+
+    def __str__(self):
+        return f"{self.quantity} x {self.name}"
+@dataclass
+class Product(InventoryItem):
     price_each:Decimal
+
+    def __str__(self):
+        return f"{self.name} @ {self.price_each}"
 
 
 @dataclass
-class LineItem:
-    product: Product
+class LineItem(Product):
     quantity: int
 
     @property
     def line_price(self):
-        return self.product.price_each * int(self.quantity)
+        return self.price_each * int(self.quantity)
     def __str__(self):
-        return f"{self.quantity} x {self.product.name} @ {self.product.price_each} = {self.line_price}"
+        return f"{self.quantity} x {self.name} @ {self.price_each} = {self.line_price}"
     def __repr__(self):
-        return f"LineItem({self.product.name} x {self.quantity})"
+        return f"LineItem({self.name} x {self.quantity})"
 
 
 @dataclass
@@ -74,8 +84,6 @@ class Order:
 class Connections(Enum):
     CUSTOMER_HIRES = Connection(name="Has Hired", table='Hire')
     CUSTOMER_SALES = Connection(name="Involves", table='Sale')
-    # HIRES_CUSTOMER = Connection(name="To", table='Customer')
-    # SALES_CUSTOMER = Connection(name="To", table='Customer')
     TO_CUSTOMER = Connection(name="To", table='Customer')
 
 

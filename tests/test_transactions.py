@@ -29,11 +29,6 @@ def tm_fxt(manager_context_fxt) -> TransactionManager:
     yield tm
 
 
-@pytest.fixture
-def hire_item_fxt():
-    return ('UHF', 10, 1)
-
-
 def test_make_sale_order(commence_fxt, tm_fxt):
     sale =  commence_fxt.customer_sales('Test').iloc[0]
     sale_order = tm_fxt.make_sales_order(sale)

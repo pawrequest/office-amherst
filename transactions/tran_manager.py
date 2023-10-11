@@ -1,26 +1,28 @@
 from _decimal import Decimal
 from dataclasses import dataclass
+from typing import List, Optional
 
 import pandas as pd
 
-from assets.entities import DFLT, LineItem, Product
+from assets.entities import DFLT, FreeItem, InventoryItem, LineItem
 
 
 @dataclass
 class Order:
     line_items: [LineItem]
+    free_items: Optional[List[FreeItem]] = None
 
     @property
     def total_price(self):
         return sum([itm.line_price for itm in self.line_items])
 
     def __str__(self):
-        return f"Order for {len(self.line_items)} products: {self.line_items}"
+        return f"Order with {len(self.line_items)} lines"
 
 
 @dataclass
 class HireOrder(Order):
-    duration: int
+    duration: int = 1
 
     def __str__(self):
         return f"Order for {self.duration} weeks: {self.line_items}"
@@ -34,13 +36,17 @@ class TransactionManager:
 
     def make_hire_order(self, hire: pd.Series, duration: int = None) -> HireOrder:
         pay, free = self.parse_hire(hire)
-        lineitems = []
+        lineitems, free_items = [], []
+        # free_items = []
         for name, qty in pay.items():
             price = self.get_hire_price(str(name), quantity=qty, duration=duration)
             name = f'{name}_hire_{duration}_weeks'
-            product = Product(name=name, description='desc', price_each=price)
-            lineitems.append(LineItem(product=product, quantity=qty))
-        order = HireOrder(line_items=lineitems, duration=duration)
+            lineitems.append(LineItem(name=name, description='desc', price_each=price, quantity=qty))
+        for name, qty in free.items():
+            name = f'{name}_hire_{duration}_weeks'
+            free_items.append(FreeItem(name=name, description='desc', quantity=qty))
+
+        order = HireOrder(line_items=lineitems, duration=duration, free_items=free_items)
         return order
 
     def make_sales_order(self, sale: pd.Series):
@@ -49,9 +55,7 @@ class TransactionManager:
         for name_t, qty in order_items:
             name = str(name_t)
             price = self.get_sale_price(name, quantity=qty)
-            product = Product(name=name, description='desc', price_each=price)
-            lineitems.append(LineItem(product=product, quantity=qty))
-
+            lineitems.append(LineItem(name=name, description='desc', price_each=price, quantity=qty))
         order = Order(line_items=lineitems)
         return order
 
@@ -62,7 +66,8 @@ class TransactionManager:
     def get_hire_price(self, product_name: str, quantity: int, duration: int):
         product = self.df_hire.loc[self.df_hire['Name'] == product_name]
         if product.empty:
-            prod_band = self.df_bands.loc[self.df_bands['Name'] == 'EM', 'Band'].values[0]
+            prod_band = get_accessory_priceband(product_name)
+            # prod_band = self.df_bands.loc[self.df_bands['Name'] == 'EM', 'Band'].values[0]
             product = self.df_hire.loc[self.df_hire['Name'] == prod_band]
             if product.empty:
                 raise ValueError(f"No hire product or band found for {product_name}")
@@ -70,18 +75,16 @@ class TransactionManager:
         valid_products = product[(product['Min Qty'] <= int(quantity)) & (product['Min Duration'] <= int(duration))]
 
         if valid_products.empty:
-                raise ValueError(f"No val;id price for {product_name}")
+            raise ValueError(f"No valid price for {product_name}")
 
         best_product = valid_products.sort_values(by=['Min Qty', 'Min Duration'], ascending=[False, False]).iloc[0]
         price = best_product['Price']
         return Decimal(price)
 
-    def parse_hire(self, hire:pd.Series):
+    def parse_hire(self, hire: pd.Series):
         all_hire_items = all_item_fields(hire)
         hire_items = all_hire_items[all_hire_items.astype(int) > 0]
         return pay_and_free_items(hire_items)
-
-
 
 
 # def items_and_dur_from_hire(hire: pd.Series) -> ([tuple[str, int]], int):
@@ -99,41 +102,34 @@ def all_item_fields(hire: pd.Series) -> pd.Series:
     return items
 
 
-
 def pay_and_free_items(items: pd.Series) -> (pd.Series, pd.Series):
-    pay_fields = [
-        'UHF',
-        'EM',
-        'Cases',
-        'Icom'
-        'Batteries',
-        'EMC',
-        'Headset',
-        'Megaphone',
-        'Parrot'
-        'Repeater'
-        'Wand',
-        'VHF'
-    ]
-    free_fields = [
-        'Magmount',
-        'UHF 6-way',
-        'Sgl Charger'
-    ]
+    pay_fields = ['UHF', 'EM', 'Cases', 'Icom', 'Wand', 'Batteries', 'EMC', 'Headset', 'Megaphone', 'ParrotRepeaterWand', 'VHF']
+    free_fields = ['Magmount', 'UHF 6-way', 'Sgl Charger', 'Wand Battery']
+
     pay_items = items[items.index.isin(pay_fields)]
     free_items = items[items.index.isin(free_fields)]
+    accounted_fields = set(pay_fields) | set(free_fields)
+    unaccounted_fields = set(items.index) - accounted_fields
+    if unaccounted_fields:
+        raise ValueError(f"Unaccounted fields: {list(unaccounted_fields)}")
     return pay_items, free_items
 
 
-# def get_accessory_priceband(accessory_name: str):
-#     if accessory_name in ["EM", 'Parrot', 'Battery', 'Cases']:
-#         return "Accessory A"
-#     elif accessory_name in ['EMC', 'Headset']:
-#         return "Accessory B"
-#     elif accessory_name in ['Aircraft']:
-#         return "Accessory C"
-#     else:
-#         return None
+def get_accessory_priceband(accessory_name: str):
+    if accessory_name in ["EM", 'Parrot', 'Battery', 'Cases']:
+        return "Accessory A"
+    elif accessory_name in ['EMC', 'Headset']:
+        return "Accessory B"
+    elif accessory_name in ['Aircraft']:
+        return "Accessory C"
+    elif accessory_name == 'Icom':
+        return 'Mobile'
+    elif accessory_name == 'Wand':
+        return 'Wand'
+    elif accessory_name == 'Megaphone':
+        return 'Megaphone'
+    else:
+        return None
 
 
 def items_from_sale(sale: pd.Series):

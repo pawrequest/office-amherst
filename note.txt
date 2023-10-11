@@ -1,3 +1,5 @@
+{'inv_num': '1234', 'dates': HireDates(invoice='23/08/2023', start='20/10/2023', end='20/11/2023'), 'inv_address': Address1(add='srsy\r\nsdysey\r\nsds', pc=''), 'del_address': Address1(add='srsy\r\nsdysey\r\nsds', pc=''), 'order': HireOrder(line_items=[LineItem(EM_hire_1_weeks x 5), LineItem(UHF_hire_1_weeks x 20)], free_items=[FreeItem(name='Sgl Charger_hire_1_weeks', description='desc', quantity='2'), FreeItem(name='UHF 6-way_hire_1_weeks', description='desc', quantity='3')], tax_percent=20, shipping=15, charity_percent=0, duration=1)}
+
 
 """
 ViewFilter

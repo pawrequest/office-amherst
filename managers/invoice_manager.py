@@ -3,17 +3,17 @@ from dataclasses import dataclass
 
 from docxtpl import DocxTemplate
 
-from managers.entities import Order
-
-INVOICE_TMPLT = "invoice_tmplt.docx"
-doc = DocxTemplate(INVOICE_TMPLT)
+from managers.entities import Order, DFLT2
 from decimal import Decimal
+
+INVOICE_TMPLT = DFLT2.INV_TMPLT
+doc = DocxTemplate(INVOICE_TMPLT)
 
 
 @dataclass
 class Address1:
     add: str
-    postcode: str
+    pc: str
 
 
 @dataclass
@@ -35,9 +35,23 @@ class HireInvoice:
     inv_order: Order
     ship_price: Decimal = 13
 
+    @classmethod
+    def from_hire(cls, hire, order):
+        i_add = hire['Delivery Address']
+        i_pc = hire['Delivery Postcode']
+        d_add = hire['Delivery Address']
+        d_pc = hire['Delivery Postcode']
+        inv_add = Address1(add=i_add, pc=i_pc)
+        del_add = Address1(add=d_add, pc=d_pc)
+        date_inv = hire['Booked Date']
+        date_start = hire['Send Out Date']
+        date_end = hire['Due Back Date']
+        dates = HireDates(invoice=date_inv, start=date_start, end=date_end)
+        return cls(inv_num='1234', dates=dates, inv_add=inv_add, del_add=del_add, inv_order=order)
 
 
-    def get_invoice(self):
+
+    def generate(self):
         context = {
             'inv_num': '1234',
             'dates': self.dates,
@@ -47,4 +61,7 @@ class HireInvoice:
         }
 
         doc.render(context)
-        doc.save("generated_doc.docx")
+        ...
+        doc.save(DFLT2.INV_OUT)
+
+

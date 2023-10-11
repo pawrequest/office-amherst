@@ -6,7 +6,7 @@ from _decimal import Decimal
 
 from in_out.excel import df_overwrite_wb
 from managers.asset_manager import decimal_from_value
-from managers.entities import DFLT, FreeItem, LineItem, SaleOrder, HireOrder
+from managers.entities import DFLT, FreeItem, LineItem, HireOrder, Order
 
 
 class TransactionContext:
@@ -108,7 +108,7 @@ class TransactionManager:
             name = str(name_t)
             price = self.get_sale_price(name, quantity=qty)
             lineitems.append(LineItem(name=name, description='desc', price_each=price, quantity=qty))
-        order = SaleOrder(line_items=lineitems)
+        order = Order(line_items=lineitems)
         return order
 
     def get_sale_price(self, product_name: str, quantity: int):
@@ -119,7 +119,8 @@ class TransactionManager:
         product = self.df_hire.loc[self.df_hire['Name'].str.lower() == str(product_name).lower()]
         if product.empty:
             prod_band = get_accessory_priceband(product_name)
-            # prod_band = self.df_bands.loc[self.df_bands['Name'] == 'EM', 'Band'].values[0]
+            if prod_band is None:
+                raise ValueError(f"No hire product or band found for {product_name}")
             product = self.df_hire.loc[self.df_hire['Name'].str.lower() == prod_band.lower()]
             if product.empty:
                 raise ValueError(f"No hire product or band found for {product_name}")
@@ -169,7 +170,7 @@ def pay_and_free_items(items: pd.Series) -> (pd.Series, pd.Series):
 
 
 def get_accessory_priceband(accessory_name: str):
-    if accessory_name in ["EM", 'Parrot', 'Battery', 'Cases']:
+    if accessory_name in ["EM", 'Parrot', 'Battery', 'Batteries', 'Cases']:
         return "Accessory A"
     elif accessory_name in ['EMC', 'Headset']:
         return "Accessory B"

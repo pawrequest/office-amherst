@@ -1,7 +1,7 @@
 import pytest
 
 from in_out.dde import get_commence_data, get_conversation_func, get_customer_sales, get_dde_data
-from assets.entities import Connections, Fields
+from managers.entities import Connections, Fields
 
 
 # @pytest.fixture

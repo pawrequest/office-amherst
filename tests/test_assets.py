@@ -1,16 +1,13 @@
 import os
 import tempfile
-from decimal import Decimal
 from pathlib import Path
 
-import pandas as pd
 import pytest
 from openpyxl.reader.excel import load_workbook
 from pandas import Series
 
-from assets.manager import ManagerContext, AssetManager
-from assets.entities import DFLT
-from transactions.tran_manager import TransactionManager
+from managers.asset_manager import AssetContext, AssetManager
+from managers.entities import DFLT
 from in_out.excel import get_rows
 
 
@@ -25,7 +22,7 @@ def manager_context_fxt():
     fd, out_file = tempfile.mkstemp(suffix='.xlsx')
     os.close(fd)
     out_file = Path(out_file)
-    with ManagerContext(out_file=out_file) as context:
+    with AssetContext(out_file=out_file) as context:
         yield context
 
 @pytest.fixture
@@ -45,7 +42,7 @@ def df_asset_fxt(am_fxt):
 #     fd, temp_filepath = tempfile.mkstemp(suffix='.xlsx')
 #     os.close(fd)
 #     temp_path = Path(temp_filepath)
-#     # df_overwrite_wb(DFLT.WB_AST.value, DFLT.SHEET.value, am_context.df_a, DFLT.HEAD.value, temp_path)
+#     # df_overwrite_wb(DFLT.WB_AST.value, DFLT.SHEET_AST.value, am_context.df_a, DFLT.HEAD_AST.value, temp_path)
 #     # assert styles_match(DFLT.WB_AST.value, temp_path)
 #     linky = DFLT.WB_AST.value
 #     assert linky.exists()

@@ -1,27 +1,29 @@
-import timeit
+import argparse
 
-from account.check_invoice_paid import check_paid
+from managers.asset_manager import AssetManager
+from managers.cmc_manager import Commence, CommenceContext
+from managers.tran_manager import TransactionManager, TransactionContext
+import win32com.client
 
-asset_input = './assets_in.xls'
-asset_output = './asset_example_output.xlsx'
-serial_numbers = ['719336170G0064']
 
-ac_input = './ac_example.xls'
-invoice_nums = [r'R:\ACCOUNTS\invoices\a24301.docx']
 
-# edit_ex_col(
-#     workbook=asset_input,
-#     outfile=asset_output,
-#     sheet='Sheet1',
-#     header_i=2,
-#     id_header='Barcode',
-#     id_data=serial_numbers,
-#     data_insert="yes edited",
-#     value_header='REPROG'
-# )
-#
-starting_time = timeit.default_timer()
+def main():
+    #
+    # with CommenceContext() as cmc:
+    #     cust = cmc.customer('Test')
+    #     sales = cmc.sales_customer('Test')
+    #     sale = sales.iloc[0]
+    #     hires = cmc.hires_customer('Test')
+    #     hire = hires.iloc[0]
+    #
+    # with TransactionContext() as tm:
+    #     hire_order = tm.make_hire_order(hire, 1)
+    #     sale_order = tm.make_sale_order(sale)
+    #
+    # ...
 
-check_paid(workbook=ac_input, data_to_check=invoice_nums)
-time_taken = timeit.default_timer() - starting_time
-print ('time taken: ', time_taken, 'seconds')
+if __name__ == '__main__':
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument('--id_data', help='List of data to match')
+    # args = parser.parse_args()
+    main()

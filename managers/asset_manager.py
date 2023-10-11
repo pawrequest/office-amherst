@@ -7,9 +7,8 @@ from typing import Optional
 import pandas as pd
 from pandas import Series
 
-from assets.entities import DFLT
+from managers.entities import DFLT
 from in_out.excel import df_overwrite_wb
-from transactions.tran_manager import TransactionManager
 
 
 # from word.dde import items_from_hire
@@ -61,27 +60,24 @@ def decimal_from_value(value):
     return Decimal(value)
 
 
-class ManagerContext:
+class AssetContext:
     def __init__(self, workbook_ast=None, sheet=None, header_row=None, out_file=None, workbook_prcs=None,
                  df_pr_hire=None, df_pr_sale=None):
         self.workbook_ast = workbook_ast or DFLT.WB_AST.value
-        self.workbook_prcs = workbook_prcs or DFLT.WB_PRC.value
         self.out_file = out_file or DFLT.OUT_AST.value
         self.json_file = self.out_file.with_suffix('.json')  # JSON file path with new suffix
-        self.sheet = sheet or DFLT.SHEET.value
-        self.header_row = header_row or int(DFLT.HEAD.value)
+        self.sheet = sheet or DFLT.SHEET_AST.value
+        self.header_row = header_row or int(DFLT.HEAD_AST.value)
         self.get_dfs()
         if out_file and not out_file.exists():
             self.df_a.to_excel(out_file, index=False)
 
     def __enter__(self):
         self.asset_manager = AssetManager(self.df_a)
-        self.transaction_manager = TransactionManager(self.df_pr_hire, self.df_pr_sale, self.df_b)
-        return (self.asset_manager, self.transaction_manager)
+        return self.asset_manager
 
     def get_dfs(self):
         assert self.workbook_ast.exists()
-        assert self.workbook_prcs.exists()
         if os.path.exists(self.json_file):  # Check if JSON file exists
             self.dfs_from_json()
         else:
@@ -89,21 +85,13 @@ class ManagerContext:
 
     def dfs_from_excel(self):
         self.df_a = pd.read_excel(self.workbook_ast, sheet_name=self.sheet, header=self.header_row, dtype=str)
-        self.df_pr_hire = pd.read_excel(self.workbook_prcs, sheet_name='Hire', header=0,
-                                        converters={'Price': decimal_from_value})
-        self.df_pr_sale = pd.read_excel(self.workbook_prcs, sheet_name='Sale', header=0,
-                                        converters={'Price': decimal_from_value})
-        self.df_b = pd.read_excel(self.workbook_prcs, sheet_name='Bands', header=0, converters={'Price': decimal_from_value})
 
 
     def dfs_from_json(self):
         with open(self.json_file, 'r') as json_file:
             data = json.load(json_file)
-            [setattr(self, dfname, pd.read_json(df)) for dfname, df in data.items()]
-        self.df_pr_hire['Price'] = self.df_pr_hire['Price'].apply(decimal_from_value)
-        self.df_pr_sale['Price'] = self.df_pr_sale['Price'].apply(decimal_from_value)
+        self.df_a = data['df_a']
         self.df_a['Number'] = self.df_a['Number'].astype(str)
-
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.save_dfs_to_json()
@@ -111,21 +99,11 @@ class ManagerContext:
         #     return
         df_overwrite_wb(input_workbook=self.workbook_ast, sheet=self.sheet, header_row=self.header_row,
                         out_file=self.out_file, df=self.df_a)
-        df_overwrite_wb(input_workbook=DFLT.WB_PRC.value, sheet='Hire', header_row=0,
-                        out_file=DFLT.WB_PRC.value, df=self.df_pr_hire)
-        df_overwrite_wb(input_workbook=DFLT.WB_PRC.value, sheet='Sale', header_row=0,
-                        out_file=DFLT.OUT_PRC.value, df=self.df_pr_sale)
-        df_overwrite_wb(input_workbook=DFLT.WB_PRC.value, sheet='Bands', header_row=0,
-                        out_file=DFLT.OUT_PRC.value, df=self.df_b)
 
     def save_dfs_to_json(self):
         data = {
             'df_a': self.df_a.to_json(),
-            'df_pr_hire': self.df_pr_hire.to_json(),
-            'df_pr_sale': self.df_pr_sale.to_json(),
-            'df_b': self.df_b.to_json(),
         }
-        ...
         with open(self.json_file, 'w') as json_file:
             json.dump(data, json_file, indent=4)
 

@@ -4,7 +4,7 @@
 # import pandas as pd
 #
 # from account.check_invoice_paid import check_paid
-# from assets.manager import DFLT
+# from managers.manager import DFLT
 #
 # # AC_WORKBOOK = r"R:\ACCOUNTS\ye2023\ac2223.xls"
 # AC_WORKBOOK = DFLT.DATA / 'input_files' / 'ac2223.xls'

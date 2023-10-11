@@ -3,7 +3,7 @@ from typing import List, Optional
 
 import win32com.client
 
-from assets.entities import Connection
+from managers.entities import Connection
 
 
 @dataclass
@@ -58,21 +58,23 @@ class Cursor:
 
 
 class HireCursor(Cursor):
-    def hire_to_customer(self, customer_name):
-        connect = Connection(name='To', table='Customer')
-        hires = self.filter_by_connection(customer_name, connect)
-        qs = self.get_qs()
-        hires = qs_to_lists(qs)
-        return hires
+    ...
+    # def hire_to_customer(self, customer_name):
+    #     connect = Connection(name='To', table='Customer')
+    #     hires = self.filter_by_connection(customer_name, connect)
+    #     qs = self.get_qs()
+    #     hires = qs_to_lists(qs)
+    #     return hires
 
 
 class SaleCursor(Cursor):
-    def sales_to_customer(self, customer_name):
-        connect = Connection(name='To', table='Customer')
-        sales = self.filter_by_connection(customer_name, connect)
-        qs = self.get_qs()
-        sales = qs_to_lists(qs)
-        return sales
+    ...
+    # def sales_to_customer(self, customer_name):
+    #     connect = Connection(name='To', table='Customer')
+    #     sales = self.filter_by_connection(customer_name, connect)
+    #     qs = self.get_qs()
+    #     sales = qs_to_lists(qs)
+    #     return sales
 
 
 def qs_to_lists(qs, max_rows=None):

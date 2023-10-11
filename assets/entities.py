@@ -50,9 +50,12 @@ class LineItem:
 
     @property
     def line_price(self):
-        return self.product.price_each * self.quantity
+        return self.product.price_each * int(self.quantity)
     def __str__(self):
         return f"{self.quantity} x {self.product.name} @ {self.product.price_each} = {self.line_price}"
+    def __repr__(self):
+        return f"LineItem({self.product.name} x {self.quantity})"
+
 
 @dataclass
 class Connection:

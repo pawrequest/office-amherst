@@ -33,16 +33,14 @@ class TransactionManager:
         self.df_bands = df_bands
 
     def make_hire_order(self, hire: pd.Series, duration: int = None) -> HireOrder:
-        order = self.parse_hire(hire)
-        # order_items, dur = items_and_dur_from_hire(hire)
-        #
-        # lineitems = []
-        # for name, qty in order_items:
-        #     price = self.get_hire_price(str(name), quantity=qty, duration=duration)
-        #     name = f'{name}_hire_{duration}_weeks'
-        #     product = Product(name=name, description='desc', price_each=price)
-        #     lineitems.append(LineItem(product=product, quantity=qty))
-        # order = HireOrder(line_items=lineitems, duration=duration)
+        pay, free = self.parse_hire(hire)
+        lineitems = []
+        for name, qty in pay.items():
+            price = self.get_hire_price(str(name), quantity=qty, duration=duration)
+            name = f'{name}_hire_{duration}_weeks'
+            product = Product(name=name, description='desc', price_each=price)
+            lineitems.append(LineItem(product=product, quantity=qty))
+        order = HireOrder(line_items=lineitems, duration=duration)
         return order
 
     def make_sales_order(self, sale: pd.Series):
@@ -63,12 +61,16 @@ class TransactionManager:
 
     def get_hire_price(self, product_name: str, quantity: int, duration: int):
         product = self.df_hire.loc[self.df_hire['Name'] == product_name]
-        valid_products = product[(product['Min Qty'] <= quantity) & (product['Min Duration'] <= duration)]
-        if valid_products.empty:
-            prod_band = self.df_bands.loc[self.df_bands['Name'] == product_name, 'Band'].iloc
-            if prod_band.empty:
+        if product.empty:
+            prod_band = self.df_bands.loc[self.df_bands['Name'] == 'EM', 'Band'].values[0]
+            product = self.df_hire.loc[self.df_hire['Name'] == prod_band]
+            if product.empty:
                 raise ValueError(f"No hire product or band found for {product_name}")
-            self.get_hire_price(prod_band, quantity, duration)
+
+        valid_products = product[(product['Min Qty'] <= int(quantity)) & (product['Min Duration'] <= int(duration))]
+
+        if valid_products.empty:
+                raise ValueError(f"No val;id price for {product_name}")
 
         best_product = valid_products.sort_values(by=['Min Qty', 'Min Duration'], ascending=[False, False]).iloc[0]
         price = best_product['Price']
@@ -77,26 +79,20 @@ class TransactionManager:
     def parse_hire(self, hire:pd.Series):
         all_hire_items = all_item_fields(hire)
         hire_items = all_hire_items[all_hire_items.astype(int) > 0]
-        pay, free = pay_and_free_items(hire_items)
-        if not pay.empty:
-            for pay_item in pay.index:
-                price = self.get_hire_price(pay_item, pay.loc[pay_item], hire.loc['Weeks'])
-
-        return hire_items
+        return pay_and_free_items(hire_items)
 
 
-def items_and_dur_from_hire(hire: pd.Series) -> ([tuple[str, int]], int):
-    duration = hire.loc['Weeks']
-    # items = [(field_name[7:], hire.loc[field_name])
-    #          for field_name in hire.index
-    #          if field_name.startswith('Number ') and int(hire.loc[field_name]) > 0]
-    items: tuple[pd.Series] = parse_hire_items(hire)
-    return items, duration
 
 
-# def all_item_fields(hire:pd.Series) -> pd.Series]:
-#     items = [(field_name[7:], hire.loc[field_name]) for field_name in hire.index if field_name.startswith('Number ')]
-#     return items
+# def items_and_dur_from_hire(hire: pd.Series) -> ([tuple[str, int]], int):
+#     duration = hire.loc['Weeks']
+#     # items = [(field_name[7:], hire.loc[field_name])
+#     #          for field_name in hire.index
+#     #          if field_name.startswith('Number ') and int(hire.loc[field_name]) > 0]
+#     items: tuple[pd.Series] = parse_hire_items(hire)
+#     return items, duration
+
+
 def all_item_fields(hire: pd.Series) -> pd.Series:
     items = hire[hire.index.str.startswith('Number ')]
     items.index = items.index.str[7:]

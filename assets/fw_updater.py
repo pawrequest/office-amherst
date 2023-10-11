@@ -1,6 +1,6 @@
 import subprocess
 
-from assets.manager import AssetManagerContext
+from assets.manager import ManagerContext
 
 instructions = ''
 
@@ -9,5 +9,5 @@ subprocess.run(exe, shell=True, check=True)
 
 while True:
     serial_or_id = input("Scan Barcode or enter 4 Digit ID:\n")
-    with AssetManagerContext as cmc:
+    with ManagerContext as cmc:
         ...

@@ -69,10 +69,34 @@ class Order:
 
 
 class Connections(Enum):
-    CUSTOMER_SALES = Connection(name="Has Hired", table='Hire')
-    CUSTOMER_HIRES = Connection(name="Involves", table='Sale')
+    CUSTOMER_HIRES = Connection(name="Has Hired", table='Hire')
+    CUSTOMER_SALES = Connection(name="Involves", table='Sale')
     # HIRES_CUSTOMER = Connection(name="To", table='Customer')
     # SALES_CUSTOMER = Connection(name="To", table='Customer')
     TO_CUSTOMER = Connection(name="To", table='Customer')
 
 
+class DFLT(Enum):
+    MIN_DUR = 'Min Duration'
+    MODEL = "Model"
+    SERIAL = 'Barcode'
+    ID = 'Number'
+    FW = 'FW'
+    FW_VERSION = 'XXXX'
+    ROOT = Path(__file__).parent.parent
+    DATA = ROOT / 'static/data'
+    WB_AST = DATA / 'assets.xlsx'
+    OUT_AST = DATA / 'assets_out.xlsx'
+    SHEET = 'Sheet1'
+    HEAD = 2
+    WB_PRC = DATA / 'prices.xlsx'
+    OUT_PRC = WB_PRC
+    MIN_QTY = 'Min Qty'
+    PRICE = 'Price'
+
+
+class FIL_(Enum):
+    FIELD = 'F'
+    C_TO_ITEM = 'CTI'
+    C_TO_CAT_TO_ITEM = 'CTCTI'
+    C_TO_CAT_FIELD = 'CTCF'

@@ -1,7 +1,8 @@
-from assets.manager import Asset, AssetManagerContext, DFLT
+from assets.manager import Asset, ManagerContext
+from assets.entities import DFLT
 
 #
-with AssetManagerContext(out_file=DFLT.OUT_AST.value) as am:
+with ManagerContext(out_file=DFLT.OUT_AST.value) as am:
     while True:
         # radio = Asset(am.df, id_or_serial=input("Enter ID or Serial: "))
         radio2 = Asset(am.df_a, id_or_serial='1111')

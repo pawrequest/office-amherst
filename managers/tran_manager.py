@@ -40,13 +40,6 @@ class TransactionContext:
         bands = pd.read_excel(self.prcs_wb, sheet_name='Bands', header=0,
                               dtype=str)
 
-        pprint(hire)
-        pprint(sale)
-        pprint(bands)
-        print(hire.dtypes)
-        print(sale.dtypes)
-        print(bands.dtypes)
-        ...
         return bands, hire, sale
 
     def dfs_from_json(self):

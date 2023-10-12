@@ -3,8 +3,6 @@ import sys
 from win32com import client
 from win32com.client import makepy
 
-from win32com.gen_py import auto_cmc
-
 from win32com.client import gencache
 
 

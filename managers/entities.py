@@ -84,7 +84,7 @@ class Order:
     line_items: List[LineItem] = field(default_factory=list)
     free_items: Optional[List[FreeItem]] = None
     tax_percent: int = 20
-    shipping: int = 15
+    shipping: Decimal = 15.00
     charity_percent: int = 0
 
     def __str__(self):
@@ -93,21 +93,21 @@ class Order:
 
     @property
     def total_goods(self):
-        return sum(itm.line_price for itm in self.line_items)
+        return Decimal(sum(itm.line_price for itm in self.line_items))
 
     @property
     def charity_discount(self):
         if not self.charity_percent:
             return 0
-        return self.total_goods * self.charity_percent / 100
+        return Decimal(self.total_goods * self.charity_percent / 100)
 
     @property
     def subtotal(self):
-        return self.total_goods + self.shipping - self.charity_discount
+        return Decimal(f"{sum([self.total_goods, Decimal(self.shipping)]) - self.charity_discount:.2f}")
 
     @property
     def tax(self):
-        return self.subtotal * self.tax_percent / 100
+        return Decimal( self.subtotal * self.tax_percent / 100)
 
     @property
     def total(self):

@@ -3,7 +3,7 @@ from decimal import Decimal
 from managers import commence
 from managers.entities import DFLT, HireOrder
 from managers.invoice import HireInvoice
-from managers.transact import TransactionContext, TransactionManager
+from managers.transact import TransactionContext
 
 
 def ass_get_prices():
@@ -25,7 +25,7 @@ def ass_get_prices():
 
 def ass_make_hire_order():
     with TransactionContext() as tm_in:
-        tm= tm_in
+        tm = tm_in
 
     hires = commence.hires_by_customer('Test')
     hire = hires.iloc[0]
@@ -37,7 +37,6 @@ def ass_make_hire_order():
     invoice.generate()
     assert DFLT.INV_OUT.is_file()
     assert '.docx' in DFLT.INV_OUT.suffixes
-
 
 
 ass_get_prices()

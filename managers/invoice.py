@@ -1,15 +1,15 @@
 import datetime
 import os
 from dataclasses import dataclass
+from decimal import Decimal
 
 import pandas as pd
 from docxtpl import DocxTemplate
 
-from managers.entities import Order, DFLT
-from decimal import Decimal
+from managers.entities import Order, DFLT, HireOrder
+from managers.invoice_number import get_new_inv_num
 
 INVOICE_TMPLT = DFLT.INV_TMPLT
-doc = DocxTemplate(INVOICE_TMPLT)
 
 
 @dataclass
@@ -38,7 +38,8 @@ class HireInvoice:
     ship_price: Decimal = 13
 
     @classmethod
-    def from_hire(cls, hire:pd.Series, order, customer:pd.Series):
+    def from_hire(cls, hire: pd.Series, order: HireOrder, customer: pd.Series):
+        inv_num = get_new_inv_num()
         i_add = customer['Address']
         i_pc = customer['Postcode']
         d_add = hire['Delivery Address']
@@ -49,16 +50,18 @@ class HireInvoice:
         date_start = hire['Send Out Date']
         date_end = hire['Due Back Date']
         dates = HireDates(invoice=date_inv, start=date_start, end=date_end)
-        return cls(inv_num='1234', dates=dates, inv_add=inv_add, del_add=del_add, inv_order=order)
-
-
+        return cls(inv_num=inv_num, dates=dates, inv_add=inv_add, del_add=del_add, inv_order=order)
 
     def generate(self, out_file=None):
+        doc = DocxTemplate(INVOICE_TMPLT)
         out_file = out_file or DFLT.INV_OUT
-        # if not out_file.exists():
-        #     open(out_file, 'w').close()
+
+        # doc.jinja_env.filters['currency'] = format_currency
+
+
         context = {
-            'inv_num': '1234',
+            'currency': format_currency,
+            'inv_num': self.inv_num,
             'dates': self.dates,
             'inv_address': self.inv_add,
             'del_address': self.del_add,
@@ -72,3 +75,6 @@ class HireInvoice:
         # doc.close()
 
 
+def format_currency(value):
+    # return f' £ {value:.2f}'
+    return f'£{value:>8.2f}'

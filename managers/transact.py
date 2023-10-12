@@ -136,7 +136,8 @@ class TransactionManager:
 
         best_product = valid_products.sort_values(by=['Min Qty', 'Min Duration'], ascending=[False, False]).iloc[0]
         price = best_product['Price']
-        return Decimal(price)
+        return Decimal(f"{price:.2f}")
+
 
     def parse_hire(self, hire: pd.Series) -> (pd.Series, pd.Series):
         all_hire_items = all_item_fields(hire)

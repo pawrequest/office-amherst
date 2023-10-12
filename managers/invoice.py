@@ -1,6 +1,8 @@
 import datetime
+import os
 from dataclasses import dataclass
 
+import pandas as pd
 from docxtpl import DocxTemplate
 
 from managers.entities import Order, DFLT
@@ -36,9 +38,9 @@ class HireInvoice:
     ship_price: Decimal = 13
 
     @classmethod
-    def from_hire(cls, hire, order):
-        i_add = hire['Delivery Address']
-        i_pc = hire['Delivery Postcode']
+    def from_hire(cls, hire:pd.Series, order, customer:pd.Series):
+        i_add = customer['Address']
+        i_pc = customer['Postcode']
         d_add = hire['Delivery Address']
         d_pc = hire['Delivery Postcode']
         inv_add = Address1(add=i_add, pc=i_pc)
@@ -51,7 +53,10 @@ class HireInvoice:
 
 
 
-    def generate(self):
+    def generate(self, out_file=None):
+        out_file = out_file or DFLT.INV_OUT
+        # if not out_file.exists():
+        #     open(out_file, 'w').close()
         context = {
             'inv_num': '1234',
             'dates': self.dates,
@@ -61,7 +66,9 @@ class HireInvoice:
         }
 
         doc.render(context)
-        ...
-        doc.save(DFLT.INV_OUT)
+        doc.save(out_file)
+        os.system(f'start {out_file}')
+
+        # doc.close()
 
 

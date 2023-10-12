@@ -80,6 +80,7 @@ class Connection:
 
 @dataclass
 class Order:
+    customer: str
     line_items: List[LineItem] = field(default_factory=list)
     free_items: Optional[List[FreeItem]] = None
     tax_percent: int = 20
@@ -162,17 +163,17 @@ class DFLT:
     ROOT = Path(__file__).parent.parent
     DATA = ROOT / 'static' / 'data'
     AST_WB = DATA / 'assets.xlsx'
-    AST_OUT = DATA / 'assets_out.xlsx'
+    AST_OUT = DATA / 'generated' / 'assets_out.xlsx'
     AST_SHEET = 'Sheet1'
     AST_HEAD = 2
-    PRC_WB = DATA / 'prices.xlsx'
     PRC_HEAD = 0
-    PRC_OUT = PRC_WB
+    PRC_WB = DATA / 'prices.xlsx'
+    PRC_OUT = DATA / 'generated' / 'prices_out.xlsx'
     MIN_QTY = 'Min Qty'
     PRICE = 'Price'
     TEMPLATE = ROOT / 'static' / 'templates'
     INV_TMPLT = TEMPLATE / 'invoice_tmplt.docx'
-    INV_OUT = TEMPLATE / 'invoice_out.docx'
+    INV_OUT = ROOT / 'static' / 'generated' / 'invoice_out.docx'
 
 
 class FILTER_(Enum):
@@ -180,4 +181,6 @@ class FILTER_(Enum):
     C_TO_ITEM = 'CTI'
     C_TO_CAT_TO_ITEM = 'CTCTI'
     C_TO_CAT_FIELD = 'CTCF'
+
+
 

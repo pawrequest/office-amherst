@@ -6,7 +6,7 @@ from pprint import pprint
 import pandas as pd
 
 from in_out.excel import df_overwrite_wb
-from managers.asset_manager import decimal_from_value
+from managers.assets import decimal_from_value
 from managers.entities import DFLT, FreeItem, HireOrder, LineItem, Order
 
 
@@ -86,18 +86,21 @@ class TransactionManager:
         self.df_hire = df_hire
         self.df_sale = df_sale
 
-    def make_hire_order(self, hire: pd.Series, duration: int = None) -> HireOrder:
+    def make_hire_order(self, customer:pd.Series, hire: pd.Series, duration: int = None) -> HireOrder:
+        duration = duration or int(hire['Weeks'])
         pay, free = self.parse_hire(hire)
         lineitems, free_items = [], []
         for name, qty in pay.items():
+            description = self.get_description(name)
             price = self.get_hire_price(str(name), quantity=qty, duration=duration)
-            name = f'{name}_hire_{duration}_weeks'
-            lineitems.append(LineItem(name=name, description='desc', price_each=price, quantity=qty))
+            long_name = f'{name}_hire_{duration}_weeks'
+            lineitems.append(LineItem(name=long_name, description=description, price_each=price, quantity=qty))
         for name, qty in free.items():
-            name = f'{name}_hire_{duration}_weeks'
-            free_items.append(FreeItem(name=name, description='desc', quantity=qty))
+            long_name = f'{name}_hire_{duration}_weeks'
+            description = self.get_description(name)
+            free_items.append(FreeItem(name=long_name, description=description, quantity=qty))
 
-        order = HireOrder(line_items=lineitems, duration=duration, free_items=free_items)
+        order = HireOrder(line_items=lineitems, duration=duration, free_items=free_items, customer=customer['Name'])
         return order
 
     def make_sale_order(self, sale: pd.Series):
@@ -106,7 +109,8 @@ class TransactionManager:
         for name_t, qty in order_items:
             name = str(name_t)
             price = self.get_sale_price(name, quantity=qty)
-            lineitems.append(LineItem(name=name, description='desc', price_each=price, quantity=qty))
+            description = self.get_description(name)
+            lineitems.append(LineItem(name=name, description=description, price_each=price, quantity=qty))
         order = Order(line_items=lineitems)
         return order
 
@@ -134,11 +138,28 @@ class TransactionManager:
         price = best_product['Price']
         return Decimal(price)
 
-    def parse_hire(self, hire: pd.Series):
+    def parse_hire(self, hire: pd.Series) -> (pd.Series, pd.Series):
         all_hire_items = all_item_fields(hire)
         hire_items = all_hire_items[all_hire_items.astype(int) > 0]
+        # items_with = items_with_description(hire_items, self.df_bands)
         return pay_and_free_items(hire_items)
 
+    def get_description(self, item_name: str):
+        desc = self.df_hire.loc[self.df_hire['Name'].str.lower() == item_name.lower(), 'Description']
+        if desc.empty:
+            desc = self.df_bands.loc[self.df_bands['Name'].str.lower() == item_name.lower(), 'Description']
+        if not desc.empty:
+            desc = desc.iloc[0]
+            return desc
+        return ""
+    # def get_description(self, item_name: str):
+    #     desc = self.df_hire.loc[self.df_hire['Name'].str.lower() == item_name.lower(), 'Description']
+    #     if desc.empty:
+    #         desc = self.df_bands.loc[self.df_bands['Name'].str.lower() == item_name.lower(), 'Description']
+    #     if len(desc) > 1:
+    #         desc = desc.iloc[0]
+    #     return desc[0]
+    #
 
 # def items_and_dur_from_hire(hire: pd.Series) -> ([tuple[str, int]], int):
 #     duration = hire.loc['Weeks']
@@ -155,6 +176,8 @@ def all_item_fields(hire: pd.Series) -> pd.Series:
     return items
 
 
+
+
 def pay_and_free_items(items: pd.Series) -> (pd.Series, pd.Series):
     pay_fields = ['UHF', 'EM', 'Cases', 'Icom', 'Wand', 'Batteries', 'EMC', 'Headset', 'Megaphone',
                   'ParrotRepeaterWand', 'VHF']
@@ -162,10 +185,10 @@ def pay_and_free_items(items: pd.Series) -> (pd.Series, pd.Series):
 
     pay_items = items[items.index.isin(pay_fields)]
     free_items = items[items.index.isin(free_fields)]
-    accounted_fields = set(pay_fields) | set(free_fields)
-    unaccounted_fields = set(items.index) - accounted_fields
-    if unaccounted_fields:
-        raise ValueError(f"Unaccounted fields: {list(unaccounted_fields)}")
+    # accounted_fields = set(pay_fields) | set(free_fields)
+    # unaccounted_fields = set(items.index) - accounted_fields
+    # if unaccounted_fields:
+    #     raise ValueError(f"Unaccounted fields: {list(unaccounted_fields)}")
     return pay_items, free_items
 
 

@@ -1,3 +1,5 @@
+from typing import Literal
+
 import pandas as pd
 import win32com.client
 import win32com.gen_py.auto_cmc as cmc_
@@ -5,7 +7,7 @@ import win32com.gen_py.auto_cmc as cmc_
 
 def get_cmc() -> cmc_.ICommenceDB:
     try:
-            cmc_db = win32com.client.Dispatch(f"Commence.DB")
+        cmc_db = win32com.client.Dispatch(f"Commence.DB")
     except Exception as e:
         raise e
     else:
@@ -33,14 +35,32 @@ def sale(record_name: str) -> pd.Series:
 def sales_by_customer(customer_name: str) -> pd.DataFrame:
     db = get_cmc()
     cursor = db.GetCursor(0, 'Sale', 0)
-    return dfs_from_connected_customer(cursor, customer_name)
+    return dfs_from_connected(cursor, 'To', 'Customer', customer_name)
 
 
 def hires_by_customer(customer_name: str) -> pd.DataFrame:
     db = get_cmc()
     cursor = db.GetCursor(0, 'Hire', 0)
-    filter_by_connection(cursor, customer_name, 'To', 'Customer')
-    return dfs_from_connected_customer(cursor, customer_name)
+    return dfs_from_connected(cursor, 'To', 'Customer', customer_name)
+
+
+def cust_of_transaction(trans_name: str, category:Literal['Hire', 'Sale']) -> pd.Series:
+    condition = 'Has Hired' if category == 'Hire' else 'Involves'
+    db = get_cmc()
+    cursor = db.GetCursor(0, 'Customer', 0)
+    df = dfs_from_connected(cursor, condition, category, trans_name, max_res=1)
+    return df.iloc[0]
+
+#
+# def customer_of_hire(hire_name: str) -> str:
+#     db = get_cmc()
+#     cursor = db.GetCursor(0, 'Customer', 0)
+#     get_record(cursor, hire_name)
+#     filter_by_connection(cursor, hire_name, 'Has Hired', 'Hire')
+#     qs = cursor.GetQueryRowSet(1, 0)
+#     if qs.RowCount != 1:
+#         raise ValueError(f"{qs.RowCount} rows returned")
+#     return qs_to_lists(qs)[0]
 
 
 def get_fieldnames(qs):
@@ -62,15 +82,43 @@ def qs_to_lists(qs, max_rows=None):
     return rows
 
 
-def dfs_from_connected_customer(cursor: cmc_.ICommenceCursor, customer_name: str):
-    filter_str = f"[ViewFilter(2, CTI,, To, Customer, {customer_name})]"
-    res = cursor.SetFilter(filter_str, 0)
-    # if not cursor.SetFilter(f"CTI, To, Customer, {customer_name}", 0):
-    if not res:
-        raise ValueError(f"Could not set filter for {customer_name}")
+# def dfs_from_connected_customer(cursor: cmc_.ICommenceCursor, customer_name: str) -> pd.DataFrame:
+#     filter_str = f"[ViewFilter(2, CTI,, To, Customer, {customer_name})]"
+#     res = cursor.SetFilter(filter_str, 0)
+#     # if not cursor.SetFilter(f"CTI, To, Customer, {customer_name}", 0):
+#     if not res:
+#         raise ValueError(f"Could not set filter for {customer_name}")
+#     qs = cursor.GetQueryRowSet(50, 0)
+#     if qs.RowCount == 0:
+#         return pd.DataFrame()
+#     data_list = qs_to_lists(qs)
+#     df_data = pd.DataFrame(data_list, columns=get_fieldnames(qs))
+#     return df_data
+#
+#
+# def dfs_from_connected_hire(cursor: cmc_.ICommenceCursor, hire_name: str) -> pd.DataFrame:
+#     filter_str = f"[ViewFilter(2, CTI,, Has Hired, Hire, {hire_name})]"
+#     res = cursor.SetFilter(filter_str, 0)
+#     # if not cursor.SetFilter(f"CTI, To, Customer, {customer_name}", 0):
+#     if not res:
+#         raise ValueError(f"Could not set filter for {hire_name}")
+#     qs = cursor.GetQueryRowSet(50, 0)
+#     if qs.RowCount == 0:
+#         pd.DataFrame()
+#     data_list = qs_to_lists(qs)
+#     df_data = pd.DataFrame(data_list, columns=get_fieldnames(qs))
+#     return df_data
+
+
+def dfs_from_connected(cursor: cmc_.ICommenceCursor, connection_name: str, connection_table: str,
+                       item_name: str, max_res=None) -> pd.DataFrame:
+    filter_by_connection(cursor, item_name, connection_name, connection_table)
     qs = cursor.GetQueryRowSet(50, 0)
     if qs.RowCount == 0:
-        return
+        return pd.DataFrame()
+    if max_res and qs.RowCount > max_res:
+        raise ValueError(f"Query set has {qs.RowCount} rows, more than {max_res} rows requested")
+
     data_list = qs_to_lists(qs)
     df_data = pd.DataFrame(data_list, columns=get_fieldnames(qs))
     return df_data
@@ -97,9 +145,8 @@ def filter_by_field(cursor: cmc_.ICommenceCursor, field_name: str, value, contai
 
 
 def filter_by_connection(cursor: cmc_.ICommenceCursor, item_name: str, connection_name: str, connection_table: str):
-    filter_str = f"[ViewFilter(2, CTI,, {connection_name}, {connection_table}, {item_name})]"
+    filter_str = f'[ViewFilter(1, CTI,, "{connection_name}", {connection_table}, "{item_name}")]'
     res = cursor.SetFilter(filter_str, 0)
     if not res:
         raise ValueError(f"Could not set filter for {connection_name} = {item_name}")
-
 

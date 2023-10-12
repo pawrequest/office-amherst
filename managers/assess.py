@@ -1,4 +1,6 @@
+import os
 from decimal import Decimal
+from pathlib import Path
 
 from managers import commence
 from managers.entities import DFLT, HireOrder
@@ -27,14 +29,16 @@ def ass_make_hire_order():
     with TransactionContext() as tm_in:
         tm = tm_in
 
-    hires = commence.hires_by_customer('Test')
-    hire = hires.iloc[0]
+    # hires = commence.hires_by_customer('Test')
+    # hire = hires.iloc[0]
+
+    hire = commence.hire('Test - 16/08/2023 ref 31619')
     hire_name = hire.Name
     customer = commence.cust_of_transaction(hire_name, 'Hire')
     hire_order = tm.make_hire_order(customer=customer, hire=hire)
     assert isinstance(hire_order, HireOrder)
     invoice = HireInvoice.from_hire(hire, hire_order, customer)
-    invoice.generate()
+    invoice.generate(print=True)
 
 def ass_make_sale_order():
     with TransactionContext() as tm_in:
@@ -42,7 +46,6 @@ def ass_make_sale_order():
     sales = commence.sales_by_customer('Test')
     ...
 
-
-ass_get_prices()
+# ass_get_prices()
 ass_make_hire_order()
-ass_make_sale_order()
+# ass_make_sale_order()

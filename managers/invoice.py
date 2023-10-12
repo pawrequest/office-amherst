@@ -80,7 +80,7 @@ class HireInvoice:
         if open:
             os.system(f'start {out_file}')
         if print:
-            os.system(f'print {pdf_out_file}')
+            print_file(pdf_out_file)
 
         # doc.close()
 
@@ -88,3 +88,14 @@ class HireInvoice:
 def format_currency(value):
     # return f' £ {value:.2f}'
     return f'£{value:>8.2f}'
+
+
+def print_file(file_path: Path):
+    """ prints the labels stored at shipment.label_location """
+    try:
+        os.startfile(str(file_path), "print")
+    except Exception as e:
+        print(f"Failed to print: {e}")
+        return False
+    else:
+        return True

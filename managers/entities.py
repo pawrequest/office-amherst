@@ -90,7 +90,6 @@ class Order:
     def __str__(self):
         return f"Order with {len(self.line_items)} lines for £{self.total}"
 
-
     @property
     def total_goods(self):
         return Decimal(sum(itm.line_price for itm in self.line_items))
@@ -107,14 +106,11 @@ class Order:
 
     @property
     def tax(self):
-        return Decimal( self.subtotal * self.tax_percent / 100)
+        return Decimal(self.subtotal * self.tax_percent / 100)
 
     @property
     def total(self):
         return self.subtotal + self.tax
-
-
-
 
 
 @dataclass
@@ -123,7 +119,6 @@ class HireOrder(Order):
 
     def __str__(self):
         return f"Order for {self.duration} weeks with {len(self.line_items)} lines for £{self.total}"
-
 
 
 class Connections(Enum):
@@ -152,28 +147,29 @@ class Connections(Enum):
 #     PRC_HEAD = 0
 
 
-
 class DFLT:
+    ROOT = Path(__file__).parent.parent
+    STATIC = ROOT / 'static'
+    DATA = STATIC / 'data'
+    GENERATED = STATIC / 'generated'
+    TEMPLATE = STATIC / 'templates'
+    FW_VERSION = 'XXXX'
+    AST_WB = DATA / 'assets.xlsx'
+    PRC_WB = DATA / 'prices.xlsx'
+    AST_OUT = GENERATED / 'assets_out.xlsx'
+    INV_TMPLT = TEMPLATE / 'invoice_tmplt.docx'
+    PRC_OUT = GENERATED / 'prices_out.xlsx'
+    INV_OUT = GENERATED / 'invoice_out.docx'
     MIN_DUR = 'Min Duration'
     MODEL = "Model"
     SERIAL = 'Barcode'
     ID = 'Number'
     FW = 'FW'
-    FW_VERSION = 'XXXX'
-    ROOT = Path(__file__).parent.parent
-    DATA = ROOT / 'static' / 'data'
-    AST_WB = DATA / 'assets.xlsx'
-    AST_OUT = DATA / 'generated' / 'assets_out.xlsx'
+    MIN_QTY = 'Min Qty'
+    PRICE = 'Price'
     AST_SHEET = 'Sheet1'
     AST_HEAD = 2
     PRC_HEAD = 0
-    PRC_WB = DATA / 'prices.xlsx'
-    PRC_OUT = DATA / 'generated' / 'prices_out.xlsx'
-    MIN_QTY = 'Min Qty'
-    PRICE = 'Price'
-    TEMPLATE = ROOT / 'static' / 'templates'
-    INV_TMPLT = TEMPLATE / 'invoice_tmplt.docx'
-    INV_OUT = ROOT / 'static' / 'generated' / 'invoice_out.docx'
 
 
 class FILTER_(Enum):
@@ -181,6 +177,3 @@ class FILTER_(Enum):
     C_TO_ITEM = 'CTI'
     C_TO_CAT_TO_ITEM = 'CTCTI'
     C_TO_CAT_FIELD = 'CTCF'
-
-
-

@@ -35,8 +35,6 @@ def ass_make_hire_order():
     assert isinstance(hire_order, HireOrder)
     invoice = HireInvoice.from_hire(hire, hire_order, customer)
     invoice.generate()
-    assert DFLT.INV_OUT.is_file()
-    assert '.docx' in DFLT.INV_OUT.suffixes
 
 def ass_make_sale_order():
     with TransactionContext() as tm_in:

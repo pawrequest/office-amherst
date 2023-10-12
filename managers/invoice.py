@@ -1,3 +1,7 @@
+from pathlib import Path
+
+from docx2pdf import convert
+
 import datetime
 import os
 from dataclasses import dataclass
@@ -52,11 +56,10 @@ class HireInvoice:
         dates = HireDates(invoice=date_inv, start=date_start, end=date_end)
         return cls(inv_num=inv_num, dates=dates, inv_add=inv_add, del_add=del_add, inv_order=order)
 
-    def generate(self, out_file=None):
+    def generate(self, out_file=None, open=False, print=False):
         doc = DocxTemplate(INVOICE_TMPLT)
-        out_file = out_file or DFLT.INV_OUT
+        out_file = DFLT.GENERATED / f"{self.inv_num + '.docx'}"
 
-        # doc.jinja_env.filters['currency'] = format_currency
 
 
         context = {
@@ -70,7 +73,14 @@ class HireInvoice:
 
         doc.render(context)
         doc.save(out_file)
-        # os.system(f'start {out_file}')
+
+        convert(out_file)  # This will save the PDF alongside the DOCX
+        pdf_out_file = out_file.with_suffix('.pdf')
+
+        if open:
+            os.system(f'start {out_file}')
+        if print:
+            os.system(f'print {pdf_out_file}')
 
         # doc.close()
 

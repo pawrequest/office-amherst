@@ -1,55 +1,61 @@
 import json
 import os
+from _decimal import Decimal
+from pprint import pprint
 
 import pandas as pd
-from _decimal import Decimal
 
 from in_out.excel import df_overwrite_wb
 from managers.asset_manager import decimal_from_value
-from managers.entities import DFLT, FreeItem, LineItem, HireOrder, Order
+from managers.entities import DFLT, FreeItem, HireOrder, LineItem, Order
 
 
 class TransactionContext:
     def __init__(self, header_row=None, out_file=None, prices_wb=None, ):
-        self.workbook_prcs = prices_wb or DFLT.WB_PRC.value
-        self.out_file = out_file or DFLT.OUT_PRC.value
-        self.json_file = self.out_file.with_suffix('.json')  # JSON file path with new suffix
-        self.header_row = header_row or int(DFLT.HEAD_AST.value)
-        self.df_bands, self.df_pr_sale, self.df_pr_hire = self.get_dfs()
-        if out_file and not out_file.exists():
-            self.df_pr_hire.to_excel(out_file, index=False)
-            self.df_pr_sale.to_excel(out_file, index=False)
-            self.df_bands.to_excel(out_file, index=False)
-        ...
+        self.prcs_wb = prices_wb or DFLT.PRC_WB
+        self.prcs_out = out_file or DFLT.PRC_OUT
+        self.json_file = self.prcs_out.with_suffix('.json')  # JSON file path with new suffix
+        self.header_row = header_row or int(DFLT.PRC_HEAD)
+        self.df_bands, self.df_pr_hire, self.df_pr_sale= self.get_dfs()
 
     def __enter__(self):
-        self.transaction_manager = TransactionManager(df_bands=self.df_bands, df_hire=self.df_pr_hire, df_sale=self.df_pr_sale)
+        self.transaction_manager = TransactionManager(df_bands=self.df_bands, df_hire=self.df_pr_hire,
+                                                      df_sale=self.df_pr_sale)
         return self.transaction_manager
 
     def get_dfs(self):
-        assert self.workbook_prcs.exists()
-        df_bands, df_hire, df_sale = self.dfs_from_json() if os.path.exists(self.json_file) else self.dfs_from_excel()
+        assert self.prcs_wb.exists()
+
+        # df_bands, df_hire, df_sale = self.dfs_from_json() if os.path.exists(self.json_file) else self.dfs_from_excel()
+        df_bands, df_hire, df_sale = self.dfs_from_excel()
         return df_bands, df_hire, df_sale
 
     def dfs_from_excel(self):
-        hire = pd.read_excel(self.workbook_prcs, sheet_name='Hire', header=0,
-                                converters={'Price': decimal_from_value})
-        sale = pd.read_excel(self.workbook_prcs, sheet_name='Sale', header=0,
-                                converters={'Price': decimal_from_value})
-        bands = pd.read_excel(self.workbook_prcs, sheet_name='Bands', header=0,
-                              converters={'Price': decimal_from_value})
+        hire = pd.read_excel(self.prcs_wb, sheet_name='Hire', header=0,
+                             dtype={'Min Qty': int, 'Min Duration': int},
+                             converters={'Price': decimal_from_value})
+        sale = pd.read_excel(self.prcs_wb, sheet_name='Sale', header=0,
+                             dtype={'Min Qty': int},
+                             converters={'Price': decimal_from_value})
+        bands = pd.read_excel(self.prcs_wb, sheet_name='Bands', header=0,
+                              dtype=str)
+
+        pprint(hire)
+        pprint(sale)
+        pprint(bands)
+        print(hire.dtypes)
+        print(sale.dtypes)
+        print(bands.dtypes)
+        ...
         return bands, hire, sale
 
     def dfs_from_json(self):
         with open(self.json_file, 'r') as json_file2:
             data = json.load(json_file2)
 
-        bands_ = data['df_b']
-        pr_hire_ = data['df_hire']
-        pr_sale_ = data['df_sale']
-        hire = pd.DataFrame(pr_hire_)
-        sale = pd.DataFrame(pr_sale_)
-        bands = pd.DataFrame(bands_)
+        hire = pd.DataFrame('df_hire')
+        sale = pd.DataFrame('df_sale')
+        bands = pd.DataFrame(data['df_b'], dtype=str)
         hire['Price'] = hire['Price'].apply(decimal_from_value)
         sale['Price'] = sale['Price'].apply(decimal_from_value)
 
@@ -63,12 +69,12 @@ class TransactionContext:
         ...
 
     def dfs_to_wb(self):
-        df_overwrite_wb(input_workbook=DFLT.WB_PRC.value, sheet='Hire', header_row=0,
-                        out_file=DFLT.WB_PRC.value, df=self.df_pr_hire)
-        df_overwrite_wb(input_workbook=DFLT.WB_PRC.value, sheet='Sale', header_row=0,
-                        out_file=DFLT.OUT_PRC.value, df=self.df_pr_sale)
-        df_overwrite_wb(input_workbook=DFLT.WB_PRC.value, sheet='Bands', header_row=0,
-                        out_file=DFLT.OUT_PRC.value, df=self.df_bands)
+        df_overwrite_wb(input_workbook=DFLT.PRC_WB, sheet='Hire', header_row=0,
+                        out_file=DFLT.PRC_OUT, df=self.df_pr_hire)
+        df_overwrite_wb(input_workbook=DFLT.PRC_WB, sheet='Sale', header_row=0,
+                        out_file=DFLT.PRC_OUT, df=self.df_pr_sale)
+        df_overwrite_wb(input_workbook=DFLT.PRC_WB, sheet='Bands', header_row=0,
+                        out_file=DFLT.PRC_OUT, df=self.df_bands)
 
     def dfs_to_json(self):
         data = {
@@ -113,7 +119,7 @@ class TransactionManager:
 
     def get_sale_price(self, product_name: str, quantity: int):
         product_df = self.df_sale.loc[self.df_sale['Name'].str.lower() == product_name.lower()]
-        return product_df.loc[product_df[DFLT.MIN_QTY.value].astype(int) <= int(quantity), 'Price'].min()
+        return product_df.loc[product_df[DFLT.MIN_QTY].astype(int) <= int(quantity), 'Price'].min()
 
     def get_hire_price(self, product_name: str, quantity: int, duration: int):
         product = self.df_hire.loc[self.df_hire['Name'].str.lower() == str(product_name).lower()]
@@ -125,7 +131,8 @@ class TransactionManager:
             if product.empty:
                 raise ValueError(f"No hire product or band found for {product_name}")
 
-        valid_products = product[(product['Min Qty'].astype(int) <= int(quantity)) & (product['Min Duration'].astype(int) <= int(duration))]
+        valid_products = product[
+            (product['Min Qty'].astype(int) <= int(quantity)) & (product['Min Duration'].astype(int) <= int(duration))]
 
         if valid_products.empty:
             raise ValueError(f"No valid price for {product_name}")
@@ -197,4 +204,3 @@ def items_from_sale(sale: pd.Series):
         item_name, qty = res
         item_tups.append((item_name, int(qty)))
     return item_tups
-

@@ -22,16 +22,16 @@ def get_id_and_serial(id_or_serial, df):
     try:
         if an_id(id_or_serial):
             id_num = id_or_serial
-            serial = df[df[DFLT.ID.value] == id_num][DFLT.SERIAL.value].values[0]
+            serial = df[df[DFLT.ID] == id_num][DFLT.SERIAL].values[0]
         else:
-            id_num = df[df[DFLT.SERIAL.value] == id_or_serial][DFLT.ID.value].values[0]
+            id_num = df[df[DFLT.SERIAL] == id_or_serial][DFLT.ID].values[0]
             serial = id_or_serial
     except Exception as e:
         raise e
     # except ValueError:
-    #     print(f"Error: {id_or_serial} not found in {DFLT.WB.value}")
+    #     print(f"Error: {id_or_serial} not found in {DFLT.WB}")
     # except KeyError:
-    #     print(f"Error: {DFLT.ID.value} or {DFLT.SERIAL.value} not found in {DFLT.WB.value}")
+    #     print(f"Error: {DFLT.ID} or {DFLT.SERIAL} not found in {DFLT.WB}")
 
     else:
         return id_num, serial
@@ -61,48 +61,39 @@ def decimal_from_value(value):
 
 
 class AssetContext:
-    def __init__(self, workbook_ast=None, sheet=None, header_row=None, out_file=None, workbook_prcs=None,
-                 df_pr_hire=None, df_pr_sale=None):
-        self.workbook_ast = workbook_ast or DFLT.WB_AST.value
-        self.out_file = out_file or DFLT.OUT_AST.value
+    def __init__(self, workbook_ast=None, sheet=None, header_row=None, out_file=None):
+        self.workbook_ast = workbook_ast or DFLT.AST_WB
+        self.out_file = out_file or DFLT.AST_OUT
         self.json_file = self.out_file.with_suffix('.json')  # JSON file path with new suffix
-        self.sheet = sheet or DFLT.SHEET_AST.value
-        self.header_row = header_row or int(DFLT.HEAD_AST.value)
-        self.get_dfs()
+        self.sheet = sheet or DFLT.AST_SHEET
+        self.header_row = header_row or DFLT.AST_HEAD
+
+        if os.path.exists(self.json_file):
+            with open(self.json_file, 'r') as json_file:
+                data = json.load(json_file)
+            self.assets = data['df_a']
+        else:
+            self.assets = pd.read_excel(self.workbook_ast, sheet_name=self.sheet, header=self.header_row)
+
+        self.assets['Number'] = self.assets['Number'].astype(str)
+
         if out_file and not out_file.exists():
-            self.df_a.to_excel(out_file, index=False)
+            self.assets.to_excel(out_file, index=False)
 
     def __enter__(self):
-        self.asset_manager = AssetManager(self.df_a)
+        self.asset_manager = AssetManager(self.assets)
         return self.asset_manager
-
-    def get_dfs(self):
-        assert self.workbook_ast.exists()
-        if os.path.exists(self.json_file):  # Check if JSON file exists
-            self.dfs_from_json()
-        else:
-            self.dfs_from_excel()
-
-    def dfs_from_excel(self):
-        self.df_a = pd.read_excel(self.workbook_ast, sheet_name=self.sheet, header=self.header_row, dtype=str)
-
-
-    def dfs_from_json(self):
-        with open(self.json_file, 'r') as json_file:
-            data = json.load(json_file)
-        self.df_a = data['df_a']
-        self.df_a['Number'] = self.df_a['Number'].astype(str)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.save_dfs_to_json()
         # if input("Save changes? (y/n)").lower() != 'y':
         #     return
         df_overwrite_wb(input_workbook=self.workbook_ast, sheet=self.sheet, header_row=self.header_row,
-                        out_file=self.out_file, df=self.df_a)
+                        out_file=self.out_file, df=self.assets)
 
     def save_dfs_to_json(self):
         data = {
-            'df_a': self.df_a.to_json(),
+            'df_a': self.assets.to_json(),
         }
         with open(self.json_file, 'w') as json_file:
             json.dump(data, json_file, indent=4)
@@ -116,32 +107,32 @@ class AssetManager:
 
     def row_from_id_or_serial(self, id_or_serial: str) -> Series:
         if an_id(id_or_serial):
-            row = self.df_a.loc[self.df_a[DFLT.ID.value] == id_or_serial]
+            row = self.df_a.loc[self.df_a[DFLT.ID] == id_or_serial]
         else:
-            row = self.df_a.loc[self.df_a[DFLT.SERIAL.value] == id_or_serial]
+            row = self.df_a.loc[self.df_a[DFLT.SERIAL] == id_or_serial]
         assert row.shape[0] == 1
         return handle_row(row)
 
-    def set_field_by_id_or_serial(self, id_or_serial: str, field: str, value):
+    def set_field_by_id_or_serial(self, id_or_serial: str, field_name: str, value):
         if an_id(id_or_serial):
-            self.df_a.loc[self.df_a[DFLT.ID.value] == id_or_serial, field] = value
+            self.df_a.loc[self.df_a[DFLT.ID] == id_or_serial, field_name] = value
         else:
-            self.df_a.loc[self.df_a[DFLT.SERIAL.value] == id_or_serial, field] = value
+            self.df_a.loc[self.df_a[DFLT.SERIAL] == id_or_serial, field_name] = value
 
 
     def field_from_id_or_serial(self, id_or_serial: str, field: str):
         try:
             if an_id(id_or_serial):
-                return self.df_a.loc[self.df_a[DFLT.ID.value] == id_or_serial, field].values[0]
+                return self.df_a.loc[self.df_a[DFLT.ID] == id_or_serial, field].values[0]
             else:
-                return self.df_a.loc[self.df_a[DFLT.SERIAL.value] == id_or_serial, field].values[0]
+                return self.df_a.loc[self.df_a[DFLT.SERIAL] == id_or_serial, field].values[0]
         except IndexError:
             raise ValueError(f"Field {field} not found for {id_or_serial}")
         except Exception as e:
             raise e
 
     def check_fw(self, id_or_serial: str, fw_version=None):
-        fw_1 = self.field_from_id_or_serial(id_or_serial=id_or_serial, field=DFLT.FW.value)
+        fw_1 = self.field_from_id_or_serial(id_or_serial=id_or_serial, field=DFLT.FW)
         if fw_version is None:
             assert fw_1
         else:

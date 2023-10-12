@@ -131,7 +131,28 @@ class Connections(Enum):
     TO_CUSTOMER = Connection(name="To", table='Customer')
 
 
-class DFLT(Enum):
+# class DFLT(Enum):
+#     MIN_DUR = 'Min Duration'
+#     MODEL = "Model"
+#     SERIAL = 'Barcode'
+#     ID = 'Number'
+#     FW = 'FW'
+#     FW_VERSION = 'XXXX'
+#     ROOT = Path(__file__).parent.parent
+#     DATA = ROOT / 'static/data'
+#     WB_AST = DATA / 'managers.xlsx'
+#     OUT_AST = DATA / 'assets_out.xlsx'
+#     SHEET_AST = 'Sheet1'
+#     HEAD_AST = 2
+#     WB_PRC = DATA / 'prices.xlsx'
+#     OUT_PRC = WB_PRC
+#     MIN_QTY = 'Min Qty'
+#     PRICE = 'Price'
+#     PRC_HEAD = 0
+
+
+
+class DFLT:
     MIN_DUR = 'Min Duration'
     MODEL = "Model"
     SERIAL = 'Barcode'
@@ -139,42 +160,22 @@ class DFLT(Enum):
     FW = 'FW'
     FW_VERSION = 'XXXX'
     ROOT = Path(__file__).parent.parent
-    DATA = ROOT / 'static/data'
-    WB_AST = DATA / 'managers.xlsx'
-    OUT_AST = DATA / 'assets_out.xlsx'
-    SHEET_AST = 'Sheet1'
-    HEAD_AST = 2
-    WB_PRC = DATA / 'prices.xlsx'
-    OUT_PRC = WB_PRC
+    DATA = ROOT / 'static' / 'data'
+    AST_WB = DATA / 'assets.xlsx'
+    AST_OUT = DATA / 'assets_out.xlsx'
+    AST_SHEET = 'Sheet1'
+    AST_HEAD = 2
+    PRC_WB = DATA / 'prices.xlsx'
+    PRC_HEAD = 0
+    PRC_OUT = PRC_WB
     MIN_QTY = 'Min Qty'
     PRICE = 'Price'
-    PRC_HEAD = 0
+    TEMPLATE = ROOT / 'static' / 'templates'
+    INV_TMPLT = TEMPLATE / 'invoice_tmplt.docx'
+    INV_OUT = TEMPLATE / 'invoice_out.docx'
 
 
-
-class DFLT2:
-    MIN_DUR = 'Min Duration'
-    MODEL = "Model"
-    SERIAL = 'Barcode'
-    ID = 'Number'
-    FW = 'FW'
-    FW_VERSION = 'XXXX'
-    ROOT = Path(__file__).parent.parent
-    DATA = ROOT / 'static/data'
-    WB_AST = DATA / 'managers.xlsx'
-    OUT_AST = DATA / 'assets_out.xlsx'
-    SHEET_AST = 'Sheet1'
-    HEAD_AST = 2
-    WB_PRC = DATA / 'prices.xlsx'
-    OUT_PRC = WB_PRC
-    MIN_QTY = 'Min Qty'
-    PRICE = 'Price'
-    PRC_HEAD = 0
-    INV_TMPLT = ROOT / 'static' / 'templates' / 'invoice_tmplt.docx'
-    INV_OUT = ROOT / 'static' / 'templates' / 'invoice_out.docx'
-
-
-class FIL_(Enum):
+class FILTER_(Enum):
     FIELD = 'F'
     C_TO_ITEM = 'CTI'
     C_TO_CAT_TO_ITEM = 'CTCTI'

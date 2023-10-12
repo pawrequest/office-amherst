@@ -3,10 +3,10 @@ from dataclasses import dataclass
 
 from docxtpl import DocxTemplate
 
-from managers.entities import Order, DFLT2
+from managers.entities import Order, DFLT
 from decimal import Decimal
 
-INVOICE_TMPLT = DFLT2.INV_TMPLT
+INVOICE_TMPLT = DFLT.INV_TMPLT
 doc = DocxTemplate(INVOICE_TMPLT)
 
 
@@ -62,6 +62,6 @@ class HireInvoice:
 
         doc.render(context)
         ...
-        doc.save(DFLT2.INV_OUT)
+        doc.save(DFLT.INV_OUT)
 
 

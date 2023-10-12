@@ -1,16 +1,11 @@
-from dataclasses import dataclass
-
 import pandas as pd
 import win32com.client
 import win32com.gen_py.auto_cmc as cmc_
 
-from managers.invoice_manager import HireInvoice
-from managers.tran_manager import TransactionContext
-
 
 def get_cmc() -> cmc_.ICommenceDB:
     try:
-        cmc_db = win32com.client.Dispatch(f"Commence.DB")
+            cmc_db = win32com.client.Dispatch(f"Commence.DB")
     except Exception as e:
         raise e
     else:
@@ -67,7 +62,6 @@ def qs_to_lists(qs, max_rows=None):
     return rows
 
 
-
 def dfs_from_connected_customer(cursor: cmc_.ICommenceCursor, customer_name: str):
     filter_str = f"[ViewFilter(2, CTI,, To, Customer, {customer_name})]"
     res = cursor.SetFilter(filter_str, 0)
@@ -84,7 +78,7 @@ def dfs_from_connected_customer(cursor: cmc_.ICommenceCursor, customer_name: str
 
 def get_record(cursor: cmc_.ICommenceCursor, record_name: str) -> pd.Series | None:
     filter_by_field(cursor, 'Name', record_name)
-    qs:cmc_.ICommenceQueryRowSet = cursor.GetQueryRowSet(5, 0)
+    qs: cmc_.ICommenceQueryRowSet = cursor.GetQueryRowSet(5, 0)
     if qs.RowCount != 1:
         raise ValueError(f"{qs.RowCount} rows returned")
     if qs.GetRowValue(0, 0, 0) != record_name:
@@ -94,7 +88,7 @@ def get_record(cursor: cmc_.ICommenceCursor, record_name: str) -> pd.Series | No
     return pd.Series(data=data, index=get_fieldnames(qs))
 
 
-def filter_by_field(cursor:cmc_.ICommenceCursor, field_name:str, value, contains=False):
+def filter_by_field(cursor: cmc_.ICommenceCursor, field_name: str, value, contains=False):
     rationale = 'Contains' if contains else 'Equal To'
     filter_str = f"[ViewFilter(1, F,, {field_name}, {rationale}, {value})]"
     res = cursor.SetFilter(filter_str, 0)
@@ -102,13 +96,10 @@ def filter_by_field(cursor:cmc_.ICommenceCursor, field_name:str, value, contains
         raise ValueError(f"Could not set filter for {field_name} = {value}")
 
 
-def filter_by_connection(cursor:cmc_.ICommenceCursor, item_name:str, connection_name:str, connection_table:str):
+def filter_by_connection(cursor: cmc_.ICommenceCursor, item_name: str, connection_name: str, connection_table: str):
     filter_str = f"[ViewFilter(2, CTI,, {connection_name}, {connection_table}, {item_name})]"
     res = cursor.SetFilter(filter_str, 0)
     if not res:
         raise ValueError(f"Could not set filter for {connection_name} = {item_name}")
-
-
-...
 
 

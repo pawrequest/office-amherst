@@ -38,6 +38,13 @@ def ass_make_hire_order():
     assert DFLT.INV_OUT.is_file()
     assert '.docx' in DFLT.INV_OUT.suffixes
 
+def ass_make_sale_order():
+    with TransactionContext() as tm_in:
+        tm = tm_in
+    sales = commence.sales_by_customer('Test')
+    ...
+
 
 ass_get_prices()
 ass_make_hire_order()
+ass_make_sale_order()

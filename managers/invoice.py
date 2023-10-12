@@ -70,7 +70,7 @@ class HireInvoice:
 
         doc.render(context)
         doc.save(out_file)
-        os.system(f'start {out_file}')
+        # os.system(f'start {out_file}')
 
         # doc.close()
 

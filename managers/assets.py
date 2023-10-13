@@ -56,8 +56,8 @@ class Asset:
         return self.id_number == other.id_number and self.serial_number == other.serial_number
 
 
-def decimal_from_value(value):
-    return Decimal(value)
+def int_100(value):
+    return int(value * 100)
 
 
 class AssetContext:

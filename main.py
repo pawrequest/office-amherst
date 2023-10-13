@@ -13,7 +13,7 @@ def main(args):
     customer = commence.cust_of_transaction(hire.Name, 'Hire')
     hire_order = tm.make_hire_order(customer, hire)
     invoice = HireInvoice.from_hire(hire, hire_order, customer)
-    invoice.generate(print=args.print)
+    invoice.generate(prnt=args.print)
 
 
 if __name__ == '__main__':

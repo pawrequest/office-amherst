@@ -4,14 +4,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Iterable, List, Optional
 
-import pandas as pd
 
-root = Path(__file__).parent.parent
-templates = root / 'templates'
-PRICES_WB = root / 'templates' / 'prices.xlsx'
-
-
-class Fields(Enum):
+class FIELDS(Enum):
     CUSTOMER = [
         "Contact Name",
         "Name",
@@ -64,7 +58,7 @@ class LineItem(Product):
 
     @property
     def line_price(self):
-        return int(self.price_each * self.quantity)
+        return self.price_each * int(self.quantity)
 
     def __str__(self):
         return f"{self.quantity} x {self.name} @ {self.price_each} = {self.line_price}"
@@ -82,50 +76,45 @@ class Connection:
 
 @dataclass
 class Order:
-    customer: pd.DataFrame
+    customer: str
     line_items: List[LineItem] = field(default_factory=list)
     free_items: Optional[List[FreeItem]] = None
     tax_percent: int = 20
-    shipping: int = 15.00
+    shipping: Decimal = 15.00
     charity_percent: int = 0
-    duration: Optional[int] = None
 
-    # def __str__(self):
-    #     return f"Order with {len(self.line_items)} lines for £{self.total}"
-
-    @property
-    def total_goods(self) ->int:
-        res = int(sum(itm.line_price for itm in self.line_items))
-        return res
+    def __str__(self):
+        return f"Order with {len(self.line_items)} lines for £{self.total}"
 
     @property
-    def charity_discount(self) -> int:
+    def total_goods(self):
+        return Decimal(sum(itm.line_price for itm in self.line_items))
+
+    @property
+    def charity_discount(self):
         if not self.charity_percent:
             return 0
-        i = int(self.total_goods * self.charity_percent / 100)
-        return i
+        return Decimal(self.total_goods * self.charity_percent / 100)
 
     @property
-    def subtotal(self) -> int:
-        sub = int(self.total_goods + self.shipping - self.charity_discount)
-        return sub
+    def subtotal(self):
+        return Decimal(f"{sum([self.total_goods, Decimal(self.shipping)]) - self.charity_discount:.2f}")
 
     @property
-    def tax(self) -> int:
-        i = int(self.subtotal * self.tax_percent / 100)
-        return i
+    def tax(self):
+        return Decimal(self.subtotal * self.tax_percent / 100)
 
     @property
-    def total(self) -> int:
-        tot = int(self.subtotal + self.tax)
-        return tot
+    def total(self):
+        return self.subtotal + self.tax
 
 
+@dataclass
 class HireOrder(Order):
-    duration: int
-    #
-    # def __str__(self):
-    #     return f"Order for {self.duration} weeks with {len(self.line_items)} lines for £{self.total}"
+    duration: int = 1
+
+    def __str__(self):
+        return f"Order for {self.duration} weeks with {len(self.line_items)} lines for £{self.total}"
 
 
 class Connections(Enum):
@@ -134,29 +123,8 @@ class Connections(Enum):
     TO_CUSTOMER = Connection(name="To", table='Customer')
 
 
-# class DFLT(Enum):
-#     MIN_DUR = 'Min Duration'
-#     MODEL = "Model"
-#     SERIAL = 'Barcode'
-#     ID = 'Number'
-#     FW = 'FW'
-#     FW_VERSION = 'XXXX'
-#     ROOT = Path(__file__).parent.parent
-#     DATA = ROOT / 'static/data'
-#     WB_AST = DATA / 'managers.xlsx'
-#     OUT_AST = DATA / 'assets_out.xlsx'
-#     SHEET_AST = 'Sheet1'
-#     HEAD_AST = 2
-#     WB_PRC = DATA / 'prices.xlsx'
-#     OUT_PRC = WB_PRC
-#     MIN_QTY = 'Min Qty'
-#     PRICE = 'Price'
-#     PRC_HEAD = 0
-
 
 class DFLT:
-    DEBUG = True
-    INV_DIR = Path(r'R:\ACCOUNTS\invoices')
     ROOT = Path(__file__).parent.parent
     STATIC = ROOT / 'static'
     DATA = STATIC / 'data'
@@ -179,9 +147,6 @@ class DFLT:
     AST_SHEET = 'Sheet1'
     AST_HEAD = 2
     PRC_HEAD = 0
-    INPUTS = STATIC / 'input_files'
-    INV_DIR_MOCK = GENERATED / 'mock_invoices'
-    FREE_ITEMS = ['Magmount', 'UHF 6-way', 'Sgl Charger', 'Wand Battery']
 
 
 class FILTER_(Enum):
@@ -189,21 +154,3 @@ class FILTER_(Enum):
     C_TO_ITEM = 'CTI'
     C_TO_CAT_TO_ITEM = 'CTCTI'
     C_TO_CAT_FIELD = 'CTCF'
-
-
-class DTYPES:
-    HIRE = {
-        'Name': 'string',
-        'Description': 'string',
-        'Min Qty': 'int',
-        'Min Duration': 'int',
-        'Price': 'int',
-        'Items': 'string',
-        'Closed': 'bool',
-        'Reference Number': 'string',
-        'Weeks': 'int',
-        'Boxes': 'int',
-        'Recurring': 'bool',
-
-    }
-    SALE = {key: value for key, value in HIRE.items() if key != 'Min Duration'}

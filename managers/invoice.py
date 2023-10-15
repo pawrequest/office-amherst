@@ -10,7 +10,6 @@ import pandas as pd
 from docx2pdf import convert as convert_word
 from docxtpl import DocxTemplate
 
-from in_out.commence import cust_of_transaction
 from managers.entities import DFLT, HireOrder, Order
 
 INVOICE_TMPLT = DFLT.INV_TMPLT
@@ -49,14 +48,14 @@ class SaleInvoice:
     order: Order
 
     @classmethod
-    def from_sale(cls, sale: pd.Series, order: Order, customer: pd.Series, inv_num: Optional[str] = None):
+    def from_sale(cls, sale: pd.DataFrame, order: Order, customer: pd.Series, inv_num: Optional[str] = None):
         inv_num = inv_num or next_inv_num()
         del_add, inv_add = addresses_from_sale(sale)
         date_inv = sale['Invoice Date']
         return cls(inv_num=inv_num, dates=date_inv, inv_add=inv_add, del_add=del_add, order=order)
 
 
-def addresses_from_sale(sale: pd.DataFrame):
+def addresses_from_sale(sale: pd.DataFrame) -> (Address1, Address1):
     sale = sale.iloc[0]
     i_add = sale['Invoice Address']
     i_pc = sale['Invoice Postcode']
@@ -66,6 +65,9 @@ def addresses_from_sale(sale: pd.DataFrame):
     del_add = Address1(add=d_add, pc=d_pc)
     return del_add, inv_add
 
+
+def addresses_from_transaction(transaction:pd.DataFrame):
+    ...
 
 def addresses_from_hire_and_cust(customer, hire):
     customer, hire = customer.iloc[0], hire.iloc[0]
@@ -176,7 +178,6 @@ def get_inv_nums(inv_dir) -> set[int]:
     inv_numbers = {int(pattern.match(f).group(1)) for f in matching_files}
     return inv_numbers
 
-
 def next_inv_num(inv_dir=DFLT.INV_DIR):
     inv_dir: Path = inv_dir if inv_dir.exists() else DFLT.INV_DIR_MOCK
     print(f"Scanning invoices in {inv_dir}...")
@@ -206,6 +207,7 @@ def next_inv_num(inv_dir=DFLT.INV_DIR):
         return new_inv_num
     else:
         raise ValueError(f'Failed to parse invoice number from {highest}')
+
 
 #
 # # Usage
@@ -242,3 +244,5 @@ def next_inv_num(inv_dir=DFLT.INV_DIR):
 #         return new_inv_num
 #     else:
 #         raise ValueError(f'Failed to parse invoice number from {highest}')
+
+

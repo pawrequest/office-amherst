@@ -56,10 +56,6 @@ class Asset:
         return self.id_number == other.id_number and self.serial_number == other.serial_number
 
 
-def int_100(value):
-    return int(value * 100)
-
-
 class AssetContext:
     def __init__(self, workbook_ast=None, sheet=None, header_row=None, out_file=None):
         self.workbook_ast = workbook_ast or DFLT.AST_WB

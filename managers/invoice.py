@@ -10,6 +10,7 @@ import pandas as pd
 from docx2pdf import convert as convert_word
 from docxtpl import DocxTemplate
 
+from in_out.commence import cust_of_transaction
 from managers.entities import DFLT, HireOrder, Order
 
 INVOICE_TMPLT = DFLT.INV_TMPLT
@@ -27,6 +28,14 @@ class HireDates:
     start: datetime.date
     end: datetime.date
 
+    @classmethod
+    def from_hire(cls, hire: pd.DataFrame):
+        hire = hire.iloc[0]
+        date_inv = hire['Booked Date']
+        date_start = hire['Send Out Date']
+        date_end = hire['Due Back Date']
+        return cls(invoice=date_inv, start=date_start, end=date_end)
+
 
 date_format = '%d.%m.%Y'
 
@@ -42,14 +51,31 @@ class SaleInvoice:
     @classmethod
     def from_sale(cls, sale: pd.Series, order: Order, customer: pd.Series, inv_num: Optional[str] = None):
         inv_num = inv_num or next_inv_num()
-        i_add = customer['Address']
-        i_pc = customer['Postcode']
-        d_add = sale['Invoice Address']
-        d_pc = sale['Invoice Postcode']
-        inv_add = Address1(add=i_add, pc=i_pc)
-        del_add = Address1(add=d_add, pc=d_pc)
+        del_add, inv_add = addresses_from_sale(sale)
         date_inv = sale['Invoice Date']
         return cls(inv_num=inv_num, dates=date_inv, inv_add=inv_add, del_add=del_add, order=order)
+
+
+def addresses_from_sale(sale: pd.DataFrame):
+    sale = sale.iloc[0]
+    i_add = sale['Invoice Address']
+    i_pc = sale['Invoice Postcode']
+    d_add = sale['Delivery Address']
+    d_pc = sale['Delivery Postcode']
+    inv_add = Address1(add=i_add, pc=i_pc)
+    del_add = Address1(add=d_add, pc=d_pc)
+    return del_add, inv_add
+
+
+def addresses_from_hire_and_cust(customer, hire):
+    customer, hire = customer.iloc[0], hire.iloc[0]
+    i_add = customer['Address']
+    i_pc = customer['Postcode']
+    d_add = hire['Delivery Address']
+    d_pc = hire['Delivery Postcode']
+    inv_add = Address1(add=i_add, pc=i_pc)
+    del_add = Address1(add=d_add, pc=d_pc)
+    return del_add, inv_add
 
 
 @dataclass
@@ -58,21 +84,17 @@ class HireInvoice(SaleInvoice):
     dates: HireDates
 
     @classmethod
-    def from_hire(cls, hire: pd.DataFrame, order: HireOrder, customer: pd.DataFrame, inv_num: Optional[str] = None):
+    def from_hire(cls, hire: pd.DataFrame, order: HireOrder, customer: pd.DataFrame = None,
+                  inv_num: Optional[str] = None):
+        assert len(hire) == 1
         hire = hire.iloc[0]
-        inv_num = inv_num or next_inv_num()
-        customer=customer.iloc[0]
 
-        i_add = customer['Address']
-        i_pc = customer['Postcode']
-        d_add = hire['Delivery Address']
-        d_pc = hire['Delivery Postcode']
-        inv_add = Address1(add=i_add, pc=i_pc)
-        del_add = Address1(add=d_add, pc=d_pc)
-        date_inv = hire['Booked Date']
-        date_start = hire['Send Out Date']
-        date_end = hire['Due Back Date']
-        dates = HireDates(invoice=date_inv, start=date_start, end=date_end)
+        customer = customer or cust_of_transaction(hire.Name, 'Hire')
+        customer = customer.iloc[0]
+        inv_num = inv_num or next_inv_num()
+
+        del_add, inv_add = addresses_from_hire_and_cust(customer, hire)
+        dates = HireDates.from_hire(hire)
         return cls(inv_num=inv_num, dates=dates, inv_add=inv_add, del_add=del_add, order=order)
 
     def generate(self, out_dir=None, open_file=False, prnt=False):
@@ -154,6 +176,7 @@ def get_inv_nums(inv_dir) -> set[int]:
     inv_numbers = {int(pattern.match(f).group(1)) for f in matching_files}
     return inv_numbers
 
+
 def next_inv_num(inv_dir=DFLT.INV_DIR):
     inv_dir: Path = inv_dir if inv_dir.exists() else DFLT.INV_DIR_MOCK
     print(f"Scanning invoices in {inv_dir}...")
@@ -183,7 +206,6 @@ def next_inv_num(inv_dir=DFLT.INV_DIR):
         return new_inv_num
     else:
         raise ValueError(f'Failed to parse invoice number from {highest}')
-
 
 #
 # # Usage
@@ -220,5 +242,3 @@ def next_inv_num(inv_dir=DFLT.INV_DIR):
 #         return new_inv_num
 #     else:
 #         raise ValueError(f'Failed to parse invoice number from {highest}')
-
-

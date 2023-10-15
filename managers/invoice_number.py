@@ -61,4 +61,4 @@ def has_20_after(index: int, nums: {int}):
 
 
 if __name__ == '__main__':
-    main()
+    main_prompted()

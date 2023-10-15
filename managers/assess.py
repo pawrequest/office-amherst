@@ -3,8 +3,8 @@ from decimal import Decimal
 import pandas as pd
 from win32com.gen_py import auto_cmc
 
-from managers import commence
-from managers.commence import get_fieldnames, hires_by_customer, qs_to_lists
+from in_out import commence
+from in_out.commence import get_fieldnames, hires_by_customer, qs_to_lists
 from managers.entities import DFLT, HireOrder
 from managers.invoice import HireInvoice, next_inv_num
 from managers.transact import TransactionContext

@@ -10,9 +10,14 @@
 # from managers.tran_manager import TransactionManager, TransactionContext
 # from managers import cmc_manager
 #
-# @pytest.fixture
-# def commence_fxt():
-#     yield win32com.client.Dispatch(f"Commence.DB")
+import pytest
+
+from in_out import commence
+
+
+@pytest.fixture
+def commence_fxt():
+    yield commence.get_cmc()
 # @pytest.fixture
 # def hire_cursor_fxt(commence_fxt):
 #     cursor = commence_fxt.GetCursor(0, 'Hire', 0)

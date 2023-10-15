@@ -6,10 +6,6 @@
 # from account.check_invoice_paid import check_paid
 # from managers.manager import DFLT
 #
-# # AC_WORKBOOK = r"R:\ACCOUNTS\ye2023\ac2223.xls"
-# AC_WORKBOOK = DFLT.DATA / 'input_files' / 'ac2223.xls'
-# INVOICE_DOC = Path(r"R:\ACCOUNTS\invoices\a24160.docx")
-#
 # def test_check_paid():
 #     workbook = AC_WORKBOOK
 #     invoice_doc = INVOICE_DOC

@@ -4,7 +4,7 @@ from typing import List, Optional, Tuple
 import pandas as pd
 
 from in_out.excel import df_overwrite_wb
-from managers.commence import cust_of_transaction
+from in_out.commence import cust_of_transaction
 from managers.entities import DFLT, DTYPES, FreeItem, HireOrder, LineItem
 from managers.invoice import HireInvoice
 

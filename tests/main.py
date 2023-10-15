@@ -1,35 +1,46 @@
-from win32com.client.gencache import EnsureDispatch
-import datetime
-
-from managers.cmc_manager import CommenceContext
-from managers.invoice_manager import Address1, HireDates, HireInvoice
-from managers.tran_manager import TransactionContext
-from managers.entities import HireOrder, Order
-
-#
-# def test_main():
-#     with CommenceContext() as cmc:
-#         cust = cmc.customer('Test')
-#         sales = cmc.sales_by_customer('Test')
-#         hires = cmc.hires_by_customer('Test')
-#         sale = sales.iloc[0]
-#         hire = hires.iloc[0]
-#         hire4 = cmc.hire("RAC Saddle Club Office - 05/09/2023 ref 19713")
-#         sale2 = cmc.sale('Truckline Services - 26/10/2022 ref 11')
-#         ...
-#
-#     # with TransactionContext() as tm:
-#     #     hire_order = tm.make_hire_order(hire, 1)
-#     #     hire_order2 = tm.make_hire_order(hire2, 1)
-#     #     sale_order = tm.make_sale_order(sale)
-#     #     sale_order = tm.make_sale_order(sale2)
-#     #
-#     # invoice = HireInvoice.from_hire(hire, hire_order)
-#     # invoice.generate()
-#     # ...
-#
-#     # assert isinstance(hire_order_test, HireOrder)
-#     # assert isinstance(sale_order, Order)
-#
+from in_out import commence
+from managers.transact import TransactionContext
 
 
+def test_get_customer(customer_name):
+    customer_name = customer_name or 'Test'
+    with TransactionContext() as tm:
+        customer = commence.customer(customer_name)
+        assert customer.Name == customer_name
+        return customer
+
+
+def test_get_hire(hire_name):
+    hire_name = hire_name or 'you didnt fill in the test hire name'
+    hire = commence.hire(hire_name)
+    assert hire.Name == hire_name
+    return hire
+
+
+def test_get_sale(sale_name):
+    sale_name = sale_name or 'you didnt put test sale name'
+    sale = commence.sale(sale_name)
+    assert sale.Name == sale_name
+
+
+
+
+def test_customer_connections(customer_name):
+    test_customer_trans(customer_name, 'Hire')
+    test_customer_trans(customer_name, 'Sale')
+
+def test_customer_trans(customer_name, category):
+    if category == 'Hire':
+        fun = commence.hires_by_customer
+        check = commence.hire
+    elif category == 'Sale':
+        fun = commence.sales_by_customer
+        check = commence.sale
+    else:
+        raise ValueError('Wrong category')
+
+
+    transactions = fun(customer_name)
+    for g in transactions:
+        sngl = transactions.iloc[g]
+        assert sngl.Name == check(sngl).Name

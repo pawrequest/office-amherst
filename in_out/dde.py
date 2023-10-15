@@ -4,7 +4,7 @@ from typing import Iterable
 import pandas as pd
 import win32com.client
 
-from managers.entities import Connection, Connections, Fields
+from managers.entities import Connection, Connections, FIELDS
 
 
 def fire_commence_agent(agent_trigger, category, command):
@@ -27,7 +27,7 @@ def get_commence_data(table, name, fields: Iterable[str], connections: Iterable[
 
 
 def get_dde_data(record_name, table_name):
-    table_name_enum = Fields[table_name.upper()]
+    table_name_enum = FIELDS[table_name.upper()]
     connection_to = Connections.TO_CUSTOMER.value
     try:
         data = get_commence_data(table=table_name, name=record_name, fields=table_name_enum.value,
@@ -124,7 +124,7 @@ def get_all_connected(conv, from_table: str, from_item: str, connection: Connect
 
 def get_customer_sales(conv, customer_name):
     return get_all_connected(conv, 'Customer', customer_name,
-                             Connection(name='Involves', table='Sale', fields=Fields.SALE.value))
+                             Connection(name='Involves', table='Sale', fields=FIELDS.SALE.value))
 
 
 def get_conversation_func(topic='Commence', command='ViewData', db_name='Commence'):
@@ -175,9 +175,9 @@ def display_test_customer_agent():
 
 
 def stuff():
-    hires_to = Connection(name="Has Hired", table='Hire', fields=Fields.HIRE.value)
-    sales_to = Connection(name="Involves", table='Sale', fields=Fields.SALE.value)
-    customer_data = get_commence_data(table="Customer", name="Test", fields=Fields.CUSTOMER.value,
+    hires_to = Connection(name="Has Hired", table='Hire', fields=FIELDS.HIRE.value)
+    sales_to = Connection(name="Involves", table='Sale', fields=FIELDS.SALE.value)
+    customer_data = get_commence_data(table="Customer", name="Test", fields=FIELDS.CUSTOMER.value,
                                       connections=[hires_to, sales_to])
     ahire = get_dde_data('Test - 16/08/2023 ref 31619', 'Hire')['Hire']
     return customer_data

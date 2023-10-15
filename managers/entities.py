@@ -4,12 +4,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Iterable, List, Optional
 
-root = Path(__file__).parent.parent
-templates = root / 'templates'
-PRICES_WB = root / 'templates' / 'prices.xlsx'
 
-
-class Fields(Enum):
+class FIELDS(Enum):
     CUSTOMER = [
         "Contact Name",
         "Name",
@@ -126,25 +122,6 @@ class Connections(Enum):
     CUSTOMER_SALES = Connection(name="Involves", table='Sale')
     TO_CUSTOMER = Connection(name="To", table='Customer')
 
-
-# class DFLT(Enum):
-#     MIN_DUR = 'Min Duration'
-#     MODEL = "Model"
-#     SERIAL = 'Barcode'
-#     ID = 'Number'
-#     FW = 'FW'
-#     FW_VERSION = 'XXXX'
-#     ROOT = Path(__file__).parent.parent
-#     DATA = ROOT / 'static/data'
-#     WB_AST = DATA / 'managers.xlsx'
-#     OUT_AST = DATA / 'assets_out.xlsx'
-#     SHEET_AST = 'Sheet1'
-#     HEAD_AST = 2
-#     WB_PRC = DATA / 'prices.xlsx'
-#     OUT_PRC = WB_PRC
-#     MIN_QTY = 'Min Qty'
-#     PRICE = 'Price'
-#     PRC_HEAD = 0
 
 
 class DFLT:

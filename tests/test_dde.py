@@ -1,7 +1,7 @@
 import pytest
 
 from in_out.dde import get_commence_data, get_conversation_func, get_customer_sales, get_dde_data
-from managers.entities import Connections, Fields
+from managers.entities import Connections, FIELDS
 
 
 # @pytest.fixture
@@ -55,21 +55,21 @@ def test_get_conv():
 def test_customer_data(customer_name):
     hires_to = Connections.CUSTOMER_HIRES.value
     sales_to = Connections.CUSTOMER_SALES.value
-    customer_data = get_commence_data(table="Customer", name=customer_name, fields=Fields.CUSTOMER.value,
+    customer_data = get_commence_data(table="Customer", name=customer_name, fields=FIELDS.CUSTOMER.value,
                                       connections=[hires_to, sales_to])
-    assert all(field in customer_data['Customer'] for field in Fields.CUSTOMER.value)
+    assert all(field in customer_data['Customer'] for field in FIELDS.CUSTOMER.value)
     for hire_record in customer_data['Hire'].values():
-        assert all(field in hire_record for field in Fields.HIRE.value)
+        assert all(field in hire_record for field in FIELDS.HIRE.value)
 
     for sale_record in customer_data['Sale'].values():
-        assert all(field in sale_record for field in Fields.SALE.value)
+        assert all(field in sale_record for field in FIELDS.SALE.value)
 
 
 #
 #
 def test_wrong_customer_name():
     with pytest.raises(ValueError):
-        customer_data = get_commence_data(table="Customer", name="FAKENAME", fields=Fields.CUSTOMER.value)
+        customer_data = get_commence_data(table="Customer", name="FAKENAME", fields=FIELDS.CUSTOMER.value)
 
 
 def test_get_hire():

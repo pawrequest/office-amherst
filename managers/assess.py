@@ -5,9 +5,6 @@ from win32com.gen_py import auto_cmc
 
 from in_out import commence
 from in_out.commence import get_fieldnames, hires_by_customer, qs_to_lists
-from entities.abstract import DFLT
-from entities.order import HireOrder
-from managers.invoice import HireInvoice, next_inv_num
 from managers.transact import TransactionContext
 
 
@@ -92,41 +89,15 @@ def ass_make_sale_order():
 #
 
 def ass_main():
-    fails_list = []
-    success_list = []
-    with TransactionContext() as tm_in:
-        tm = tm_in
-    hires = get_many_hires()
-    for i in range(len(hires)):
-        hire_name = hires.iloc[0].Name
-        hire_rec = hires.iloc[[i]]
-        hire = commence.hire(hire_name)
-        try:
-            inv = tm.hire_to_invoice(hire)
-            inv.generate()
-        except ValueError as e1:
-            fail_series = hire.iloc[0].copy()
-            fail_series['Fail Reason'] = str(e1)
-            fails_list.append(fail_series)
-        except Exception as e:
-            # ... handle other exceptions similarly
-            fail_series = hire.iloc[0].copy()
-            fail_series['Fail Reason'] = str(e)
-            fails_list.append(fail_series)
-        else:
-            success_list.append(hire.iloc[0].copy())
-
-
-
-    # Create a DataFrame from the list of fail Series
-    fails_df = pd.DataFrame(fails_list)
-    success_list_df = pd.DataFrame(success_list)
-    fails_df.to_json(DFLT.GENERATED / 'fails.json')
-    success_list_df.to_json(DFLT.GENERATED / 'success.json')
-
-    # hires = commence.hires_by_customer('Test')
-    # hire = hires.head(1)
-    # inv = tm.hire_to_invoice(hire)
+    customr = commence.customer('Test')
+    hires = commence.hires_by_customer('Test')
+    hire = hires[0]
+    cust2 = commence.cust_of_transaction(hire['Name'], 'Hire')
+    cust3 = commence.customer(hire['To Customer'])
+    assert customr == cust2 == cust3
+    ...
+    with TransactionContext() as tm:
+        inv = tm.hire_to_invoice(hire)
     # inv.generate((DFLT.INV_DIR_MOCK))
 
     ...

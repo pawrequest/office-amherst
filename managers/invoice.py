@@ -11,9 +11,8 @@ from docx2pdf import convert as convert_word
 from docxtpl import DocxTemplate
 
 from entities.const import DFLT
+from entities.order import HireOrder, Order
 from in_out.commence import cust_of_transaction
-from managers.entities import Order
-from entities.order import HireOrder
 
 INVOICE_TMPLT = DFLT.INV_TMPLT
 
@@ -31,8 +30,7 @@ class HireDates:
     end: datetime.date
 
     @classmethod
-    def from_hire(cls, hire: pd.DataFrame):
-        hire = hire.iloc[0]
+    def from_hire(cls, hire: dict):
         date_inv = hire['Booked Date']
         date_start = hire['Send Out Date']
         date_end = hire['Due Back Date']
@@ -69,8 +67,7 @@ def addresses_from_sale(sale: pd.DataFrame) -> (Address1, Address1):
     return del_add, inv_add
 
 
-def addresses_from_hire_and_cust(customer, hire):
-    customer, hire = customer.iloc[0], hire.iloc[0]
+def addresses_from_hire_and_cust(customer:dict, hire:dict):
     i_add = customer['Address']
     i_pc = customer['Postcode']
     d_add = hire['Delivery Address']
@@ -86,13 +83,9 @@ class HireInvoice(SaleInvoice):
     dates: HireDates
 
     @classmethod
-    def from_hire(cls, hire: pd.DataFrame, order: HireOrder, customer: pd.DataFrame = None,
-                  inv_num: Optional[str] = None):
-        assert len(hire) == 1
-        hire = hire.iloc[0]
+    def from_hire(cls, hire: dict, order: HireOrder, inv_num: Optional[str] = None):
 
-        customer = customer or cust_of_transaction(hire.Name, 'Hire')
-        customer = customer.iloc[0]
+        customer = cust_of_transaction(hire['Name'], 'Hire')
         inv_num = inv_num or next_inv_num()
 
         del_add, inv_add = addresses_from_hire_and_cust(customer, hire)
@@ -178,6 +171,7 @@ def get_inv_nums(inv_dir) -> set[int]:
     inv_numbers = {int(pattern.match(f).group(1)) for f in matching_files}
     return inv_numbers
 
+
 def next_inv_num(inv_dir=DFLT.INV_DIR):
     inv_dir: Path = inv_dir if inv_dir.exists() else DFLT.INV_DIR_MOCK
     print(f"Scanning invoices in {inv_dir}...")
@@ -207,7 +201,6 @@ def next_inv_num(inv_dir=DFLT.INV_DIR):
         return new_inv_num
     else:
         raise ValueError(f'Failed to parse invoice number from {highest}')
-
 
 #
 # # Usage
@@ -244,5 +237,3 @@ def next_inv_num(inv_dir=DFLT.INV_DIR):
 #         return new_inv_num
 #     else:
 #         raise ValueError(f'Failed to parse invoice number from {highest}')
-
-

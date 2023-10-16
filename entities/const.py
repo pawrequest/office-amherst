@@ -17,6 +17,7 @@ class DFLT:
     PRC_OUT = GENERATED / 'prices_out.xlsx'
     INV_OUT = GENERATED / 'invoice_out.docx'
     INV_DIR_MOCK = GENERATED / 'mock_invoices'
+    INV_DIR = INV_DIR_MOCK
     MIN_DUR = 'Min Duration'
     MODEL = "Model"
     SERIAL = 'Barcode'
@@ -34,3 +35,56 @@ class FILTER_(Enum):
     C_TO_ITEM = 'CTI'
     C_TO_CAT_TO_ITEM = 'CTCTI'
     C_TO_CAT_FIELD = 'CTCF'
+
+
+
+
+
+class DTYPES:
+    HIRE = {
+        'Name': 'string',
+        'Description': 'string',
+        'Min Qty': 'int',
+        'Min Duration': 'int',
+        'Price': 'int',
+        'Items': 'string',
+        'Closed': 'bool',
+        'Reference Number': 'string',
+        'Weeks': 'int',
+        'Boxes': 'int',
+        'Recurring': 'bool',
+
+    }
+    SALE = {key: value for key, value in HIRE.items() if key != 'Min Duration'}
+
+
+
+class FIELDS(Enum):
+    CUSTOMER = [
+        "Contact Name",
+        "Name",
+        "Address",
+        "Postcode",
+        "Charity?",
+        "Discount Percentage",
+        "Email",
+    ]
+    HIRE = [
+        "Delivery Contact",
+        "Delivery Name",
+        "Delivery Address",
+        "Delivery Postcode",
+        "Number UHF",
+        "Booked Date",
+        "Name",
+    ]
+    SALE = [
+        "Invoice Address",
+        'Name',
+    ]
+    FREE_ITEMS = []
+
+
+# class MAPS:
+#     HIRE_ACC_BANDS = {
+#

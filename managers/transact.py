@@ -1,13 +1,12 @@
 import json
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 import pandas as pd
 
-from in_out.excel import df_overwrite_wb
+from entities.const import DFLT, DTYPES, FIELDS
+from entities.order import HireOrder, LineItem, FreeItem
 from in_out.commence import cust_of_transaction
-from managers.entities import DTYPES, FreeItem, LineItem
-from entities.abstract import DFLT
-from entities.order import HireOrder
+from in_out.excel import df_overwrite_wb
 from managers.invoice import HireInvoice
 
 
@@ -81,15 +80,28 @@ class TransactionContext:
             json.dump(data, json_file, indent=4)
 
 
-def get_hire_items(hire: pd.DataFrame):
-    itm_cols = all_item_cols(hire)
-    non_zero = itm_cols.loc[:, (itm_cols != 0).any(axis=0)]
+class TransactionManager:
+    def __init__(self, df_bands: pd.DataFrame, df_hire: pd.DataFrame, df_sale: pd.DataFrame):
+        self.df_bands = df_bands
+        self.df_hire = df_hire
+        self.df_sale = df_sale
 
-    cleaned_data = itm_cols.dropna(axis=0, how='all')
-    hire_items = cleaned_data.astype(int)
+    def hire_to_invoice(self, hire: dict):
+        customer = cust_of_transaction(hire['Name'], 'Hire')
+        line_items: Tuple[List, List] = lines_from_hire(self.df_bands, self.df_hire, hire)
+        if not any([line_items[0], line_items[1]]):
+            raise ValueError(f"No line items found for hire {hire['Name']}")
+        hire_order = HireOrder(customer=customer, line_items=line_items[0], free_items=line_items[1],
+                               shipping=hire['Delivery Cost'],
+                               duration=hire['Weeks'])
+        return HireInvoice.from_hire(hire, hire_order)
 
-    hire_items = hire_items[hire_items > 0]
-    return hire_items
+    # def sale_to_invoice(self, sale: pd.Series):
+    #     customer = cust_of_transaction(sale.Name, 'Sale')
+    #     line_items = lines_from_sale(self.df_bands, self.df_sale, sale)
+    #     order = Order(customer.Name, line_items)
+    #     invoice = SaleInvoice.from_sale(sale, order, customer)
+    #     invoice.generate()
 
 
 def get_description(df_bands, df_hire, item_name: str):
@@ -102,7 +114,7 @@ def get_description(df_bands, df_hire, item_name: str):
     return ""
 
 
-def get_hire_price(df_hire, product_name: str, quantity: int, duration: int):
+def get_hire_price(df_hire: pd.DataFrame, product_name: str, quantity: int, duration: int):
     product = df_hire.loc[df_hire['Name'].str.lower() == str(product_name).lower()]
     if product.empty:
         prod_band = get_accessory_priceband(product_name)
@@ -123,14 +135,14 @@ def get_hire_price(df_hire, product_name: str, quantity: int, duration: int):
     return price
 
 
-def get_sale_price(df_sale, product_name: str, quantity: int):
+def get_sale_price(df_sale: pd.DataFrame, product_name: str, quantity: int):
     product_df = df_sale.loc[df_sale['Name'].str.lower() == product_name.lower()]
     return product_df.loc[product_df[DFLT.MIN_QTY].astype(int) <= int(quantity), 'Price'].min()
 
 
-def get_hire_pay_items(df_h: pd.DataFrame, pay_items: pd.DataFrame, duration: int, df_bands: Optional[pd.DataFrame]):
+def hire_lineitems_pay(df_h: pd.DataFrame, pay_items: dict, duration: int, df_bands: pd.DataFrame):
     line_items = []
-    for name, qty in pay_items.iloc[0].items():
+    for name, qty in pay_items.items():
         description = get_description(df_bands=df_bands, df_hire=df_h, item_name=name)
         price = get_hire_price(df_hire=df_h, product_name=name, quantity=qty, duration=duration)
         long_name = f'{name}_hire_{duration}_weeks'
@@ -138,76 +150,34 @@ def get_hire_pay_items(df_h: pd.DataFrame, pay_items: pd.DataFrame, duration: in
     return line_items
 
 
-def get_free_hire_line_tems(df_bands, df_hire, duration, free_items):
+def hire_lineitems_free(df_bands: pd.DataFrame, df_hire: pd.DataFrame, duration: int, free_items: dict):
     line_items = []
-    for name, qty_ in free_items.items():
-        qty = qty_[0]
+    for name, qty in free_items.items():
         description = get_description(df_bands, df_hire, name)
         long_name = f'{name}_hire_{duration}_weeks'
         line_items.append(FreeItem(name=long_name, description=description, quantity=qty))
     return line_items
 
 
-def lines_from_hire(df_bands, df_hire, hire: pd.DataFrame):
-    duration = hire['Weeks'][0]
-    hire_itms = filter_columns(hire)
-    free = hire_itms.loc[:, hire_itms.columns.isin(DFLT.FREE_ITEMS)]
-    pay = hire_itms.loc[:, ~hire_itms.columns.isin(DFLT.FREE_ITEMS)]  # ~ is used to negate the condition
-    free_items = get_free_hire_line_tems(df_bands, df_hire, duration, free)
-    line_items = get_hire_pay_items(df_h=df_hire, pay_items=pay, duration=duration, df_bands=df_bands)
+def lines_from_hire(df_bands, df_hire, hire: dict):
+    duration = hire['Weeks']
+    hire_itms = items_dict_from_hire(hire)
+    free = {k: v for k, v in hire_itms if k in FIELDS.FREE_ITEMS}
+    pay = {k: v for k, v in hire_itms if k not in FIELDS.FREE_ITEMS}
+    free_items = hire_lineitems_free(df_bands, df_hire, duration, free)
+    line_items = hire_lineitems_pay(df_h=df_hire, pay_items=pay, duration=duration, df_bands=df_bands)
     return line_items, free_items
 
 
-class TransactionManager:
-    def __init__(self, df_bands: pd.DataFrame, df_hire: pd.DataFrame, df_sale: pd.DataFrame):
-        self.df_bands = df_bands
-        self.df_hire = df_hire
-        self.df_sale = df_sale
-
-    def hire_to_invoice(self, hire: pd.DataFrame):
-        customer = cust_of_transaction(hire.iloc[0].Name, 'Hire')
-        line_items: Tuple[List, List] = lines_from_hire(self.df_bands, self.df_hire, hire)
-        if not any([line_items[0], line_items[1]]):
-            raise ValueError(f"No line items found for hire {hire.iloc[0].Name}")
-        hire_order = HireOrder(customer=customer, line_items=line_items[0], free_items=line_items[1],
-                               shipping=hire.iloc[0]['Delivery Cost'],
-                               duration=hire.iloc[0].Weeks)
-        return HireInvoice.from_hire(hire, hire_order, customer)
-
-    # def sale_to_invoice(self, sale: pd.Series):
-    #     customer = cust_of_transaction(sale.Name, 'Sale')
-    #     line_items = lines_from_sale(self.df_bands, self.df_sale, sale)
-    #     order = Order(customer.Name, line_items)
-    #     invoice = SaleInvoice.from_sale(sale, order, customer)
-    #     invoice.generate()
+def items_dict_from_hire(hire: dict) -> dict:
+    items_dict = {k: v for k, v in hire.items() if k in all_item_keys(hire) and v > 0}
+    return items_dict
 
 
-def all_item_fields(hire: pd.DataFrame) -> pd.DataFrame:
-    items = hire[hire.index.str.startswith('Number ')]
-    items.index = items.index.str[7:]
-    return items
-
-
-def all_item_cols(hire: pd.DataFrame) -> pd.DataFrame:
-    item_columns = [col for col in hire.columns if col.startswith('Number ')]
-    items = hire[item_columns].copy()
-    items.columns = [col[7:] for col in item_columns]
-    return items
-
-
-def filter_columns(hire: pd.DataFrame) -> pd.DataFrame:
-    # Get columns that have 'Number' in the name
-    item_columns = [col for col in hire.columns if col.startswith('Number ')]
-
-    # Keep only these columns
-    hire_filtered = hire[item_columns]
-    hire_filtered.columns = [col[7:] for col in item_columns]
-
-    # Drop columns that have all zero or NaN values
-    hire_filtered = hire_filtered.astype(int)
-    hire_filtered = hire_filtered.loc[:, (hire_filtered != 0).any(axis=0)]
-
-    return hire_filtered
+def all_item_keys(hire: dict) -> List:
+    item_keys = [col for col in hire.keys() if col.startswith('Number ')]
+    item_keys = [col[7:] for col in item_keys]
+    return item_keys
 
 
 def get_accessory_priceband(accessory_name: str):
@@ -219,10 +189,6 @@ def get_accessory_priceband(accessory_name: str):
         return "Accessory C"
     elif accessory_name == 'Icom':
         return 'Mobile'
-    elif accessory_name == 'Wand':
-        return 'Wand'
-    elif accessory_name == 'Megaphone':
-        return 'Megaphone'
     else:
         return None
 
@@ -238,5 +204,3 @@ def items_from_sale(sale: pd.Series):
         item_name, qty = res
         item_tups.append((item_name, int(qty)))
     return item_tups
-
-

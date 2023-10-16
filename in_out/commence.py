@@ -8,7 +8,8 @@ import win32com.client
 import win32com.gen_py.auto_cmc as cmc_
 from decimal import Decimal
 
-from managers.entities import Connection
+from entities.cmc import Connection
+
 
 # classes representing commence records:
 # class Hire_cmc:
@@ -69,11 +70,10 @@ def connected_records_to_qs(cursor: cmc_.ICommenceCursor, connection_name: str, 
 def customer(record_name) -> dict:
     db = get_cmc()
     cursor = db.GetCursor(0, 'Customer', 0)
-    qs= record_to_qs(cursor, record_name)
+    qs:cmc_.ICommenceQueryRowSet = record_to_qs(cursor, record_name)
+    dicty2 = {k:v for k,v in qs.__iter__()}
     dicty = qs_to_dicts(qs, 1)[0]
     return dicty
-    # cleaned = {k: v for k, v in dict.items() if v}
-    # return cleaned
 
 
 def clean_dict(in_dict: dict) -> dict:
@@ -97,6 +97,15 @@ def clean_dict(in_dict: dict) -> dict:
                     except:
                         out_dict[k] = v
     return out_dict
+
+def clean_hire_dict(hire:dict):
+    out_dict = {}
+    for k, v in hire.items():
+        if k.startswith('Number '):
+            out_dict[k[7:]] = v
+    return clean_dict(hire)
+
+
 
 #
 # def clean_dict(in_dict: dict) -> dict:
@@ -198,7 +207,7 @@ def qs_to_lists(qs, max_rows=None) -> List:
         rows.append(row)
     return rows
 
-def qs_to_dicts(qs, max_rows=None) -> List[dict]:
+def qs_to_dicts(qs:cmc_.ICommenceQueryRowSet, max_rows=None) -> List[dict]:
     if qs.RowCount == 0:
         raise ValueError(f"Query set is empty")
     if max_rows and qs.RowCount > max_rows:
@@ -321,10 +330,3 @@ class Connections(Enum):
     CUSTOMER_SALES = Connection(name="Involves", table='Sale')
     TO_CUSTOMER = Connection(name="To", table='Customer')
 
-
-cusomr = customer('Test')
-hires = hires_by_customer('Test')
-sales = sales_by_customer('Test')
-
-...
-...

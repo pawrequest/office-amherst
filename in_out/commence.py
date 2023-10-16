@@ -87,7 +87,7 @@ def clean_dict(in_dict: dict) -> dict:
             out_dict[k] = True
         else:
             try:
-                out_dict[k] = datetime.datetime.strptime(v, '%d/%m/%Y')
+                out_dict[k] = datetime.datetime.strptime(v, '%d/%m/%Y').date()
             except ValueError:
                 try:
                     out_dict[k] = int(v)

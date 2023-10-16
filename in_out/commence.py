@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import win32com.client
 import win32com.gen_py.auto_cmc as cmc_
+from decimal import Decimal
 
 from managers.entities import Connection
 
@@ -56,7 +57,7 @@ def record_to_qs(cursor: cmc_.ICommenceCursor, record_name: str) -> cmc_.ICommen
 
 
 def connected_records_to_qs(cursor: cmc_.ICommenceCursor, connection_name: str, connection_table: str,
-                            item_name: str, max_res=None) -> cmc_.ICommenceQueryRowSet | None:
+                            item_name: str, max_res=50) -> cmc_.ICommenceQueryRowSet | None:
     filter_by_connection(cursor, item_name, connection_name, connection_table)
     qs = cursor.GetQueryRowSet(max_res, 0)
     if qs.RowCount == 0:
@@ -69,8 +70,55 @@ def customer(record_name) -> dict:
     db = get_cmc()
     cursor = db.GetCursor(0, 'Customer', 0)
     qs= record_to_qs(cursor, record_name)
-    dicts = qs_to_dicts(qs, 1)
-    return dicts[0]
+    dicty = qs_to_dicts(qs, 1)[0]
+    return dicty
+    # cleaned = {k: v for k, v in dict.items() if v}
+    # return cleaned
+
+
+def clean_dict(in_dict: dict) -> dict:
+    out_dict = {}
+    zero_fields = ['', False, 0, 'FALSE', '0']
+
+    for k, v in in_dict.items():
+        if v in zero_fields:
+            continue
+        if v == 'TRUE':
+            out_dict[k] = True
+        else:
+            try:
+                out_dict[k] = datetime.datetime.strptime(v, '%d/%m/%Y')
+            except ValueError:
+                try:
+                    out_dict[k] = int(v)
+                except ValueError:
+                    try:
+                        out_dict[k] = Decimal(v)
+                    except:
+                        out_dict[k] = v
+    return out_dict
+
+#
+# def clean_dict(in_dict: dict) -> dict:
+#     out_dict = dict()
+#     zero_fields = ['', '', False, 0, 'FALSE', '0']
+#     for k, v in in_dict.items():
+#         if v in zero_fields:
+#             continue
+#         if v == 'TRUE':
+#             out_dict[k] = True
+#         try:
+#             out_dict[k] = datetime.datetime.strptime(v, '%d/%m/%Y')
+#         except:
+#             try:
+#                 out_dict[k] = int(v)
+#             except:
+#                 try:
+#                     out_dict[k] = Decimal(v)
+#                 except:
+#                     out_dict[k] = v
+#
+#     return out_dict
 
 
 def hire(record_name: str) -> dict:
@@ -163,6 +211,7 @@ def qs_to_dicts(qs, max_rows=None) -> List[dict]:
         rows.append(row)
     labels = get_fieldnames(qs)
     dicts = [dict(zip(labels, row)) for row in rows]
+    dicts = [clean_dict(d) for d in dicts]
     return dicts
 
 def mapped_types(df, dtype_map):
@@ -273,5 +322,9 @@ class Connections(Enum):
     TO_CUSTOMER = Connection(name="To", table='Customer')
 
 
-customr = customer('Test')
+cusomr = customer('Test')
+hires = hires_by_customer('Test')
+sales = sales_by_customer('Test')
+
+...
 ...

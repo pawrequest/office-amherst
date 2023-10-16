@@ -7,7 +7,7 @@ from typing import Optional
 import pandas as pd
 from pandas import Series
 
-from managers.entities import DFLT
+from entities.abstract import DFLT
 from in_out.excel import df_overwrite_wb
 
 

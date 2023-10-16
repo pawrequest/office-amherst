@@ -1,7 +1,6 @@
 from dataclasses import dataclass, field
 from decimal import Decimal
 from enum import Enum
-from pathlib import Path
 from typing import Iterable, List, Optional
 
 
@@ -109,48 +108,4 @@ class Order:
         return self.subtotal + self.tax
 
 
-@dataclass
-class HireOrder(Order):
-    duration: int = 1
 
-    def __str__(self):
-        return f"Order for {self.duration} weeks with {len(self.line_items)} lines for £{self.total}"
-
-
-class Connections(Enum):
-    CUSTOMER_HIRES = Connection(name="Has Hired", table='Hire')
-    CUSTOMER_SALES = Connection(name="Involves", table='Sale')
-    TO_CUSTOMER = Connection(name="To", table='Customer')
-
-
-
-class DFLT:
-    ROOT = Path(__file__).parent.parent
-    STATIC = ROOT / 'static'
-    DATA = STATIC / 'data'
-    GENERATED = STATIC / 'generated'
-    TEMPLATE = STATIC / 'templates'
-    FW_VERSION = 'XXXX'
-    AST_WB = DATA / 'assets.xlsx'
-    PRC_WB = DATA / 'prices.xlsx'
-    AST_OUT = GENERATED / 'assets_out.xlsx'
-    INV_TMPLT = TEMPLATE / 'invoice_tmplt.docx'
-    PRC_OUT = GENERATED / 'prices_out.xlsx'
-    INV_OUT = GENERATED / 'invoice_out.docx'
-    MIN_DUR = 'Min Duration'
-    MODEL = "Model"
-    SERIAL = 'Barcode'
-    ID = 'Number'
-    FW = 'FW'
-    MIN_QTY = 'Min Qty'
-    PRICE = 'Price'
-    AST_SHEET = 'Sheet1'
-    AST_HEAD = 2
-    PRC_HEAD = 0
-
-
-class FILTER_(Enum):
-    FIELD = 'F'
-    C_TO_ITEM = 'CTI'
-    C_TO_CAT_TO_ITEM = 'CTCTI'
-    C_TO_CAT_FIELD = 'CTCF'

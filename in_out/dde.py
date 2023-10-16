@@ -4,7 +4,8 @@ from typing import Iterable
 import pandas as pd
 import win32com.client
 
-from managers.entities import Connection, Connections, FIELDS
+from managers.entities import Connection, FIELDS
+from in_out.commence import Connections
 
 
 def fire_commence_agent(agent_trigger, category, command):

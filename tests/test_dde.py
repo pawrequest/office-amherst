@@ -1,7 +1,8 @@
 import pytest
 
 from in_out.dde import get_commence_data, get_conversation_func, get_customer_sales, get_dde_data
-from managers.entities import Connections, FIELDS
+from managers.entities import FIELDS
+from in_out.commence import Connections
 
 
 # @pytest.fixture

@@ -5,7 +5,9 @@ import pandas as pd
 
 from in_out.excel import df_overwrite_wb
 from in_out.commence import cust_of_transaction
-from managers.entities import DFLT, DTYPES, FreeItem, HireOrder, LineItem
+from managers.entities import DTYPES, FreeItem, LineItem
+from entities.abstract import DFLT
+from entities.order import HireOrder
 from managers.invoice import HireInvoice
 
 

@@ -10,7 +10,10 @@ import pandas as pd
 from docx2pdf import convert as convert_word
 from docxtpl import DocxTemplate
 
-from managers.entities import DFLT, HireOrder, Order
+from entities.const import DFLT
+from in_out.commence import cust_of_transaction
+from managers.entities import Order
+from entities.order import HireOrder
 
 INVOICE_TMPLT = DFLT.INV_TMPLT
 
@@ -65,9 +68,6 @@ def addresses_from_sale(sale: pd.DataFrame) -> (Address1, Address1):
     del_add = Address1(add=d_add, pc=d_pc)
     return del_add, inv_add
 
-
-def addresses_from_transaction(transaction:pd.DataFrame):
-    ...
 
 def addresses_from_hire_and_cust(customer, hire):
     customer, hire = customer.iloc[0], hire.iloc[0]

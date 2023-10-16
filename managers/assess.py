@@ -5,7 +5,8 @@ from win32com.gen_py import auto_cmc
 
 from in_out import commence
 from in_out.commence import get_fieldnames, hires_by_customer, qs_to_lists
-from managers.entities import DFLT, HireOrder
+from entities.abstract import DFLT
+from entities.order import HireOrder
 from managers.invoice import HireInvoice, next_inv_num
 from managers.transact import TransactionContext
 
@@ -40,7 +41,7 @@ def get_many_customers():
 def assess_get_customer_methods(hire):
     cuurs = commence.get_csr('Customer')
     hire_name = hire.Name
-    customer = commence.get_record(cuurs, hire['To Customer'])
+    customer = commence.record_to_qs(cuurs, hire['To Customer'])
     customer2 = commence.cust_of_transaction(hire_name, 'Hire')
     assert customer.isequal(customer2)
 

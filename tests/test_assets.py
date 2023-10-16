@@ -7,7 +7,7 @@ from openpyxl.reader.excel import load_workbook
 from pandas import Series
 
 from managers.asset_manager import AssetContext, AssetManager
-from managers.entities import DFLT
+from entities.abstract import DFLT
 from in_out.excel import get_rows
 
 

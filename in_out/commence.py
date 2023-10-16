@@ -1,4 +1,5 @@
 import datetime
+from enum import Enum
 from typing import List, Literal
 
 import numpy as np
@@ -6,7 +7,24 @@ import pandas as pd
 import win32com.client
 import win32com.gen_py.auto_cmc as cmc_
 
-from managers.entities import DTYPES
+from managers.entities import Connection
+
+# classes representing commence records:
+class Hire_cmc:
+
+    @classmethod
+    def hire(cls, record_name: str):
+        db = get_cmc()
+        cursor = db.GetCursor(0, 'Hire', 0)
+        record =  record_to_qs(cursor, record_name)
+        hire = cls(record)
+
+
+class Sale:
+    ...
+class Customer:
+    ...
+
 
 
 # funcs that speak to commence:
@@ -25,7 +43,9 @@ def get_csr(tablename) -> cmc_.ICommenceCursor:
     return cmc.GetCursor(0, tablename, 0)
 
 
-def get_record(cursor: cmc_.ICommenceCursor, record_name: str) -> pd.DataFrame:
+
+
+def record_to_qs(cursor: cmc_.ICommenceCursor, record_name: str) -> pd.DataFrame:
     filter_by_field(cursor, 'Name', record_name)
     qs: cmc_.ICommenceQueryRowSet = cursor.GetQueryRowSet(5, 0)
     if qs.RowCount != 1:
@@ -57,19 +77,19 @@ def get_connected_records(cursor: cmc_.ICommenceCursor, connection_name: str, co
 def customer(record_name) -> pd.DataFrame:
     db = get_cmc()
     cursor = db.GetCursor(0, 'Customer', 0)
-    return get_record(cursor, record_name)
+    return record_to_qs(cursor, record_name)
 
 
 def hire(record_name: str) -> pd.DataFrame:
     db = get_cmc()
     cursor = db.GetCursor(0, 'Hire', 0)
-    return get_record(cursor, record_name)
+    return record_to_qs(cursor, record_name)
 
 
 def sale(record_name: str) -> pd.DataFrame:
     db = get_cmc()
     cursor = db.GetCursor(0, 'Sale', 0)
-    return get_record(cursor, record_name)
+    return record_to_qs(cursor, record_name)
 
 
 def sales_by_customer(customer_name: str) -> pd.DataFrame:
@@ -130,6 +150,20 @@ def qs_to_lists(qs, max_rows=None) -> List:
         rows.append(row)
     return rows
 
+def qs_to_dicts(qs, max_rows=None) -> List:
+    if qs.RowCount == 0:
+        raise ValueError(f"Query set is empty")
+    if max_rows and qs.RowCount > max_rows:
+        raise ValueError(f"Query set has {qs.RowCount} rows, more than {max_rows} rows requested")
+    rows = []
+    delim = '%^&£$_+'
+    for i in range(qs.RowCount):
+        row_str = qs.GetRow(i, delim, 0)
+        row = row_str.split(delim)
+        rows.append(row)
+    labels = get_fieldnames(qs)
+    dicts = [dict(zip(labels, row)) for row in rows]
+    return dicts
 
 def mapped_types(df, dtype_map):
     # Filter the dtype_map to include only the columns that exist in df
@@ -231,3 +265,9 @@ def types_from_values(df):
             except:
                 ...
     return df
+
+
+class Connections(Enum):
+    CUSTOMER_HIRES = Connection(name="Has Hired", table='Hire')
+    CUSTOMER_SALES = Connection(name="Involves", table='Sale')
+    TO_CUSTOMER = Connection(name="To", table='Customer')

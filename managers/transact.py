@@ -83,6 +83,10 @@ class TransactionManager:
         self.df_sale = df_sale
 
     def hire_to_invoice(self, hire: dict):
+        if 'Delivery Cost' not in hire or not hire['Delivery Cost']:
+            shipping = 0
+        else:
+            shipping = hire['Delivery Cost']
         cust = get_customer(hire['To Customer'])
 
 
@@ -90,7 +94,7 @@ class TransactionManager:
         if not any([line_items[0], line_items[1]]):
             raise ValueError(f"No line items found for hire {hire['Name']}")
         hire_order = HireOrder(customer=cust['Name'], line_items=line_items[0], free_items=line_items[1],
-                               shipping=hire['Delivery Cost'],
+                               shipping=shipping,
                                duration=hire['Weeks'])
         return HireInvoice.from_hire(hire, hire_order)
 

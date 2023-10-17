@@ -45,13 +45,13 @@ def connected_records_to_qs(connect: Connection_e, item_name: str, max_res=50) -
         raise ValueError(f"Query set has {qs.RowCount} rows, more than {max_res} rows requested")
     return qs
 
-
+ALLOWED_ZERO_KEYS = ['Delivery Cost']
 def clean_dict(in_dict: dict) -> dict:
     out_dict = {}
-    zero_fields = ['', False, 0, 'FALSE', '0']
+    zero_values = ['', False, 0, 'FALSE', '0']
 
     for k, v in in_dict.items():
-        if v in zero_fields:
+        if v in zero_values and k not in ALLOWED_ZERO_KEYS:
             # if k!= 'Closed':
             continue
         if v == 'TRUE':

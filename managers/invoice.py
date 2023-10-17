@@ -128,6 +128,8 @@ def pdf_convert(out_file: Path):
         convert_word(out_file, keep_active=True)
     except Exception as e:
         convert_libreoffice(docx_file=out_file)
+    finally:
+        print(f"Converted {out_file}")
 
 
 def convert_libreoffice(docx_file: Path):

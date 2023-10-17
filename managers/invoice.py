@@ -1,17 +1,14 @@
 import datetime
 import os
-import subprocess
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Optional
 
-from docx2pdf import convert as convert_word
 from docxtpl import DocxTemplate
-from win32com.client import Dispatch
 
 from cmc.commence import get_customer
-from entities.const import DFLT
+from entities.const import DFLT, format_currency, invoice_template_context
 from entities.order import HireOrder, Order
+from in_out.file_management import pdf_convert, print_file, send_email
 from managers.invoice_number import next_inv_num
 
 INVOICE_TMPLT = DFLT.INV_TMPLT
@@ -96,7 +93,7 @@ class HireInvoice(SaleInvoice):
         out_dir = out_dir or DFLT.INV_OUT_DIR
         assert out_dir.is_dir()
         out_file = out_dir / f"{self.inv_num}.docx"
-        context = self.context_()
+        context = invoice_template_context(self)
         try:
             doc.render(context)
             doc.save(out_file)
@@ -113,58 +110,4 @@ class HireInvoice(SaleInvoice):
         except Exception as e:
             raise e
 
-    def context_(self):
-        return {
-            'dates': self.dates,
-            'inv_address': self.inv_add,
-            'del_address': self.del_add,
-            'order': self.order,
-            'currency': format_currency,
-            # 'self': self,
-            'inv_num': self.inv_num,
-        }
 
-
-def pdf_convert(out_file: Path):
-    try:
-        convert_word(out_file, keep_active=True)
-    except Exception as e:
-        convert_pdf_libreoffice(docx_file=out_file)
-    finally:
-        print(f"Converted {out_file}")
-
-
-def convert_pdf_libreoffice(docx_file: Path):
-    out_dir = docx_file.parent
-    subprocess.run(f'soffice --headless --convert-to pdf {str(docx_file)} --outdir {str(out_dir)}')
-
-
-def format_currency(value):
-    # return value
-    # return f' £ {value:.2f}'
-    if value == '':
-        return ''
-    # if isinstance(value, str):
-    #     value = Decimal(value)
-    return f"£{value:>8.2f}"
-
-
-def print_file(file_path: Path):
-    try:
-        os.startfile(str(file_path), "print")
-        return True
-    except Exception as e:
-        print(f"Failed to print: {e}")
-        return False
-
-
-
-def send_email(attachment_path):
-    outlook = Dispatch('outlook.application')
-    mail = outlook.CreateItem(0)
-    mail.To = 'admin@amherst.co.uk'  # replace with recipient's email
-    mail.Subject = 'Invoice Attached'
-    mail.Body = 'Please find the attached invoice.'
-    mail.Attachments.Add(str(attachment_path))
-    mail.Display(True)
-    # mail.Send()

@@ -30,6 +30,17 @@ class DFLT:
     PRC_HEAD = 0
 
 
+def invoice_template_context(invoice):
+    return {
+        'dates': invoice.dates,
+        'inv_address': invoice.inv_add,
+        'del_address': invoice.del_add,
+        'order': invoice.order,
+        'currency': format_currency,
+        # 'self': self,
+        'inv_num': invoice.inv_num,
+    }
+
 class FILTER_(Enum):
     FIELD = 'F'
     C_TO_ITEM = 'CTI'
@@ -89,3 +100,11 @@ class FIELDS:
 # class MAPS:
 #     HIRE_ACC_BANDS = {
 #
+def format_currency(value):
+    # return value
+    # return f' £ {value:.2f}'
+    if value == '':
+        return ''
+    # if isinstance(value, str):
+    #     value = Decimal(value)
+    return f"£{value:>8.2f}"

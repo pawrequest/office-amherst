@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 import pandas as pd
-from entities.abstract import DFLT
+from .. import DFLT_CONST, DFLT_PATHS
 from pandas import Series
 
 from in_out.excel import df_overwrite_wb
@@ -21,16 +21,18 @@ def get_id_and_serial(id_or_serial, df):
     try:
         if an_id(id_or_serial):
             id_num = id_or_serial
-            serial = df[df[DFLT.ID] == id_num][DFLT.SERIAL].values[0]
+            # serial = df[df[DFLT_STRS.ID] == id_num][DFLT_STRS.SERIAL].values[0]
+            serial = df[df[DFLT_CONST.ID] == id_num][DFLT_CONST.SERIAL].values[0]
         else:
-            id_num = df[df[DFLT.SERIAL] == id_or_serial][DFLT.ID].values[0]
+            # id_num = df[df[DFLT_STRS.SERIAL] == id_or_serial][DFLT_STRS.ID].values[0]
+            id_num = df[df[DFLT_CONST.SERIAL] == id_or_serial][DFLT_CONST.ID].values[0]
             serial = id_or_serial
     except Exception as e:
         raise e
     # except ValueError:
-    #     print(f"Error: {id_or_serial} not found in {DFLT.WB}")
+    #     print(f"Error: {id_or_serial} not found in {DFLT_STRS.WB}")
     # except KeyError:
-    #     print(f"Error: {DFLT.ID} or {DFLT.SERIAL} not found in {DFLT.WB}")
+    #     print(f"Error: {DFLT_STRS.ID} or {DFLT_STRS.SERIAL} not found in {DFLT.WB}")
 
     else:
         return id_num, serial
@@ -57,11 +59,11 @@ class Asset:
 
 class AssetContext:
     def __init__(self, workbook_ast=None, sheet=None, header_row=None, out_file=None):
-        self.workbook_ast = workbook_ast or DFLT.AST_WB
-        self.out_file = out_file or DFLT.AST_OUT
+        self.workbook_ast = workbook_ast or DFLT_PATHS.AST_WB
+        self.out_file = out_file or DFLT_PATHS.AST_OUT
         self.json_file = self.out_file.with_suffix('.json')  # JSON file path with new suffix
-        self.sheet = sheet or DFLT.AST_SHEET
-        self.header_row = header_row or DFLT.AST_HEAD
+        self.sheet = sheet or DFLT_CONST.AST_SHEET
+        self.header_row = header_row or DFLT_CONST.AST_HEAD
 
         if os.path.exists(self.json_file):
             with open(self.json_file, 'r') as json_file:
@@ -101,31 +103,31 @@ class AssetManager:
 
     def row_from_id_or_serial(self, id_or_serial: str) -> Series:
         if an_id(id_or_serial):
-            row = self.df_a.loc[self.df_a[DFLT.ID] == id_or_serial]
+            row = self.df_a.loc[self.df_a[DFLT_CONST.ID] == id_or_serial]
         else:
-            row = self.df_a.loc[self.df_a[DFLT.SERIAL] == id_or_serial]
+            row = self.df_a.loc[self.df_a[DFLT_CONST.SERIAL] == id_or_serial]
         assert row.shape[0] == 1
         return handle_row(row)
 
     def set_field_by_id_or_serial(self, id_or_serial: str, field_name: str, value):
         if an_id(id_or_serial):
-            self.df_a.loc[self.df_a[DFLT.ID] == id_or_serial, field_name] = value
+            self.df_a.loc[self.df_a[DFLT_CONST.ID] == id_or_serial, field_name] = value
         else:
-            self.df_a.loc[self.df_a[DFLT.SERIAL] == id_or_serial, field_name] = value
+            self.df_a.loc[self.df_a[DFLT_CONST.SERIAL] == id_or_serial, field_name] = value
 
     def field_from_id_or_serial(self, id_or_serial: str, field: str):
         try:
             if an_id(id_or_serial):
-                return self.df_a.loc[self.df_a[DFLT.ID] == id_or_serial, field].values[0]
+                return self.df_a.loc[self.df_a[DFLT_CONST.ID] == id_or_serial, field].values[0]
             else:
-                return self.df_a.loc[self.df_a[DFLT.SERIAL] == id_or_serial, field].values[0]
+                return self.df_a.loc[self.df_a[DFLT_CONST.SERIAL] == id_or_serial, field].values[0]
         except IndexError:
             raise ValueError(f"Field {field} not found for {id_or_serial}")
         except Exception as e:
             raise e
 
     def check_fw(self, id_or_serial: str, fw_version=None):
-        fw_1 = self.field_from_id_or_serial(id_or_serial=id_or_serial, field=DFLT.FW)
+        fw_1 = self.field_from_id_or_serial(id_or_serial=id_or_serial, field=DFLT_CONST.FW)
         if fw_version is None:
             assert fw_1
         else:

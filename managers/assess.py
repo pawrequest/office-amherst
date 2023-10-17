@@ -59,41 +59,6 @@ def ass_make_sale_order():
 # ass_make_hire_order()
 # ass_make_sale_order()
 
-#
-# def ass_main():
-#     #     ...
-#     fails_file_path = DFLT.GENERATED / 'fails.json'
-#     with TransactionContext() as tm_in:
-#         tm = tm_in
-#     empty_order = list()
-#     other = list()
-#     empty_order_df = pd.concat(empty_order, axis=1).T
-#     other_df = pd.concat(other, axis=1).T
-#
-#     hires = get_many_hires()
-#     fails = pd.read_json(DFLT.GENERATED / 'fails.json')
-#     fails = pd.concat({'empty_order': empty_order_df, 'other': other_df})
-#     fails.to_json(fails_file_path)
-#
-#
-#     for i in range(len(hires)):
-#         hire = hires.iloc[[i]]
-#         try:
-#             inv = tm.hire_to_invoice(hire)
-#             inv.generate()
-#         except ValueError as e1:
-#             empty_order.append(hire.iloc[0])
-#             print(e1)
-#             ...
-#         except Exception as e:
-#             ...
-#             other.append(hire.iloc[0])
-#
-#     fails2 = pd.DataFrame([empty_order, other])
-#     fails2.to_json(DFLT.GENERATED / 'fails2.json')
-#
-#
-
 
 
 def get_con(record, connection: Connection_e):

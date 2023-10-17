@@ -2,7 +2,8 @@ import os
 import re
 import sys
 
-from entities.const import DFLT
+# from entities.const import DFLT
+from .. import DFLT_PATHS
 
 REAL_INV_FOLDER = r'R:\ACCOUNTS\invoices'
 
@@ -17,8 +18,8 @@ if __name__ == '__main__':
     main()
 
 
-def next_inv_num(inv_dir=DFLT.INV_DIR):
-    inv_dir = inv_dir if inv_dir.exists() else DFLT.INV_DIR_MOCK
+def next_inv_num(inv_dir=DFLT_PATHS.INV_DIR):
+    inv_dir = inv_dir if inv_dir.exists() else DFLT_PATHS.INV_DIR_MOCK
     inv_numbers = list(get_inv_nums(inv_dir))
     inv_numbers = sorted(inv_numbers, reverse=True)
     for index, num in enumerate(inv_numbers):

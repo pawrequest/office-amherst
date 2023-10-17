@@ -4,17 +4,18 @@ from typing import List, Tuple
 import pandas as pd
 
 from cmc.commence import get_customer
-from entities.const import DFLT, DTYPES, FIELDS
-from entities.order import HireInvoice, HireOrder, LineItem, FreeItem
+from entities.const import DTYPES, FIELDS
+from entities.order import FreeItem, HireInvoice, HireOrder, LineItem
 from in_out.excel import df_overwrite_wb
+from .. import DFLT_CONST, DFLT_PATHS
 
 
 class TransactionContext:
     def __init__(self, header_row=None, out_file=None, prices_wb=None, ):
-        self.prcs_wb = prices_wb or DFLT.PRC_WB
-        self.prcs_out = out_file or DFLT.PRC_OUT
+        self.prcs_wb = prices_wb or DFLT_PATHS.PRC_WB
+        self.prcs_out = out_file or DFLT_PATHS.PRC_OUT
         self.json_file = self.prcs_out.with_suffix('.json')  # JSON file path with new suffix
-        self.header_row = header_row or int(DFLT.PRC_HEAD)
+        self.header_row = header_row or int(DFLT_CONST.PRC_HEAD)
         self.df_bands, self.df_pr_hire, self.df_pr_sale = self.get_dfs()
 
     def __enter__(self):
@@ -23,7 +24,6 @@ class TransactionContext:
         return self.transaction_manager
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-
         # if input("Save changes? (y/n)").lower() != 'y':
         #     return
         self.dfs_to_json()
@@ -57,12 +57,12 @@ class TransactionContext:
 
     def dfs_to_wb(self):
         # todo convert back from 100
-        df_overwrite_wb(input_workbook=DFLT.PRC_WB, sheet='Hire', header_row=0,
-                        out_file=DFLT.PRC_OUT, df=self.df_pr_hire)
-        df_overwrite_wb(input_workbook=DFLT.PRC_WB, sheet='Sale', header_row=0,
-                        out_file=DFLT.PRC_OUT, df=self.df_pr_sale)
-        df_overwrite_wb(input_workbook=DFLT.PRC_WB, sheet='Bands', header_row=0,
-                        out_file=DFLT.PRC_OUT, df=self.df_bands)
+        df_overwrite_wb(input_workbook=DFLT_PATHS.PRC_WB, sheet='Hire', header_row=0,
+                        out_file=DFLT_PATHS.PRC_OUT, df=self.df_pr_hire)
+        df_overwrite_wb(input_workbook=DFLT_PATHS.PRC_WB, sheet='Sale', header_row=0,
+                        out_file=DFLT_PATHS.PRC_OUT, df=self.df_pr_sale)
+        df_overwrite_wb(input_workbook=DFLT_PATHS.PRC_WB, sheet='Bands', header_row=0,
+                        out_file=DFLT_PATHS.PRC_OUT, df=self.df_bands)
 
     def dfs_to_json(self):
         data = {
@@ -87,7 +87,6 @@ class TransactionManager:
         else:
             shipping = hire['Delivery Cost']
         cust = get_customer(hire['To Customer'])
-
 
         line_items: Tuple[List, List] = lines_from_hire(self.df_bands, self.df_hire, hire)
         if not any([line_items[0], line_items[1]]):
@@ -138,7 +137,7 @@ def get_hire_price(df_hire: pd.DataFrame, product_name: str, quantity: int, dura
 
 def get_sale_price(df_sale: pd.DataFrame, product_name: str, quantity: int):
     product_df = df_sale.loc[df_sale['Name'].str.lower() == product_name.lower()]
-    return product_df.loc[product_df[DFLT.MIN_QTY].astype(int) <= int(quantity), 'Price'].min()
+    return product_df.loc[product_df[DFLT_CONST.MIN_QTY].astype(int) <= int(quantity), 'Price'].min()
 
 
 def hire_lineitems_pay(df_h: pd.DataFrame, pay_items: dict, duration: int, df_bands: pd.DataFrame):

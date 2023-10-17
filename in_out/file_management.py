@@ -1,8 +1,32 @@
 import os
 import subprocess
 from pathlib import Path
-import uno
 from docx2pdf import convert as convert_word
+from typing import Protocol
+
+class PdfConverter(Protocol):
+    def convert(self, out_file: Path):
+        ...
+
+
+class WordConverter:
+    def convert(self, out_file: Path):
+        try:
+            convert_word(out_file, keep_active=True)
+        except Exception as e:
+            convert_pdf_libreoffice(docx_file=out_file)
+        finally:
+            print(f"Converted {out_file}")
+
+class LibreConverter:
+    def convert(self, out_file: Path):
+        try:
+            subprocess.run(f'soffice --headless --convert-to pdf {str(out_file)} --outdir {str(out_file.parent)}')
+            return True
+        except Exception as e:
+            ...
+        finally:
+            print(f"Converted {out_file}")
 
 
 def pdf_convert(out_file: Path):

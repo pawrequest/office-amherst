@@ -6,9 +6,9 @@ import pytest
 from openpyxl.reader.excel import load_workbook
 from pandas import Series
 
-from managers.asset_manager import AssetContext, AssetManager
-from entities.abstract import DFLT
 from in_out.excel import get_rows
+from managers.assets import AssetContext, AssetManager
+from .. import DFLT_CONST
 
 
 def top_three_rows(in_wb, out_wb):
@@ -25,11 +25,11 @@ def manager_context_fxt():
     with AssetContext(out_file=out_file) as context:
         yield context
 
+
 @pytest.fixture
 def am_fxt(manager_context_fxt) -> AssetManager:
     am = manager_context_fxt[0]
     yield am
-
 
 
 @pytest.fixture
@@ -69,7 +69,7 @@ def get_styles(filename: Path, start=0, end=3):
 
 
 def test_id(df_asset_fxt):
-    id_num = df_asset_fxt[DFLT.ID.value]
+    id_num = df_asset_fxt[DFLT_CONST.ID.value]
     assert id_num == '1111'
 
 
@@ -80,8 +80,8 @@ def test_id(df_asset_fxt):
 
 def test_serial_num(am_fxt, df_asset_fxt):
     radio = am_fxt.row_from_id_or_serial('1111')
-    assert radio[DFLT.SERIAL.value] == df_asset_fxt[DFLT.SERIAL.value]
-    assert radio[DFLT.ID.value] == df_asset_fxt[DFLT.ID.value]
+    assert radio[DFLT_CONST.SERIAL] == df_asset_fxt[DFLT_CONST.SERIAL]
+    assert radio[DFLT_CONST.ID] == df_asset_fxt[DFLT_CONST.ID]
 
 
 def test_df_asset_from_id(am_fxt, df_asset_fxt):
@@ -101,17 +101,12 @@ def test_get_assets(am_fxt):
     nums = ['1111', '2222', '3333']
     assets = am_fxt.df_a.loc[am_fxt.df_a['Number'].isin(nums)]
     assert len(assets) == 3
-    assert assets.iloc[1][DFLT.ID.value] == '2222'
+    assert assets.iloc[1][DFLT_CONST.ID] == '2222'
 
 
-
-
-def test_smth(am_fxt:AssetManager, df_asset_fxt):
+def test_smth(am_fxt: AssetManager, df_asset_fxt):
     radio = df_asset_fxt
     rad = am_fxt.row_from_id_or_serial('1111')
-    am_fxt.set_field_by_id_or_serial('1111', DFLT.FW.value, 'jjjjjjjj')
-    assert am_fxt.field_from_id_or_serial('1111', DFLT.FW.value) == 'jjjjjjjj'
+    am_fxt.set_field_by_id_or_serial('1111', DFLT_CONST.FW, 'jjjjjjjj')
+    assert am_fxt.field_from_id_or_serial('1111', DFLT_CONST.FW) == 'jjjjjjjj'
     ...
-
-
-

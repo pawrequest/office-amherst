@@ -2,7 +2,7 @@ import datetime
 from _decimal import Decimal
 from typing import List
 
-import win32com.client
+from win32com.client import Dispatch
 
 from cmc import auto_cmc as cmc_
 from cmc.cmc_entities import Connection_e
@@ -10,11 +10,9 @@ from cmc.cmc_entities import Connection_e
 
 def get_cmc() -> cmc_.ICommenceDB:
     try:
-        cmc_db = win32com.client.Dispatch(f"Commence.DB")
+        return Dispatch(f"Commence.DB")
     except Exception as e:
         raise e
-    else:
-        return cmc_db
 
 
 def get_csr(tablename) -> cmc_.ICommenceCursor:

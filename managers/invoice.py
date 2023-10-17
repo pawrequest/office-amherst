@@ -1,19 +1,18 @@
 import datetime
 import os
-import re
 import subprocess
 from dataclasses import dataclass
-from itertools import groupby
-from operator import itemgetter
 from pathlib import Path
-from typing import Optional, Set
+from typing import Optional
 
 from docx2pdf import convert as convert_word
 from docxtpl import DocxTemplate
+from win32com.client import Dispatch
 
 from cmc.commence import get_customer
 from entities.const import DFLT
 from entities.order import HireOrder, Order
+from managers.invoice_number import next_inv_num
 
 INVOICE_TMPLT = DFLT.INV_TMPLT
 
@@ -92,7 +91,7 @@ class HireInvoice(SaleInvoice):
         dates = HireDates.from_hire(hire)
         return cls(inv_num=inv_num, dates=dates, inv_add=inv_add, del_add=del_add, order=order)
 
-    def generate(self, out_dir=None, open_file=False, prnt=False):
+    def generate(self, out_dir=None, open_file=False, prnt=False, email=True):
         doc = DocxTemplate(INVOICE_TMPLT)
         out_dir = out_dir or DFLT.INV_OUT_DIR
         assert out_dir.is_dir()
@@ -119,6 +118,8 @@ class HireInvoice(SaleInvoice):
                 os.system(f'start {out_file}')
             if prnt:
                 print_file(pdf_out_file)
+            if email:
+                send_email(pdf_out_file)
         except Exception as e:
             raise e
 
@@ -166,126 +167,15 @@ def word_is_installed():
     else:
         return True
 
-#
-# def get_inv_nums(inv_dir) -> Set[int]:
-#     files = os.listdir(inv_dir)
-#     pattern = re.compile(r'^[Aa](\d{5}).*$')
-#     inv_numbers = {int(pattern.match(f).group(1)) for f in files if pattern.match(f)}
-#     return inv_numbers
-#
-#
-# def next_inv_num(inv_dir=DFLT.INV_DIR):
-#     inv_dir = inv_dir if inv_dir.exists() else DFLT.INV_DIR_MOCK
-#     inv_numbers = sorted(get_inv_nums(inv_dir))
-#     for key, group in groupby(enumerate(inv_numbers), lambda i_x: i_x[0] - i_x[1]):
-#         sequence = list(map(itemgetter(1), group))
-#         if len(sequence) >= 20:
-#             new_filename = f'A{sequence[-1] + 1:05d}'
-#             return new_filename
 
+def send_email(attachment_path):
+    outlook = Dispatch('outlook.application')
+    mail = outlook.CreateItem(0)
+    mail.To = 'admin@amherst.co.uk'  # replace with recipient's email
+    mail.Subject = 'Invoice Attached'
+    mail.Body = 'Please find the attached invoice.'
+    mail.Attachments.Add(str(attachment_path))
+    mail.Display(True)
 
-def get_inv_nums(inv_dir) -> set[int]:
-    files = os.listdir(inv_dir)
-    pattern = re.compile(r'^[Aa](\d{5}).*$')
-    matching_files = [f.lower() for f in files if pattern.match(f)]
-    inv_numbers = {int(pattern.match(f).group(1)) for f in matching_files}
-    return inv_numbers
-
-def next_inv_num(inv_dir=DFLT.INV_DIR):
-    inv_dir = inv_dir if inv_dir.exists() else DFLT.INV_DIR_MOCK
-    inv_numbers = list(get_inv_nums(inv_dir))
-    inv_numbers = sorted(inv_numbers, reverse=True)
-    for index, num in enumerate(inv_numbers):
-        if has_20_after(index=index, nums=inv_numbers):
-            new_filename = f'A{num + 1}'
-            return new_filename
-
-
-def has_20_after(index: int, nums: {int}):
-    tally = 0
-    while tally < 20:
-        num = nums[index]
-        next_num = nums[index + 1]
-        if num == next_num + 1:
-            tally += 1
-            index += 1
-        else:
-            return False
-    return True
-
-
-#
-# def get_inv_nums(inv_dir) -> set[int]:
-#     inv_dir: Path = inv_dir if inv_dir.exists() else DFLT.INV_DIR_MOCK
-#     files = os.listdir(inv_dir)
-#     pattern = re.compile(r'^[Aa](\d{5}).*$')
-#     matching_files = [f.lower() for f in files if pattern.match(f)]
-#     inv_numbers = {int(pattern.match(f).group(1)) for f in matching_files}
-#     return inv_numbers
-#
-#
-# def next_inv_num(inv_dir=DFLT.INV_DIR):
-#     inv_dir: Path = inv_dir if inv_dir.exists() else DFLT.INV_DIR_MOCK
-#     print(f"Scanning invoices in {inv_dir}...")
-#     files = pd.Series(os.listdir(inv_dir))
-#     pattern = re.compile(r'^[Aa](\d{5}).*$')
-#     matching_files = files[files.str.match(pattern)].sort_values(ascending=False)
-#     if len(matching_files) < 1:
-#         if DFLT.DEBUG:
-#             return 'A00000'
-#         else:
-#             raise FileNotFoundError(f"Not many invoice numbers found in {inv_dir}")
-#
-#     highest = None
-#     for row in range(len(matching_files)):
-#         sub_series = matching_files.iloc[row:row + 10]
-#         # numerical_parts = sub_series.str.extract(pattern).astype(int)
-#         numerical_parts = sub_series.str.extract(pattern)[0]
-#
-#         if numerical_parts.is_monotonic_decreasing:
-#             highest = sub_series.iloc[0]
-#
-#     match = pattern.match(highest)
-#     if match:
-#         num = int(match.group(1))
-#         new_num = num + 1
-#         new_inv_num = f'A{new_num:05d}'
-#         return new_inv_num
-#     else:
-#         raise ValueError(f'Failed to parse invoice number from {highest}')
-
-#
-# # Usage
-# new_inv_num = next_inv_num()
-# print(new_inv_num)
-
-
-# def get_inv_num(inv_dir=DFLT.INV_DIR):
-#     inv_dir: Path = inv_dir if inv_dir.exists() else DFLT.INV_DIR_MOCK
-#     print(f"Scanning invoices in {inv_dir}...")
-#     files = pd.Series(os.listdir(inv_dir)).sort_values(ascending=False)
-#     # pattern = re.compile(r'^[Aa](\d{5}).*$')
-#     pattern = r'^[Aa](\d{5}).*$'
-#     matching_files = files[files.str.match(pattern)]
-#
-#     for row in range(len(matching_files) - 10):
-#         sub_series = matching_files.iloc[row:row + 10]
-#         if sub_series.is_monotonic_decreasing:
-#             highest = sub_series.iloc[0]
-#             return highest
-#
-#     if DFLT.DEBUG:
-#         if not matching_files.empty:
-#             highest = matching_files.iloc[0]
-#             return highest + 1
-#         return 'A00000'
-#
-#     # Extract the numeric part, increment it, and format it back into the invoice number format
-#     match = pattern.match(highest)
-#     if match:
-#         num = int(match.group(1))
-#         new_num = num + 1
-#         new_inv_num = f'A{new_num:05d}'
-#         return new_inv_num
-#     else:
-#         raise ValueError(f'Failed to parse invoice number from {highest}')
+    # To send the email uncomment the line below
+    # mail.Send()

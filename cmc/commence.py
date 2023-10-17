@@ -1,7 +1,7 @@
 import datetime
 from typing import List, Literal
 
-from .cmc_entities import Connection
+from .cmc_entities import  Connection_e
 from .cmc_funcs import clean_dict, clean_hire_dict, connected_records_to_qs, filter_by_field_old, filter_by_fieldnew, \
     get_cmc, get_csr, \
     qs_from_name, qs_to_dicts
@@ -26,17 +26,16 @@ def get_sale(record_name: str) -> dict:
 
 
 def sales_by_customer(customer_name: str) -> List[dict]:
-    connection = Connection.CUSTOMER_SALES
-    qs = connected_records_to_qs('Sale', connection, customer_name)
+    connection = Connection_e.CUSTOMER_SALES
+    qs = connected_records_to_qs(connection, customer_name)
     dicts = qs_to_dicts(qs)
     dicts = [clean_dict(d) for d in dicts]
     return dicts
 
 
 def hires_by_customer(customer_name: str) -> List[dict]:
-    connection = Connection.HIRES_CUSTOMER
-
-    recs = connected_records_to_qs('Hire', connection,  customer_name)
+    connection = Connection_e.HIRES_CUSTOMER
+    recs = connected_records_to_qs(connection,  customer_name)
     dicts = qs_to_dicts(recs)
     dicts = [clean_hire_dict(d) for d in dicts]
     return dicts

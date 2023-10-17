@@ -39,7 +39,7 @@
 
 # def parse_df(df: pd.DataFrame, dtype_map=None) -> pd.DataFrame:
 #     row = df.iloc[0]
-#     dtype_map = dtype_map or DTYPES.HIRE
+#     dtype_map = dtype_map or DTYPES.HIRE_PRICES
 #
 #     for col in df.columns:
 #         if col in dtype_map:

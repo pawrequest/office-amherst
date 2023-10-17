@@ -3,9 +3,10 @@ from decimal import Decimal
 import pandas as pd
 from win32com.gen_py import auto_cmc
 
-from cmc.cmc_entities import Connection, Connector
-from cmc.cmc_funcs import get_cmc, get_csr, get_fieldnames, qs_to_lists
+from cmc.cmc_entities import Connection_e
+from cmc.cmc_funcs import get_cmc, get_csr, get_fieldnames, qs_to_lists, qs_from_name
 from cmc.commence import get_customer, hires_by_customer, lots_of_hires, sales_by_customer
+from entities.const import DFLT
 from managers.transact import TransactionContext
 
 
@@ -92,8 +93,8 @@ def ass_make_sale_order():
 
 
 def ass_main():
-    many = lots_of_hires()
-    customrs = get_customer('Test')
+    # many = lots_of_hires()
+    # customrs = get_customer('Test')
     hires = hires_by_customer('Test')
     hire = hires[0]
 
@@ -105,22 +106,21 @@ def ass_main():
     ...
     with TransactionContext() as tm:
         inv = tm.hire_to_invoice(hire)
-    # inv.generate((DFLT.INV_DIR_MOCK))
+        inv.generate((DFLT.INV_DIR_MOCK))
 
     ...
 
-def get_con(record, connection:Connection):
+def get_con(record, connection:Connection_e):
     categories = []
-    for connect in Connection:
-        records = []
-        if f"{connect.value.desc} {connect.value.table}" in record.keys():
-            records = []
+    for connect in Connection_e:
+        con_str= f"{connect.value.desc} {connect.value.value_table}"
+        records = [
+                qs_from_name(connect.value.key_table, record) for conn in Connection_e if con_str in record.keys()
+            ]
+        #todo ghetconnected item field call
 
 
 
-def get_connected_hires(customer):
-
-    csr = get_csr(connection.value.table)
 
 
 

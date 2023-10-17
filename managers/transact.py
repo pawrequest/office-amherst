@@ -19,33 +19,29 @@ class TransactionContext:
         self.df_bands, self.df_pr_hire, self.df_pr_sale = self.get_dfs()
 
     def __enter__(self):
-        self.df_pr_hire['Price'] = self.df_pr_hire['Price'].apply(lambda x: x * 100)
-        self.df_pr_sale['Price'] = self.df_pr_sale['Price'].apply(lambda x: x * 100)
         self.transaction_manager = TransactionManager(df_bands=self.df_bands, df_hire=self.df_pr_hire,
                                                       df_sale=self.df_pr_sale)
         return self.transaction_manager
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.df_pr_hire['Price'] = self.df_pr_hire['Price'].apply(lambda x: x / 100)
-        self.df_pr_sale['Price'] = self.df_pr_sale['Price'].apply(lambda x: x / 100)
 
         # if input("Save changes? (y/n)").lower() != 'y':
         #     return
-        # self.dfs_to_json()
+        self.dfs_to_json()
         # self.dfs_to_wb()
 
     def get_dfs(self):
         assert self.prcs_wb.exists()
 
-        # df_bands, df_hire, df_sale = self.dfs_from_json() if os.path.exists(self.json_file) else self.dfs_from_excel()
+        # df_bands, df_hire, df_sale = self.dfs_from_json() if self.json_file.exists() else self.dfs_from_excel()
         df_bands, df_hire, df_sale = self.dfs_from_excel()
         return df_bands, df_hire, df_sale
 
     def dfs_from_excel(self):
         hire = pd.read_excel(self.prcs_wb, sheet_name='Hire', header=0,
-                             dtype=DTYPES.HIRE)
+                             dtype=DTYPES.HIRE_PRICES)
         sale = pd.read_excel(self.prcs_wb, sheet_name='Sale', header=0,
-                             dtype=DTYPES.SALE)
+                             dtype=DTYPES.SALE_PRICES)
         bands = pd.read_excel(self.prcs_wb, sheet_name='Bands', header=0,
                               dtype=str)
 
@@ -55,8 +51,8 @@ class TransactionContext:
         with open(self.json_file, 'r') as json_file2:
             data = json.load(json_file2)
         bands = pd.DataFrame(data['df_b'], dtype=str)
-        hire = pd.DataFrame('df_hire')
-        sale = pd.DataFrame('df_sale')
+        hire = pd.DataFrame(data['df_hire']).astype(DTYPES.HIRE_PRICES, errors='ignore')
+        sale = pd.DataFrame(data['df_sale']).astype(DTYPES.SALE_PRICES, errors='ignore')
 
         return bands, hire, sale
 
@@ -164,21 +160,21 @@ def hire_lineitems_free(df_bands: pd.DataFrame, df_hire: pd.DataFrame, duration:
 def lines_from_hire(df_bands, df_hire, hire: dict):
     duration = hire['Weeks']
     hire_itms = items_dict_from_hire(hire)
-    free = {k: v for k, v in hire_itms if k in FIELDS.FREE_ITEMS}
-    pay = {k: v for k, v in hire_itms if k not in FIELDS.FREE_ITEMS}
+    free = {k: v for k, v in hire_itms.items() if k in FIELDS.FREE_ITEMS}
+    pay = {k: v for k, v in hire_itms.items() if k not in FIELDS.FREE_ITEMS}
     free_items = hire_lineitems_free(df_bands, df_hire, duration, free)
     line_items = hire_lineitems_pay(df_h=df_hire, pay_items=pay, duration=duration, df_bands=df_bands)
     return line_items, free_items
 
 
 def items_dict_from_hire(hire: dict) -> dict:
-    items_dict = {k: v for k, v in hire.items() if k in all_item_keys(hire) and v > 0}
+    all_items = item_nams_from_hire(hire)
+    items_dict = {k[7:]: v for k, v in hire.items() if k in all_items}
     return items_dict
 
 
-def all_item_keys(hire: dict) -> List:
+def item_nams_from_hire(hire: dict) -> List:
     item_keys = [col for col in hire.keys() if col.startswith('Number ')]
-    item_keys = [col[7:] for col in item_keys]
     return item_keys
 
 

@@ -1,16 +1,17 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Iterable
 
 
 @dataclass
 class Connector:
     desc: str
-    table: str
+    key_table: str
+    value_table: str
 
 
-class Connection(Enum):
-    CUSTOMER_HIRES = Connector(desc="Has Hired", table='Hire')
-    CUSTOMER_SALES = Connector(desc="Involves", table='Saler')
-    HIRES_CUSTOMER = Connector(desc="To", table='Customer')
-    SALES_CUSTOMER = Connector(desc="To", table='Customer')
+
+class Connection_e(Enum):
+    CUSTOMER_HIRES = Connector(key_table='Customer', desc="Has Hired", value_table='Hire')
+    CUSTOMER_SALES = Connector(key_table='Customer', desc="Involves", value_table='Sale')
+    HIRES_CUSTOMER = Connector(key_table='Hire', desc="To", value_table='Customer')
+    SALES_CUSTOMER = Connector(key_table='Sale', desc="To", value_table='Customer')

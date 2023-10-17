@@ -5,7 +5,7 @@ from typing import List
 import win32com.client
 
 from cmc import auto_cmc as cmc_
-from cmc.cmc_entities import Connection
+from cmc.cmc_entities import Connection_e
 
 
 def get_cmc() -> cmc_.ICommenceDB:
@@ -35,8 +35,8 @@ def qs_from_name(table, record) -> cmc_.ICommenceQueryRowSet:
     return qs
 
 
-def connected_records_to_qs(table, connect: Connection, item_name: str, max_res=50) -> cmc_.ICommenceQueryRowSet | None:
-    cursor = get_csr(table)
+def connected_records_to_qs(connect: Connection_e, item_name: str, max_res=50) -> cmc_.ICommenceQueryRowSet | None:
+    cursor = get_csr(connect.value.key_table)
     filter_by_connection(cursor, item_name, connect)
     qs = cursor.GetQueryRowSet(max_res, 0)
     if qs.RowCount == 0:
@@ -52,18 +52,21 @@ def clean_dict(in_dict: dict) -> dict:
 
     for k, v in in_dict.items():
         if v in zero_fields:
+            # if k!= 'Closed':
             continue
         if v == 'TRUE':
             out_dict[k] = True
+        if v=='FALSE':
+            out_dict[k] = False
         else:
             try:
                 out_dict[k] = datetime.datetime.strptime(v, '%d/%m/%Y').date()
-            except ValueError:
+            except:
                 try:
-                    out_dict[k] = int(v)
-                except ValueError:
+                    out_dict[k] = Decimal(v)
+                except:
                     try:
-                        out_dict[k] = Decimal(v)
+                        out_dict[k] = int(v)
                     except:
                         out_dict[k] = v
     return out_dict
@@ -72,10 +75,12 @@ def clean_dict(in_dict: dict) -> dict:
 def clean_hire_dict(hire: dict):
     out_dict = {}
     for k, v in hire.items():
-        if k.startswith('Number '):
-            out_dict[k[7:]] = v
-        elif k.startswith('Inv '):
+        # if k.startswith('Number '):
+        #     out_dict[k[7:]] = v
+        if k.startswith('Inv '):
             continue
+        # if k == 'Closed':
+        #     out_dict[k] = None
         else:
             out_dict[k] = v
 
@@ -111,8 +116,8 @@ def filter_by_field_old(cursor: cmc_.ICommenceCursor, field_name: str, value, co
 
 
 
-def filter_by_connection(cursor: cmc_.ICommenceCursor, item_name: str, connection: Connection):
-    filter_str = f'[ViewFilter(1, CTI,, {connection.value.desc}, {connection.value.table}, {item_name})]'
+def filter_by_connection(cursor: cmc_.ICommenceCursor, item_name: str, connection: Connection_e):
+    filter_str = f'[ViewFilter(1, CTI,, {connection.value.desc}, {connection.value.value_table}, {item_name})]'
     res = cursor.SetFilter(filter_str, 0)
     if not res:
         raise ValueError(f"Could not set filter for {connection.value.desc} = {item_name}")

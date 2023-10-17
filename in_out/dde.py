@@ -125,7 +125,7 @@ def get_all_connected(conv, from_table: str, from_item: str, connection: Connect
 
 def get_customer_sales(conv, customer_name):
     return get_all_connected(conv, 'Customer', customer_name,
-                             Connection(name='Involves', table='Sale', fields=FIELDS.SALE.value))
+                             Connection(name='Involves', table='Sale', fields=FIELDS.SALE_PRICES.value))
 
 
 def get_conversation_func(topic='Commence', command='ViewData', db_name='Commence'):
@@ -176,8 +176,8 @@ def display_test_customer_agent():
 
 
 def stuff():
-    hires_to = Connection(name="Has Hired", table='Hire', fields=FIELDS.HIRE.value)
-    sales_to = Connection(name="Involves", table='Sale', fields=FIELDS.SALE.value)
+    hires_to = Connection(name="Has Hired", table='Hire', fields=FIELDS.HIRE_PRICES.value)
+    sales_to = Connection(name="Involves", table='Sale', fields=FIELDS.SALE_PRICES.value)
     customer_data = get_commence_data(table="Customer", name="Test", fields=FIELDS.CUSTOMER.value,
                                       connections=[hires_to, sales_to])
     ahire = get_dde_data('Test - 16/08/2023 ref 31619', 'Hire')['Hire']

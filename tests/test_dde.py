@@ -43,8 +43,8 @@ def customer_name():
 #     dde_man = dde_man = DDEManager()
 #
 #     # some_Striong = '23424'
-#     # some_hire = dde_man.get_cmc_data('Hire', hire_name, Fields.HIRE.value)
-#     some_hire = dde_man.cmc_to_df('Hire', hire_name, Fields.HIRE.value)
+#     # some_hire = dde_man.get_cmc_data('Hire', hire_name, Fields.HIRE_PRICES.value)
+#     some_hire = dde_man.cmc_to_df('Hire', hire_name, Fields.HIRE_PRICES.value)
 #     # dde_man.conv = None
 #     ...
 
@@ -60,10 +60,10 @@ def test_customer_data(customer_name):
                                       connections=[hires_to, sales_to])
     assert all(field in customer_data['Customer'] for field in FIELDS.CUSTOMER.value)
     for hire_record in customer_data['Hire'].values():
-        assert all(field in hire_record for field in FIELDS.HIRE.value)
+        assert all(field in hire_record for field in FIELDS.HIRE_PRICES.value)
 
     for sale_record in customer_data['Sale'].values():
-        assert all(field in sale_record for field in FIELDS.SALE.value)
+        assert all(field in sale_record for field in FIELDS.SALE_PRICES.value)
 
 
 #
@@ -93,7 +93,7 @@ def test_get_generic(hire_name, sale_name):
 
 def test_get_wrong_hire_name():
     with pytest.raises(ValueError):
-        some_hire_name = 'FAKE HIRE NAME'
+        some_hire_name = 'FAKE HIRE_PRICES NAME'
         some_hire = get_dde_data(some_hire_name, 'Hire')
 
 

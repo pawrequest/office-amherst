@@ -17,7 +17,7 @@ class DFLT:
     PRC_OUT = GENERATED / 'prices_out.xlsx'
     INV_OUT = GENERATED / 'invoice_out.docx'
     INV_DIR_MOCK = GENERATED / 'mock_invoices'
-    INV_DIR = INV_DIR_MOCK
+    INV_DIR = Path(r'R:\ACCOUNTS\invoices')
     MIN_DUR = 'Min Duration'
     MODEL = "Model"
     SERIAL = 'Barcode'
@@ -37,29 +37,31 @@ class FILTER_(Enum):
     C_TO_CAT_FIELD = 'CTCF'
 
 
-
+NOT_HIRE = ['Min Duration', 'Closed']
 
 
 class DTYPES:
-    HIRE = {
+    HIRE_PRICES = {
         'Name': 'string',
         'Description': 'string',
         'Min Qty': 'int',
         'Min Duration': 'int',
-        'Price': 'int',
+        'Price': 'float',
+
+    }
+    HIRE_RECORD = {
         'Items': 'string',
         'Closed': 'bool',
         'Reference Number': 'string',
         'Weeks': 'int',
         'Boxes': 'int',
         'Recurring': 'bool',
-
+        'Delivery Cost': 'float',
     }
-    SALE = {key: value for key, value in HIRE.items() if key != 'Min Duration'}
+    SALE_PRICES = {key: value for key, value in HIRE_PRICES.items() if key != 'Min Duration'}
 
 
-
-class FIELDS(Enum):
+class FIELDS:
     CUSTOMER = [
         "Contact Name",
         "Name",
@@ -82,8 +84,7 @@ class FIELDS(Enum):
         "Invoice Address",
         'Name',
     ]
-    FREE_ITEMS = []
-
+    FREE_ITEMS = ['Sgl Charger', 'UHF 6-way']
 
 # class MAPS:
 #     HIRE_ACC_BANDS = {

@@ -64,7 +64,8 @@ class Order:
 
     @property
     def subtotal(self):
-        return Decimal(f"{sum([self.total_goods, Decimal(self.shipping)]) - self.charity_discount:.2f}")
+        sub = sum([self.total_goods, self.shipping]) - self.charity_discount
+        return Decimal(sub)
 
     @property
     def tax(self):

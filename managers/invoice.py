@@ -1,9 +1,11 @@
+import PySimpleGUI as sg
 import datetime
 import os
 from dataclasses import dataclass
 from typing import Optional
 
 from docxtpl import DocxTemplate
+from win32com.client.gencache import EnsureDispatch
 
 from cmc.commence import get_customer
 from entities.const import DFLT, format_currency, invoice_template_context
@@ -89,25 +91,72 @@ class HireInvoice(SaleInvoice):
         return cls(inv_num=inv_num, dates=dates, inv_add=inv_add, del_add=del_add, order=order)
 
     def generate(self, out_dir=None, open_file=False, prnt=False, email=True):
-        doc = DocxTemplate(INVOICE_TMPLT)
-        out_dir = out_dir or DFLT.INV_OUT_DIR
-        assert out_dir.is_dir()
-        out_file = out_dir / f"{self.inv_num}.docx"
-        context = invoice_template_context(self)
         try:
+            doc = DocxTemplate(INVOICE_TMPLT)
+            out_dir = out_dir or DFLT.INV_OUT_DIR
+            out_file = out_dir / f"{self.inv_num}.docx"
+            context = invoice_template_context(self)
             doc.render(context)
-            doc.save(out_file)
 
-            pdf_convert(out_file)
-            pdf_out_file = out_file.with_suffix('.pdf')
 
-            if open_file:
-                os.system(f'start {out_file}')
-            if prnt:
-                print_file(pdf_out_file)
-            if email:
-                send_email(pdf_out_file)
+            temp_file = out_dir / '_temp_invoice.docx'
+
+            event_loop(doc, out_file, temp_file)
+
+
+
+
+
+
+            #
+            # doc.save(out_file)
+            #
+            # pdf_convert(out_file)
+            # pdf_out_file = out_file.with_suffix('.pdf')
+            #
+            #     print_file(pdf_out_file)
+            # if email:
+            #     send_email(pdf_out_file)
         except Exception as e:
             raise e
 
 
+def open_word(doc_path):
+    word = EnsureDispatch('Word.Application')
+    word.Visible = True
+    word_doc = word.Documents.Open(str(doc_path))
+    return word, word_doc
+
+
+def create_gui():
+    layout = [
+        [sg.Checkbox('Save', default=True, key='-SAVE-')],
+        [sg.Checkbox('Print', default=False, key='-PRINT-')],
+        [sg.Checkbox('Email', default=False, key='-EMAIL-')],
+        [sg.Button('Submit')]
+    ]
+    window = sg.Window('Actions', layout)
+    return window
+
+def event_loop(doc, out_file, temp_file):
+    doc.save(temp_file)
+    os.system(f'start {temp_file}')
+
+    window = create_gui()
+    while True:
+        event, values = window.read()
+        if event == sg.WINDOW_CLOSED:
+            break
+        elif event == 'Submit':
+
+            if values['-SAVE-']:
+                doc.save(out_file)
+                doc.close()
+                pdf_convert(out_file)
+
+            if values['-PRINT-']:
+                print_file(out_file.with_suffix('.pdf'))
+
+            if values['-EMAIL-']:
+                send_email(out_file.with_suffix('.pdf'))
+            break

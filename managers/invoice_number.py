@@ -2,12 +2,13 @@ import os
 import re
 import sys
 
-# INV_FOLDER = r'C:\paul\scratch\inv'
-INV_FOLDER = r'R:\ACCOUNTS\invoices'
+from entities.const import DFLT
+
+REAL_INV_FOLDER = r'R:\ACCOUNTS\invoices'
 
 
-def get_new_inv_num():
-    inv_numbers = list(get_inv_nums())
+def get_new_inv_num(inv_dir=DFLT.INV_DIR_MOCK):
+    inv_numbers = list(get_inv_nums(inv_dir))
     inv_numbers = sorted(inv_numbers, reverse=True)
     for index, num in enumerate(inv_numbers):
         if has_20_after(index=index, nums=inv_numbers):
@@ -28,6 +29,7 @@ def get_inv_nums(inv_dir) -> set[int]:
     matching_files = [f.lower() for f in files if pattern.match(f)]
     inv_numbers = {int(pattern.match(f).group(1)) for f in matching_files}
     return inv_numbers
+
 
 def sequential_sublists(num_set: list):
     num_set = sorted(num_set)
@@ -69,6 +71,7 @@ def get_inv_nums(inv_dir) -> set[int]:
     inv_numbers = {int(pattern.match(f).group(1)) for f in matching_files}
     return inv_numbers
 
+
 def next_inv_num(inv_dir=DFLT.INV_DIR):
     inv_dir = inv_dir if inv_dir.exists() else DFLT.INV_DIR_MOCK
     inv_numbers = list(get_inv_nums(inv_dir))
@@ -90,4 +93,3 @@ def has_20_after(index: int, nums: {int}):
         else:
             return False
     return True
-

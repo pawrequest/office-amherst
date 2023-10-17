@@ -4,7 +4,7 @@ from cmc import commence
 from cmc.commence import hires_by_customer
 from entities.const import DFLT
 from in_out.email_funcs import GmailSender, OutlookSender
-from in_out.file_management import LibreOpener, WordOpener
+from in_out.file_management import LibreConverter, LibreOpener, WordOpener
 from managers.invoice import create_gui, get_inv_temp
 from managers.transact import TransactionContext
 
@@ -32,9 +32,15 @@ def otherfunc():
     template, temp_file = get_inv_temp(inv_obj)
     doc_handler.open_document(temp_file)
 
+
+    pdf_converter = LibreConverter()
+    pdf_converter.convert(temp_file.with_suffix('.pdf'))
+
+
     email_ = DFLT_EMAIL_O
     email_.attachment_path = temp_file.with_suffix('.pdf')
     email_sender.send_email(email_)
+
 
 otherfunc()
 

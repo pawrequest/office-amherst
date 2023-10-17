@@ -95,18 +95,8 @@ class HireInvoice(SaleInvoice):
         doc = DocxTemplate(INVOICE_TMPLT)
         out_dir = out_dir or DFLT.INV_OUT_DIR
         assert out_dir.is_dir()
-        # out_dir.mkdir(parents=True, exist_ok=True)  # This line creates the folder if it doesn't exist
         out_file = out_dir / f"{self.inv_num}.docx"
-        # self.order.shipping = format_currency(self.order.shipping)
-        context = {
-            'dates': self.dates,
-            'inv_address': self.inv_add,
-            'del_address': self.del_add,
-            'order': self.order,
-            'currency': format_currency,
-            # 'self': self,
-            'inv_num': self.inv_num,
-        }
+        context = self.context_()
         try:
             doc.render(context)
             doc.save(out_file)
@@ -123,17 +113,28 @@ class HireInvoice(SaleInvoice):
         except Exception as e:
             raise e
 
+    def context_(self):
+        return {
+            'dates': self.dates,
+            'inv_address': self.inv_add,
+            'del_address': self.del_add,
+            'order': self.order,
+            'currency': format_currency,
+            # 'self': self,
+            'inv_num': self.inv_num,
+        }
+
 
 def pdf_convert(out_file: Path):
     try:
         convert_word(out_file, keep_active=True)
     except Exception as e:
-        convert_libreoffice(docx_file=out_file)
+        convert_pdf_libreoffice(docx_file=out_file)
     finally:
         print(f"Converted {out_file}")
 
 
-def convert_libreoffice(docx_file: Path):
+def convert_pdf_libreoffice(docx_file: Path):
     out_dir = docx_file.parent
     subprocess.run(f'soffice --headless --convert-to pdf {str(docx_file)} --outdir {str(out_dir)}')
 
@@ -151,21 +152,11 @@ def format_currency(value):
 def print_file(file_path: Path):
     try:
         os.startfile(str(file_path), "print")
+        return True
     except Exception as e:
         print(f"Failed to print: {e}")
         return False
-    else:
-        return True
 
-
-def word_is_installed():
-    try:
-        os.startfile('winword.exe')
-    except Exception as e:
-        print(f"Failed to open Word: {e}")
-        return False
-    else:
-        return True
 
 
 def send_email(attachment_path):
@@ -176,6 +167,4 @@ def send_email(attachment_path):
     mail.Body = 'Please find the attached invoice.'
     mail.Attachments.Add(str(attachment_path))
     mail.Display(True)
-
-    # To send the email uncomment the line below
     # mail.Send()

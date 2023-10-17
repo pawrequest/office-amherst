@@ -1,20 +1,15 @@
 import argparse
 
-from in_out import commence
+from cmc import commence
 from managers.invoice import HireInvoice
 from managers.transact import TransactionContext
 
 
 def main(args):
-    with TransactionContext() as tm_in:
-        tm = tm_in
-
-    hire = commence.get_hire(args.hire_name)
-    # customer = commence.cust_of_transaction(hire['Name'], 'Hire')
-    customer = hire['To Customer']
-    hire_order = tm.make_hire_order(customer, hire)
-    invoice = HireInvoice.from_hire(hire, hire_order, customer)
-    invoice.generate(prnt=args.print)
+    with TransactionContext() as tm:
+        hire = commence.get_hire(args.hire_name)
+        invoice = tm.hire_to_invoice(hire)
+        invoice.generate(prnt=args.print)
 
 
 if __name__ == '__main__':
@@ -24,7 +19,6 @@ if __name__ == '__main__':
     # parser.add_argument('--print', default='False', choices=['True', 'False'],
     #                     help='Print the invoice after generating.')
     parser.add_argument('--print', action='store_true', help='Print the invoice after generating.')
-
 
     args = parser.parse_args()
     main(args)

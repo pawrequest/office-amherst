@@ -94,9 +94,9 @@ class HireInvoice(SaleInvoice):
 
     def generate(self, out_dir=None, open_file=False, prnt=False):
         doc = DocxTemplate(INVOICE_TMPLT)
-        out_dir = out_dir or DFLT.GENERATED
+        out_dir = out_dir or DFLT.INV_OUT_DIR
         assert out_dir.is_dir()
-        out_dir.mkdir(parents=True, exist_ok=True)  # This line creates the folder if it doesn't exist
+        # out_dir.mkdir(parents=True, exist_ok=True)  # This line creates the folder if it doesn't exist
         out_file = out_dir / f"{self.inv_num}.docx"
         # self.order.shipping = format_currency(self.order.shipping)
         context = {

@@ -15,8 +15,8 @@ class DFLT:
     AST_OUT = GENERATED / 'assets_out.xlsx'
     INV_TMPLT = TEMPLATE / 'invoice_tmplt.docx'
     PRC_OUT = GENERATED / 'prices_out.xlsx'
-    INV_OUT = GENERATED / 'invoice_out.docx'
     INV_DIR_MOCK = GENERATED / 'mock_invoices'
+    INV_OUT_DIR = INV_DIR_MOCK
     INV_DIR = Path(r'R:\ACCOUNTS\invoices')
     MIN_DUR = 'Min Duration'
     MODEL = "Model"

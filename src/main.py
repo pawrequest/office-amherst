@@ -8,7 +8,7 @@ from in_out.file_management import LibreConverter, LibreOpener, WordOpener
 from managers.invoice import create_gui, get_inv_temp
 from managers.transact import TransactionContext
 
-from . import DFLT_EMAIL_O
+from src import DFLT_EMAIL_O
 def main(args):
     with TransactionContext() as tm:
         hire = commence.get_hire(args.hire_name)

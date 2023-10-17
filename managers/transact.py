@@ -5,9 +5,8 @@ import pandas as pd
 
 from cmc.commence import get_customer
 from entities.const import DFLT, DTYPES, FIELDS
-from entities.order import HireOrder, LineItem, FreeItem
+from entities.order import HireInvoice, HireOrder, LineItem, FreeItem
 from in_out.excel import df_overwrite_wb
-from managers.invoice import HireInvoice
 
 
 class TransactionContext:
@@ -82,7 +81,7 @@ class TransactionManager:
         self.df_hire = df_hire
         self.df_sale = df_sale
 
-    def hire_to_invoice(self, hire: dict):
+    def hire_to_invoice(self, hire: dict) -> HireInvoice:
         if 'Delivery Cost' not in hire or not hire['Delivery Cost']:
             shipping = 0
         else:
@@ -145,6 +144,8 @@ def get_sale_price(df_sale: pd.DataFrame, product_name: str, quantity: int):
 def hire_lineitems_pay(df_h: pd.DataFrame, pay_items: dict, duration: int, df_bands: pd.DataFrame):
     line_items = []
     for name, qty in pay_items.items():
+        if not qty:
+            continue
         description = get_description(df_bands=df_bands, df_hire=df_h, item_name=name)
         price = get_hire_price(df_hire=df_h, product_name=name, quantity=qty, duration=duration)
         long_name = f'{name}_hire_{duration}_weeks'

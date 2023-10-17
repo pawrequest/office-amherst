@@ -1,13 +1,12 @@
 import json
 import os
 from dataclasses import dataclass, field
-from decimal import Decimal
 from typing import Optional
 
 import pandas as pd
+from entities.abstract import DFLT
 from pandas import Series
 
-from entities.abstract import DFLT
 from in_out.excel import df_overwrite_wb
 
 
@@ -100,7 +99,6 @@ class AssetManager:
     def __init__(self, df_a):
         self.df_a = df_a
 
-
     def row_from_id_or_serial(self, id_or_serial: str) -> Series:
         if an_id(id_or_serial):
             row = self.df_a.loc[self.df_a[DFLT.ID] == id_or_serial]
@@ -114,7 +112,6 @@ class AssetManager:
             self.df_a.loc[self.df_a[DFLT.ID] == id_or_serial, field_name] = value
         else:
             self.df_a.loc[self.df_a[DFLT.SERIAL] == id_or_serial, field_name] = value
-
 
     def field_from_id_or_serial(self, id_or_serial: str, field: str):
         try:

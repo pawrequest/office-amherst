@@ -1,9 +1,8 @@
 import os
 import subprocess
 from pathlib import Path
-
+import uno
 from docx2pdf import convert as convert_word
-from win32com.client import Dispatch
 
 
 def pdf_convert(out_file: Path):
@@ -29,12 +28,33 @@ def print_file(file_path: Path):
         return False
 
 
-def send_email(attachment_path):
-    outlook = Dispatch('outlook.application')
-    mail = outlook.CreateItem(0)
-    mail.To = 'admin@amherst.co.uk'  # replace with recipient's email
-    mail.Subject = 'Invoice Attached'
-    mail.Body = 'Please find the attached invoice.'
-    mail.Attachments.Add(str(attachment_path))
-    mail.Display(True)
-    # mail.Send()
+from typing import Protocol, Tuple, Any
+from pathlib import Path
+from comtypes.client import CreateObject
+
+
+class DocumentOpenerProtocol(Protocol):
+    def open_document(self, doc_path: Path) -> Tuple[Any, Any]:
+        ...
+
+
+class WordOpener:
+    def open_document(self, doc_path: Path) -> Tuple[Any, Any]:
+        try:
+            word = CreateObject('Word.Application')
+            word.Visible = True
+            word_doc = word.Documents.Open(str(doc_path))
+            return word, word_doc
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return None, None
+
+
+class LibreOpener:
+    def open_document(self, doc_path: Path) -> Tuple[Any, Any]:
+        try:
+            process = subprocess.Popen(['soffice', str(doc_path)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            return process, None  # Returning None as the second element as LibreOffice doesn't provide a document object
+        except Exception as e:
+            raise e
+

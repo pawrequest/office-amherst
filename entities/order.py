@@ -1,6 +1,10 @@
+import datetime
 from dataclasses import dataclass, field
 from decimal import Decimal
-from typing import Optional, List
+from typing import List, Optional
+
+from cmc.commence import get_customer
+from managers.invoice_number import next_inv_num
 
 
 @dataclass
@@ -82,3 +86,67 @@ class HireOrder(Order):
 
     def __str__(self):
         return f"Order for {self.duration} weeks with {len(self.line_items)} lines for £{self.total}"
+
+
+@dataclass
+class HireDates:
+    invoice: datetime.date
+    start: datetime.date
+    end: datetime.date
+
+    @classmethod
+    def from_hire(cls, hire: dict):
+        date_inv = hire['Booked Date']
+        date_start = hire['Send Out Date']
+        date_end = hire['Due Back Date']
+        return cls(invoice=date_inv, start=date_start, end=date_end)
+
+
+@dataclass
+class SaleInvoice:
+    inv_num: str
+    dates: datetime.date
+    inv_add: 'Address1'
+    del_add: 'Address1'
+    order: Order
+
+
+@dataclass
+class HireInvoice(SaleInvoice):
+    order: HireOrder
+    dates: HireDates
+
+    @classmethod
+    def from_hire(cls, hire: dict, order: HireOrder, inv_num: Optional[str] = None):
+        customer = get_customer(hire['To Customer'])
+        inv_num = inv_num or next_inv_num()
+
+        del_add, inv_add = addresses_from_hire_and_cust(customer, hire)
+        dates = HireDates.from_hire(hire)
+        return cls(inv_num=inv_num, dates=dates, inv_add=inv_add, del_add=del_add, order=order)
+
+
+@dataclass
+class Address1:
+    add: str
+    pc: str
+
+
+def addresses_from_sale(sale: dict) -> (Address1, Address1):
+    i_add = sale['Invoice Address']
+    i_pc = sale['Invoice Postcode']
+    d_add = sale['Delivery Address']
+    d_pc = sale['Delivery Postcode']
+    inv_add = Address1(add=i_add, pc=i_pc)
+    del_add = Address1(add=d_add, pc=d_pc)
+    return del_add, inv_add
+
+
+def addresses_from_hire_and_cust(customer: dict, hire: dict):
+    i_add = customer['Address']
+    i_pc = customer['Postcode']
+    d_add = hire['Delivery Address']
+    d_pc = hire['Delivery Postcode']
+    inv_add = Address1(add=i_add, pc=i_pc)
+    del_add = Address1(add=d_add, pc=d_pc)
+    return del_add, inv_add

@@ -49,8 +49,8 @@ def clean_dict(in_dict: dict) -> dict:
     zero_values = ['', False, 0, 'FALSE', '0']
 
     for k, v in in_dict.items():
-        if v in zero_values and k not in ALLOWED_ZERO_KEYS:
-            # if k!= 'Closed':
+        if v in zero_values:
+            out_dict[k] = None
             continue
         if v == 'TRUE':
             out_dict[k] = True

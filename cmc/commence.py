@@ -1,10 +1,9 @@
 import datetime
-from typing import List, Literal
+from typing import List
 
-from .cmc_entities import  Connection_e
-from .cmc_funcs import clean_dict, clean_hire_dict, connected_records_to_qs, filter_by_field_old, filter_by_fieldnew, \
-    get_cmc, get_csr, \
-    qs_from_name, qs_to_dicts
+from .cmc_entities import Connection_e
+from .cmc_funcs import clean_dict, clean_hire_dict, connected_records_to_qs, filter_by_fieldnew, get_csr, qs_from_name, \
+    qs_to_dicts
 
 
 ### functions to call
@@ -35,13 +34,13 @@ def sales_by_customer(customer_name: str) -> List[dict]:
 
 def hires_by_customer(customer_name: str) -> List[dict]:
     connection = Connection_e.HIRES_CUSTOMER
-    recs = connected_records_to_qs(connection,  customer_name)
+    recs = connected_records_to_qs(connection, customer_name)
     dicts = qs_to_dicts(recs)
     dicts = [clean_hire_dict(d) for d in dicts]
     return dicts
 
 
-def lots_of_hires(num = 20):
+def lots_of_hires(num=20):
     csr = get_csr('Customer')
     csr = filter_by_fieldnew(csr, 'Hire Customer', 'yes')
     csr = filter_by_fieldnew(csr, 'Date Last Contact', 'after', '1/1/2020')
@@ -63,9 +62,7 @@ def lots_of_hires(num = 20):
         hires = [get_hire(h) for h in hired]
         hire_dict[custom['Name']] = hires
 
-
     return hire_dict
-
 
 # classes representing commence records:
 # class Hire_cmc:

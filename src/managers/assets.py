@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 import pandas as pd
-from .. import DFLT_CONST, DFLT_PATHS
+from src import DFLT_CONST, DFLT_PATHS
 from pandas import Series
 
 from in_out.excel import df_overwrite_wb

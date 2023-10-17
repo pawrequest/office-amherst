@@ -6,7 +6,7 @@ from docxtpl import DocxTemplate
 
 from entities.const import format_currency
 from entities.order import HireInvoice
-from .. import DFLT_PATHS
+from src import DFLT_PATHS
 
 
 def get_inv_temp(inv_obj: HireInvoice, tmplt=DFLT_PATHS.INV_TMPLT, temp_file=DFLT_PATHS.TEMP_INV) -> Tuple[

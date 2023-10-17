@@ -8,7 +8,7 @@ from pandas import Series
 
 from in_out.excel import get_rows
 from managers.assets import AssetContext, AssetManager
-from .. import DFLT_CONST
+from src import DFLT_CONST
 
 
 def top_three_rows(in_wb, out_wb):

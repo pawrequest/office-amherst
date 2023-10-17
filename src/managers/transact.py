@@ -7,7 +7,7 @@ from cmc.commence import get_customer
 from entities.const import DTYPES, FIELDS
 from entities.order import FreeItem, HireInvoice, HireOrder, LineItem
 from in_out.excel import df_overwrite_wb
-from .. import DFLT_CONST, DFLT_PATHS
+from src import DFLT_CONST, DFLT_PATHS
 
 
 class TransactionContext:

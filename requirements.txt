@@ -1,9 +1,9 @@
-dbfread>=2
-docxtpl>=0.16
-pandas>=2.0.0
+docxtpl>=0.16.7
+# pandas>=2.0.0
 pytest>=7.4.0
 pywin32
 xlrd >= 2.0.1
 openpyxl>=3.1.2
 docx2pdf>=0.1.8
-msoffice2pdf>=0.0.8
+pandas>=2.1.1
+dbfread>=2.0.7

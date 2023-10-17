@@ -10,9 +10,9 @@ import pandas as pd
 from docx2pdf import convert as convert_word
 from docxtpl import DocxTemplate
 
+from cmc.commence import get_customer
 from entities.const import DFLT
 from entities.order import HireOrder, Order
-from in_out.commence import cust_of_transaction
 
 INVOICE_TMPLT = DFLT.INV_TMPLT
 
@@ -49,15 +49,14 @@ class SaleInvoice:
     order: Order
 
     @classmethod
-    def from_sale(cls, sale: pd.DataFrame, order: Order, customer: pd.Series, inv_num: Optional[str] = None):
+    def from_sale(cls, sale: dict, order: Order, inv_num: Optional[str] = None):
         inv_num = inv_num or next_inv_num()
         del_add, inv_add = addresses_from_sale(sale)
         date_inv = sale['Invoice Date']
         return cls(inv_num=inv_num, dates=date_inv, inv_add=inv_add, del_add=del_add, order=order)
 
 
-def addresses_from_sale(sale: pd.DataFrame) -> (Address1, Address1):
-    sale = sale.iloc[0]
+def addresses_from_sale(sale: dict) -> (Address1, Address1):
     i_add = sale['Invoice Address']
     i_pc = sale['Invoice Postcode']
     d_add = sale['Delivery Address']
@@ -85,7 +84,7 @@ class HireInvoice(SaleInvoice):
     @classmethod
     def from_hire(cls, hire: dict, order: HireOrder, inv_num: Optional[str] = None):
 
-        customer = cust_of_transaction(hire['Name'], 'Hire')
+        customer = get_customer(hire['To Customer'])
         inv_num = inv_num or next_inv_num()
 
         del_add, inv_add = addresses_from_hire_and_cust(customer, hire)

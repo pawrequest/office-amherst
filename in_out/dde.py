@@ -29,7 +29,7 @@ def get_commence_data(table, name, fields: Iterable[str], connections: Iterable[
 
 def get_dde_data(record_name, table_name):
     table_name_enum = FIELDS[table_name.upper()]
-    connection_to = Connections.TO_CUSTOMER.value
+    connection_to = Connections.HIRES_CUSTOMER.value
     try:
         data = get_commence_data(table=table_name, name=record_name, fields=table_name_enum.value,
                                  connections=[connection_to])
@@ -101,7 +101,7 @@ def fields_df(conv, fields: Iterable[str]):
 
 
 def get_connected_data_limited(conv, connection: Connection, limit=1):
-    connected_name = conv.Request(f"[ViewConnectedItem(1, {connection.name}, {connection.table}, {limit},)]")
+    connected_name = conv.Request(f"[ViewConnectedItem(1, {connection.desc}, {connection.table}, {limit},)]")
     connected_conv = get_record(conv, connection.table, connected_name)
     connected_data = get_data(connected_conv, connection.fields)
     return connected_data
@@ -109,10 +109,10 @@ def get_connected_data_limited(conv, connection: Connection, limit=1):
 
 def get_all_connected(conv, from_table: str, from_item: str, connection: Connection):
     connected_names = conv.Request(
-        f"[GetConnectedItemNames({from_table}, {from_item}, {connection.name}, {connection.table}, ;)]")
+        f"[GetConnectedItemNames({from_table}, {from_item}, {connection.desc}, {connection.table}, ;)]")
     if not connected_names or connected_names == '(none)':
         raise ValueError(
-            f'{from_table}:  {from_item} has no connected items  "{connection.name}" in {connection.table}')
+            f'{from_table}:  {from_item} has no connected items  "{connection.desc}" in {connection.table}')
     cons = connected_names.split(';')
     results = {}
     for c_name in cons:

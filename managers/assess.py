@@ -3,8 +3,9 @@ from decimal import Decimal
 import pandas as pd
 from win32com.gen_py import auto_cmc
 
-from in_out import commence
-from in_out.commence import get_fieldnames, hires_by_customer, qs_to_lists
+from cmc.cmc_entities import Connection, Connector
+from cmc.cmc_funcs import get_cmc, get_csr, get_fieldnames, qs_to_lists
+from cmc.commence import get_customer, hires_by_customer, lots_of_hires, sales_by_customer
 from managers.transact import TransactionContext
 
 
@@ -25,7 +26,7 @@ def ass_get_prices():
 
 
 def get_many_customers():
-    cmc = commence.get_cmc()
+    cmc = get_cmc()
     csr: auto_cmc.ICommenceCursor = cmc.GetCursor(0, 'Customer', 0)
     csr.SeekRow(0, 1000)
     qs = csr.GetQueryRowSet(1, 0)
@@ -36,17 +37,18 @@ def get_many_customers():
 
 
 def assess_get_customer_methods(hire):
-    cuurs = commence.get_csr('Customer')
+    cuurs = get_csr('Customer')
     hire_name = hire.Name
-    customer = commence.record_to_qs(cuurs, hire['To Customer'])
-    customer2 = commence.cust_of_transaction(hire_name, 'Hire')
-    assert customer.isequal(customer2)
+    # customer = commence.qs_sngl(cuurs, hire['To Customer'])
+    custoemr2 = get_customer(hire['To Customer'])
+    # customer2 = commence.cust_of_transaction(hire_name, 'Hire')
+    # assert customer.isequal(customer2)
 
 
 def ass_make_sale_order():
     with TransactionContext() as tm_in:
         tm = tm_in
-    sales = commence.sales_by_customer('Test')
+    sales = sales_by_customer('Test')
     ...
 
 # ass_get_prices()
@@ -88,19 +90,43 @@ def ass_make_sale_order():
 #
 #
 
+
 def ass_main():
-    customr = commence.customer('Test')
-    hires = commence.hires_by_customer('Test')
+    many = lots_of_hires()
+    customrs = get_customer('Test')
+    hires = hires_by_customer('Test')
     hire = hires[0]
-    cust2 = commence.cust_of_transaction(hire['Name'], 'Hire')
-    cust3 = commence.customer(hire['To Customer'])
-    assert customr == cust2 == cust3
+
+    # cust2 = commence.cust_of_transaction(hire['Name'], 'Hire')
+    # cust3 = get_customer(hire['To Customer'])
+    # assert customr ==  cust3
+    #
+    # hire2 = customr['Has Hired Hire']
     ...
     with TransactionContext() as tm:
         inv = tm.hire_to_invoice(hire)
     # inv.generate((DFLT.INV_DIR_MOCK))
 
     ...
+
+def get_con(record, connection:Connection):
+    categories = []
+    for connect in Connection:
+        records = []
+        if f"{connect.value.desc} {connect.value.table}" in record.keys():
+            records = []
+
+
+
+def get_connected_hires(customer):
+
+    csr = get_csr(connection.value.table)
+
+
+
+
+
+
 
 ass_main()
 

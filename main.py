@@ -9,8 +9,9 @@ def main(args):
     with TransactionContext() as tm_in:
         tm = tm_in
 
-    hire = commence.hire(args.hire_name)
-    customer = commence.cust_of_transaction(hire['Name'], 'Hire')
+    hire = commence.get_hire(args.hire_name)
+    # customer = commence.cust_of_transaction(hire['Name'], 'Hire')
+    customer = hire['To Customer']
     hire_order = tm.make_hire_order(customer, hire)
     invoice = HireInvoice.from_hire(hire, hire_order, customer)
     invoice.generate(prnt=args.print)

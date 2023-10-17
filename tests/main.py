@@ -5,21 +5,21 @@ from managers.transact import TransactionContext
 def test_get_customer(customer_name):
     customer_name = customer_name or 'Test'
     with TransactionContext() as tm:
-        customer = commence.customer(customer_name)
+        customer = commence.get_customer(customer_name)
         assert customer.Name == customer_name
         return customer
 
 
 def test_get_hire(hire_name):
     hire_name = hire_name or 'you didnt fill in the test hire name'
-    hire = commence.hire(hire_name)
+    hire = commence.get_hire(hire_name)
     assert hire.Name == hire_name
     return hire
 
 
 def test_get_sale(sale_name):
     sale_name = sale_name or 'you didnt put test sale name'
-    sale = commence.sale(sale_name)
+    sale = commence.get_sale(sale_name)
     assert sale.Name == sale_name
 
 
@@ -32,10 +32,10 @@ def test_customer_connections(customer_name):
 def test_customer_trans(customer_name, category):
     if category == 'Hire':
         fun = commence.hires_by_customer
-        check = commence.hire
+        check = commence.get_hire
     elif category == 'Sale':
         fun = commence.sales_by_customer
-        check = commence.sale
+        check = commence.get_sale
     else:
         raise ValueError('Wrong category')
 

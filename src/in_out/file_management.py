@@ -75,6 +75,7 @@ class WordHandler(DocHandler):
         print(f"Saved {out_file}")
         if not keep_open:
             doc.Close()
+        return out_file
 
 
 class LibreHandler(DocHandler):
@@ -93,6 +94,7 @@ class LibreHandler(DocHandler):
                 process = subprocess.Popen(['soffice', str(out_file)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             except Exception as e:
                 raise e
+        return out_file
 
 
 def print_file(file_path: Path):

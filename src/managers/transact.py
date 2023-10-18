@@ -3,7 +3,6 @@ from typing import List, Tuple
 
 import pandas as pd
 
-from cmc.commence import get_customer
 from entities.order_ent import FreeItem, HireInvoice, HireOrder, LineItem
 from in_out.excel import df_overwrite_wb
 from entities.dflt import DFLT_CONST, DFLT_PATHS, DTYPES, FIELDS
@@ -85,12 +84,11 @@ class TransactionManager:
             shipping = 0
         else:
             shipping = hire['Delivery Cost']
-        cust = get_customer(hire['To Customer'])
 
         line_items: Tuple[List, List] = lines_from_hire(self.df_bands, self.df_hire, hire)
         if not any([line_items[0], line_items[1]]):
             raise ValueError(f"No line items found for hire {hire['Name']}")
-        hire_order = HireOrder(customer=cust['Name'], line_items=line_items[0], free_items=line_items[1],
+        hire_order = HireOrder(customer=hire['To Customer'], line_items=line_items[0], free_items=line_items[1],
                                shipping=shipping,
                                duration=hire['Weeks'])
         return HireInvoice.from_hire(hire, hire_order)

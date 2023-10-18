@@ -2,7 +2,8 @@ import datetime
 from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import List, Optional
-from cmc.commence import get_customer
+
+from cmc.commence import CmcContext
 from managers.invoice_number import next_inv_num
 
 
@@ -117,7 +118,8 @@ class HireInvoice(SaleInvoice):
 
     @classmethod
     def from_hire(cls, hire: dict, order: HireOrder, inv_num: Optional[str] = None):
-        customer = get_customer(hire['To Customer'])
+        with CmcContext() as cmc:
+            customer = cmc.get_customer(hire['To Customer'])
         inv_num = inv_num or next_inv_num()
 
         del_add, inv_add = addresses_from_hire_and_cust(customer, hire)

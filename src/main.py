@@ -2,33 +2,33 @@ import argparse
 
 import PySimpleGUI as sg
 
-from cmc import commence
 from cmc.cmc_entities import CmcError
-from cmc.commence import edit_hire
+from cmc.commence import CmcContext
 from entities.dflt import DFLT_EMAIL_O, DFLT_PATHS
-from entities.office_tools import OfficeTools, get_tools
+from entities.office_tools import OfficeTools
 from in_out.email_funcs import EmailError
 from managers.gui import create_gui
 from managers.invoice import get_inv_temp
 from managers.transact import TransactionContext
-from in_out.file_management import print_file
 
 
 def main(args):
-    ot=get_tools(args.microsoft)
-    hire = commence.get_hire(args.hire_name)
+    ot = OfficeTools.libre() if args.libre else OfficeTools.microsoft()
+
+    with CmcContext() as cmc:
+        hire = cmc.get_hire(args.hire_name)
     with TransactionContext() as tm:
         hire_inv = tm.hire_to_invoice(hire)
     out_file = DFLT_PATHS.INV_OUT_DIR / f'{hire_inv.inv_num}.docx'
     template, temp_file = get_inv_temp(hire_inv)
 
     if args.doall:
-        do_all(temp_file, out_file, hire, ot)
+        do_all(cmc, temp_file, out_file, hire, ot)
     else:
-        event_loop(temp_file, out_file, hire, ot)
+        event_loop(cmc, temp_file, out_file, hire, ot)
 
 
-def event_loop(temp_file, outfile, hire, ot: OfficeTools):
+def event_loop(cmc, temp_file, outfile, hire, ot: OfficeTools):
     window = create_gui()
     opened = ot.doc_handler.open_document(temp_file)
 
@@ -53,18 +53,17 @@ def event_loop(temp_file, outfile, hire, ot: OfficeTools):
                 ...
             if values['-CMC-']:
                 package = {'Invoice': outfile}
-                edit_hire(hire['Name'], package)
+                cmc.edit_hire(hire['Name'], package)
                 ...
             break
 
 
-def do_all(temp_file, outfile, hire, ot: OfficeTools):
+def do_all(cmc, temp_file, outfile, hire, ot: OfficeTools):
     opened = ot.doc_handler.open_document(temp_file)
-    doc = opened[1] or outfile
+    doc = opened[1] or temp_file
 
     # sg.popup_quick_message('Saving...')
     saved = ot.doc_handler.save_document(doc, outfile, keep_open=False)
-
 
     # sg.popup_quick_message('Converting...')
     converted = ot.pdf_converter.from_docx(outfile)
@@ -77,14 +76,14 @@ def do_all(temp_file, outfile, hire, ot: OfficeTools):
         sg.popup_error(f"Email failed with error: {e}")
 
     # sg.popup_quick_message('Printing...')
-    print_file(outfile.with_suffix('.pdf'))
+    # print_file(outfile.with_suffix('.pdf'))
     # sg.popup_quick_message('Logging to CMC...')
     package = {'Invoice': outfile}
     if 'test' not in hire['Name'].lower():
         if sg.popup_ok_cancel(f'Log {hire["Name"]} to CMC?') != 'OK':
             return
     try:
-        edit_hire(hire['Name'], package)
+        cmc.edit_hire(hire['Name'], package)
     except CmcError as e:
         sg.popup_error(f"Failed to log to CMC with error: {e}")
     # sg.popup_ok('Done!')
@@ -97,7 +96,7 @@ if __name__ == '__main__':
     parser.add_argument('hire_name', help='The name of the hire')
     parser.add_argument('--print', action='store_true', help='Print the invoice after generating.')
     parser.add_argument('--openfile', action='store_true', help='Open the file.')
-    parser.add_argument('--microsoft', action='store_true', help='Use Microsoft tools.')
+    parser.add_argument('--libre', action='store_true', help='Use Free Office tools.')
     parser.add_argument('--doall', action='store_true', help='save, convert to pdf, print, email, and log to commence.')
 
     args = parser.parse_args()

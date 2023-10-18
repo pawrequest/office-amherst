@@ -15,13 +15,12 @@ def get_cmc() -> cmc_.ICommenceDB:
         raise e
 
 
-def get_csr(tablename, cmc=None) -> cmc_.ICommenceCursor:
-    cmc = cmc or get_cmc()
+def get_csr(cmc, tablename) -> cmc_.ICommenceCursor:
     return cmc.GetCursor(0, tablename, 0)
 
 
-def qs_from_name(table, record, edit=False) -> cmc_.ICommenceQueryRowSet|cmc_.ICommenceEditRowSet:
-    csr = get_csr(table)
+def qs_from_name(cmc, table, record, edit=False) -> cmc_.ICommenceQueryRowSet | cmc_.ICommenceEditRowSet:
+    csr = get_csr(cmc, table)
     # filter_by_field(csr, 'Name', 'Equals', value=record)
     filter_by_field_old(csr, 'Name', record)
     # use 5 to check for duplicates
@@ -36,9 +35,8 @@ def qs_from_name(table, record, edit=False) -> cmc_.ICommenceQueryRowSet|cmc_.IC
     return results
 
 
-def connected_records_to_qs(connect: Connection_e, item_name: str, max_res=50, cmc=None) -> cmc_.ICommenceQueryRowSet | None:
-
-    cursor = get_csr(connect.value.key_table, cmc)
+def connected_records_to_qs(cmc, connect: Connection_e, item_name: str, max_res=50) -> cmc_.ICommenceQueryRowSet | None:
+    cursor = get_csr(cmc, connect.value.key_table)
     filter_by_connection(cursor, item_name, connect)
     qs = cursor.GetQueryRowSet(max_res, 0)
     if qs.RowCount == 0:
@@ -47,7 +45,10 @@ def connected_records_to_qs(connect: Connection_e, item_name: str, max_res=50, c
         raise ValueError(f"Query set has {qs.RowCount} rows, more than {max_res} rows requested")
     return qs
 
+
 ALLOWED_ZERO_KEYS = ['Delivery Cost']
+
+
 def clean_dict(in_dict: dict) -> dict:
     out_dict = {}
     zero_values = ['', False, 0, 'FALSE', '0']
@@ -58,7 +59,7 @@ def clean_dict(in_dict: dict) -> dict:
             continue
         if v == 'TRUE':
             out_dict[k] = True
-        if v=='FALSE':
+        if v == 'FALSE':
             out_dict[k] = False
         else:
             try:
@@ -117,13 +118,11 @@ def filter_by_field_old(cursor: cmc_.ICommenceCursor, field_name: str, value, co
         raise ValueError(f"Could not set filter for {field_name} {rationale} {value}")
 
 
-
 def filter_by_connection(cursor: cmc_.ICommenceCursor, item_name: str, connection: Connection_e):
     filter_str = f'[ViewFilter(1, CTI,, {connection.value.desc}, {connection.value.value_table}, {item_name})]'
     res = cursor.SetFilter(filter_str, 0)
     if not res:
         raise ValueError(f"Could not set filter for {connection.value.desc} = {item_name}")
-
 
 
 def qs_to_lists(qs, max_rows=None) -> List:
@@ -158,4 +157,3 @@ def qs_to_dicts(qs: cmc_.ICommenceQueryRowSet, max_rows=None) -> List[dict]:
         dicts.append(row_dict)
 
     return dicts
-

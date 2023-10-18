@@ -8,17 +8,24 @@ class OfficeTools:
         self.pdf_converter = pdf_converter
         self.email_sender = email_sender
 
+    @classmethod
+    def microsoft(cls) -> 'OfficeTools':
+        return cls(WordHandler(), WordConverter(), OutlookSender())
+    @classmethod
+    def libre(cls) -> 'OfficeTools':
+        return cls(LibreHandler(), LibreConverter(), GmailSender())
 
-def microsoft_factory():
-    return OfficeTools(WordHandler(), WordConverter(), OutlookSender())
 
-
-def libre_factory():
-    return OfficeTools(LibreHandler(), LibreConverter(), GmailSender())
-
-
-def get_tools(use_microsoft: bool):
-    return microsoft_factory() if use_microsoft else libre_factory()
+# def microsoft_factory():
+#     return OfficeTools(WordHandler(), WordConverter(), OutlookSender())
+#
+#
+# def libre_factory():
+#     return OfficeTools(LibreHandler(), LibreConverter(), GmailSender())
+#
+#
+# def get_tools(use_microsoft: bool):
+#     return microsoft_factory() if use_microsoft else libre_factory()
 
 # class MICROSOFT_TOOLS(OfficeTools):
 #     doc_handler = WordHandler()

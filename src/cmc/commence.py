@@ -1,12 +1,26 @@
 import datetime
-from typing import List
+from typing import ContextManager, List
 
-from .cmc_entities import Connection_e
-from .cmc_funcs import clean_dict, clean_hire_dict, connected_records_to_qs, filter_by_fieldnew, get_csr, qs_from_name, \
+from .cmc_entities import CmcError, Connection_e
+from .cmc_funcs import clean_dict, clean_hire_dict, connected_records_to_qs, filter_by_fieldnew, get_cmc, get_csr, \
+    qs_from_name, \
     qs_to_dicts
 from win32com.gen_py.auto_cmc import ICommenceCursor, ICommenceDB, ICommenceQueryRowSet, ICommenceEditRowSet
 
 ### functions to call
+
+class CmcContext(ContextManager):
+    def __init__(self, cmc: ICommenceDB = None):
+        self.cmc = cmc or get_cmc()
+
+    def __enter__(self):
+        return self.cmc
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.cmc = None
+
+
+
 
 
 def get_customer(record_name) -> dict:
@@ -24,9 +38,9 @@ def get_sale(record_name: str) -> dict:
     return clean_dict(qs_to_dicts(qs, 1)[0])
 
 
-def sales_by_customer(customer_name: str) -> List[dict]:
+def sales_by_customer(customer_name: str, cmc=None) -> List[dict]:
     connection = Connection_e.CUSTOMER_SALES
-    qs = connected_records_to_qs(connection, customer_name)
+    qs = connected_records_to_qs(connection, customer_name, cmc=cmc)
     dicts = qs_to_dicts(qs)
     dicts = [clean_dict(d) for d in dicts]
     return dicts
@@ -71,7 +85,10 @@ def edit_hire(hire_name, package:dict):
     edit_set:ICommenceEditRowSet = qs_from_name('Hire', hire_name, edit=True)
     for key, value in package.items():
         col_idx = edit_set.GetColumnIndex(key, 0)
-        edit_set.ModifyRow(0, col_idx, str(value), 0)
+        try:
+            edit_set.ModifyRow(0, col_idx, str(value), 0)
+        except:
+            raise CmcError(f"Could not modify {key} to {value}")
         edit_set.Commit(0)
         ...
 

@@ -14,7 +14,7 @@ from docx2pdf import convert as convert_word
 class PdfConverter(ABC):
     @abstractmethod
     def from_docx(self, out_file: Path):
-        ...
+        raise NotImplementedError
 
 
 class WordConverter(PdfConverter):
@@ -59,6 +59,9 @@ class WordHandler(DocHandler):
             word.Visible = True
             word_doc: word.Document = word.Documents.Open(str(doc_path))
             return word, word_doc
+        except OSError as e:
+            print(f"Is Word installed? Failed to open {doc_path} with error: {e}")
+            raise e
         except Exception as e:
             raise e
 

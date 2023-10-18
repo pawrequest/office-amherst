@@ -15,8 +15,8 @@ def get_cmc() -> cmc_.ICommenceDB:
         raise e
 
 
-def get_csr(tablename) -> cmc_.ICommenceCursor:
-    cmc = get_cmc()
+def get_csr(tablename, cmc=None) -> cmc_.ICommenceCursor:
+    cmc = cmc or get_cmc()
     return cmc.GetCursor(0, tablename, 0)
 
 
@@ -36,8 +36,9 @@ def qs_from_name(table, record, edit=False) -> cmc_.ICommenceQueryRowSet|cmc_.IC
     return results
 
 
-def connected_records_to_qs(connect: Connection_e, item_name: str, max_res=50) -> cmc_.ICommenceQueryRowSet | None:
-    cursor = get_csr(connect.value.key_table)
+def connected_records_to_qs(connect: Connection_e, item_name: str, max_res=50, cmc=None) -> cmc_.ICommenceQueryRowSet | None:
+
+    cursor = get_csr(connect.value.key_table, cmc)
     filter_by_connection(cursor, item_name, connect)
     qs = cursor.GetQueryRowSet(max_res, 0)
     if qs.RowCount == 0:

@@ -4,7 +4,7 @@ from pathlib import Path
 from in_out.email_funcs import Email
 
 DEBUG = True
-USE_MICROSOFT = False
+USE_MICROSOFT = True
 
 
 class DFLT_PATHS:

@@ -21,11 +21,17 @@ if __name__ == '__main__':
 def next_inv_num(inv_dir=DFLT_PATHS.INV_DIR):
     inv_dir = inv_dir if inv_dir.exists() else DFLT_PATHS.INV_DIR_MOCK
     inv_numbers = list(get_inv_nums(inv_dir))
+    if not inv_numbers:
+        return 'A00001'
     inv_numbers = sorted(inv_numbers, reverse=True)
     for index, num in enumerate(inv_numbers):
         if has_20_after(index=index, nums=inv_numbers):
-            new_filename = f'A{num + 1}'
+            new_num = f'{num + 1}'.zfill(5)
+            new_filename = f'A{new_num}'
             return new_filename
+    else:
+        new_num = f'{max(inv_numbers) + 1}'.zfill(5)
+        return f'A{new_num}'
 
 
 def get_inv_nums(inv_dir) -> set[int]:

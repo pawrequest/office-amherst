@@ -7,7 +7,7 @@ from cmc.cmc_entities import Connection_e
 from cmc.cmc_funcs import get_cmc, get_csr, get_fieldnames, qs_from_name, qs_to_lists
 from cmc.commence import get_customer, hires_by_customer, sales_by_customer
 from in_out.email_funcs import OutlookSender
-from in_out.file_management import WordOpener
+from in_out.file_management import WordHandler
 from managers.invoice import get_inv_temp
 from managers.transact import TransactionContext
 

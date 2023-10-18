@@ -1,15 +1,14 @@
 from enum import Enum
 from pathlib import Path
 
-from in_out.email_funcs import Email, GmailSender, OutlookSender
-from in_out.file_management import LibreConverter, LibreOpener, WordConverter, WordOpener
+from in_out.email_funcs import Email
 
 DEBUG = True
 USE_MICROSOFT = False
 
 
 class DFLT_PATHS:
-    ROOT = Path(__file__).parent.parent
+    ROOT = Path(__file__).parent.parent.parent
     STATIC = ROOT / 'static'
     DATA = STATIC / 'data'
     GENERATED = STATIC / 'generated'
@@ -44,18 +43,6 @@ DFLT_EMAIL_O: Email = Email(
     subject='Invoice',
     body='Please find attached the invoice for your hire.',
 )
-
-
-class MICROSOFT_TOOLS:
-    DOC_HANDLER = WordOpener()
-    EMAIL_SENDER = OutlookSender()
-    PDF_CONVERTER = WordConverter()
-
-
-class LIBRE_TOOLS:
-    DOC_HANDLER = LibreOpener()
-    EMAIL_SENDER = GmailSender()
-    PDF_CONVERTER = LibreConverter()
 
 
 class FILTER_(Enum):
@@ -125,8 +112,3 @@ def format_currency(value):
     return f"£{value:>8.2f}"
 
 
-def get_tools():
-    if USE_MICROSOFT:
-        return MICROSOFT_TOOLS.DOC_HANDLER, MICROSOFT_TOOLS.EMAIL_SENDER, MICROSOFT_TOOLS.PDF_CONVERTER
-    else:
-        return LIBRE_TOOLS.DOC_HANDLER, LIBRE_TOOLS.EMAIL_SENDER, LIBRE_TOOLS.PDF_CONVERTER

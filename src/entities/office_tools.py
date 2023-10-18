@@ -1,12 +1,12 @@
-from in_out.email_funcs import OutlookSender, GmailSender
-from in_out.file_management import WordHandler, WordConverter, LibreConverter, LibreHandler
+from in_out.email_funcs import EmailSender, OutlookSender, GmailSender
+from in_out.file_management import DocHandler, PDFConverter, WordHandler, WordConverter, LibreConverter, LibreHandler
 
 
 class OfficeTools:
-    def __init__(self, doc_handler, pdf_converter, email_sender):
-        self.doc_handler = doc_handler
-        self.pdf_converter = pdf_converter
-        self.email_sender = email_sender
+    def __init__(self, doc:DocHandler, pdf:PDFConverter, email:EmailSender):
+        self.doc = doc
+        self.pdf = pdf
+        self.email = email
 
     @classmethod
     def microsoft(cls) -> 'OfficeTools':
@@ -15,30 +15,3 @@ class OfficeTools:
     def libre(cls) -> 'OfficeTools':
         return cls(LibreHandler(), LibreConverter(), GmailSender())
 
-
-# def microsoft_factory():
-#     return OfficeTools(WordHandler(), WordConverter(), OutlookSender())
-#
-#
-# def libre_factory():
-#     return OfficeTools(LibreHandler(), LibreConverter(), GmailSender())
-#
-#
-# def get_tools(use_microsoft: bool):
-#     return microsoft_factory() if use_microsoft else libre_factory()
-
-# class MICROSOFT_TOOLS(OfficeTools):
-#     doc_handler = WordHandler()
-#     email_sender = OutlookSender()
-#     pdf_converter = WordConverter()
-#
-#
-# class LIBRE_TOOLS(OfficeTools):
-#     doc_handler = LibreHandler()
-#     email_sender = GmailSender()
-#     pdf_converter = LibreConverter()
-#
-# #
-# # def get_tools(use_microsoft: bool):
-# #     return MICROSOFT_TOOLS if use_microsoft else LIBRE_TOOLS
-#

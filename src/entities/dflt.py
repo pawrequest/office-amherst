@@ -38,11 +38,16 @@ class DFLT_CONST:
     PRC_HEAD = 0
 
 
-DFLT_EMAIL_O: Email = Email(
+DFLT_HIRE_EMAIL: Email = Email(
     to_address='pythonsnake48@gmail.com',
-    subject='Invoice',
+    subject='Radio Hire - Invoice attached',
     body='Please find attached the invoice for your hire.',
 )
+
+
+
+def get_hire_invoice_email(hire: dict) -> Email:
+    to_address = hire['Email']
 
 
 class FILTER_(Enum):

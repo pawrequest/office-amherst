@@ -4,7 +4,7 @@ import PySimpleGUI as sg
 
 from cmc.cmc_entities import CmcError
 from cmc.commence import CmcContext
-from entities.dflt import DFLT_EMAIL_O, DFLT_PATHS
+from entities.dflt import DFLT_HIRE_EMAIL, DFLT_PATHS
 from entities.office_tools import OfficeTools
 from in_out.email_funcs import EmailError
 from in_out.file_management import print_file
@@ -38,8 +38,8 @@ def event_loop(cmc, temp_file, outfile, hire, ot: OfficeTools):
             break
         elif event == 'Submit':
             if values['-SAVE-']:
-                saved = ot.doc_handler.save_document(temp_file, outfile)
-                converted = ot.pdf_converter.from_docx(outfile)
+                saved = ot.doc.save_document(temp_file, outfile)
+                converted = ot.pdf.from_docx(outfile)
                 if values['-EMAIL-']:
                     do_email(converted, ot)
                 if values['-PRINT-']:
@@ -47,16 +47,16 @@ def event_loop(cmc, temp_file, outfile, hire, ot: OfficeTools):
                 if values['-CMC-']:
                     do_cmc(cmc, hire, outfile)
             if values['-OPEN-']:
-                opened = ot.doc_handler.open_document(outfile)
+                opened = ot.doc.open_document(outfile)
             break
 
 
 
 def do_all(cmc, temp_file, outfile, hire, ot: OfficeTools):
-    opened = ot.doc_handler.open_document(temp_file)
+    opened = ot.doc.open_document(temp_file)
     doc = opened[1] or temp_file
-    saved = ot.doc_handler.save_document(doc, outfile, keep_open=False)
-    converted = ot.pdf_converter.from_docx(outfile)
+    saved = ot.doc.save_document(doc, outfile)
+    converted = ot.pdf.from_docx(outfile)
     # print_file(outfile.with_suffix('.pdf'))
     do_cmc(cmc, hire, outfile)
 
@@ -83,10 +83,10 @@ def do_cmc(cmc, hire, outfile):
         return True
 
 def do_email(converted, ot):
-    email_ = DFLT_EMAIL_O
+    email_ = DFLT_HIRE_EMAIL
     email_.attachment_path = converted
     try:
-        ot.email_sender.send_email(email_)
+        ot.email.send_email(email_)
 
     except EmailError as e:
         sg.popup_error(f"Email failed with error: {e}")

@@ -33,12 +33,20 @@ class CmcManager:
 
     def get_hire(self, record_name: str) -> dict:
         qs = qs_from_name(self.cmc, 'Hire', record_name)
-        return clean_hire_dict(qs_to_dicts(qs, 1)[0])
+        hire =  clean_hire_dict(qs_to_dicts(qs, 1)[0])
+        qs2 = qs_from_name(self.cmc, 'Customer', hire['To Customer'])
+        customer = clean_dict(qs_to_dicts(qs2, 1)[0])
+        hire['customer'] = customer
+        return hire
 
 
     def get_sale(self, record_name: str) -> dict:
         qs = qs_from_name(self.cmc, 'Sale', record_name)
-        return clean_dict(qs_to_dicts(qs, 1)[0])
+        sale = clean_dict(qs_to_dicts(qs, 1)[0])
+        qs2 = qs_from_name(self.cmc, 'Customer', sale['To Customer'])
+        customer = clean_dict(qs_to_dicts(qs2, 1)[0])
+        sale['customer'] = customer
+        return sale
 
 
     def sales_by_customer(self, customer_name: str, cmc=None) -> List[dict]:

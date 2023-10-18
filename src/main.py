@@ -47,7 +47,7 @@ def event_loop(cmc, temp_file, outfile, hire, ot: OfficeTools):
                 if values['-CMC-']:
                     do_cmc(cmc, hire, outfile)
             if values['-OPEN-']:
-                opened = ot.doc.open_document(outfile)
+                opened = ot.doc.open_document(outfile if outfile.exists() else temp_file)
             break
 
 

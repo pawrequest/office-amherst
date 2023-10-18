@@ -56,6 +56,7 @@ class Order:
     def __str__(self):
         return f"Order with {len(self.line_items)} lines for £{self.total}"
 
+
     @property
     def total_goods(self):
         return Decimal(sum(itm.line_price for itm in self.line_items))

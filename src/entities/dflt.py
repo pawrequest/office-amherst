@@ -96,7 +96,7 @@ class FIELDS:
         "Invoice Address",
         'Name',
     ]
-    FREE_ITEMS = ['Sgl Charger', 'UHF 6-way', 'Wand Battery']
+    FREE_ITEMS = ['Sgl Charger', 'UHF 6-way', 'Wand Battery', 'ICOM PSU', 'Megaphone Bat', 'ICOM Car Lead', 'Magmount', 'Clipon Aerial', 'Wand Charger', 'Aerial Adapt']
 
 
 NOT_HIRE = ['Min Duration', 'Closed']

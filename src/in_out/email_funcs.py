@@ -33,7 +33,8 @@ class OutlookSender(EmailSender):
             mail.Body = email.body
             if email.attachment_path:
                 mail.Attachments.Add(str(email.attachment_path))
-            mail.Display(True)
+            mail.Display()
+            mail = None
             # mail.Send()
             return True
         except com_error as e:

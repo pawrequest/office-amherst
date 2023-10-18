@@ -186,8 +186,8 @@ def get_accessory_priceband(accessory_name: str):
         return "Accessory A"
     elif accessory_name in ['EMC', 'Headset']:
         return "Accessory B"
-    elif accessory_name in ['Aircraft']:
-        return "Accessory C"
+    elif accessory_name in ['Aircraft', 'Headset Big']:
+        return "Aircraft"
     elif accessory_name == 'Icom':
         return 'Mobile'
     else:

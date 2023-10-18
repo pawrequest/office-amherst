@@ -1,3 +1,4 @@
+import PySimpleGUI as sg
 import asyncio
 import os
 import shutil
@@ -68,8 +69,9 @@ class WordHandler(DocHandler):
 
     def save_document(self, doc, out_file: Path, keep_open: bool = False):
         if out_file.exists():
-            raise FileExistsError(f"File already exists: {out_file}")
-        doc.SaveAs(out_file)
+            if sg.popup_ok_cancel(f'{out_file} already exists, overwrite?') != 'OK':
+                raise FileExistsError(f"File already exists: {out_file}")
+        doc.SaveAs(str(out_file))
         print(f"Saved {out_file}")
         if not keep_open:
             doc.Close()

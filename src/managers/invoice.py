@@ -1,3 +1,4 @@
+import PySimpleGUI as sg
 from pathlib import Path
 from typing import Tuple
 
@@ -11,8 +12,16 @@ def get_inv_temp(inv_o: HireInvoice,
                  tmplt_p=DFLT_PATHS.INV_TMPLT, temp_file_p=DFLT_PATHS.TEMP_INV, out_file=DFLT_PATHS.TEMP_INV) \
         -> Tuple[DocxTemplate, Path]:
     template = render_tmplt(inv_o, tmplt_p)
-    template.save(out_file)
-    return template, temp_file_p
+
+    while True:
+        try:
+            template.save(out_file)
+            return template, temp_file_p
+        except Exception as e:
+            if sg.popup_ok_cancel("Close the invoice file and try again") == 'OK':
+                continue
+            else:
+                raise e
 
 
 def render_tmplt(inv_o: HireInvoice, tmplt=DFLT_PATHS.INV_TMPLT) -> DocxTemplate:

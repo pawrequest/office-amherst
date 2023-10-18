@@ -11,6 +11,7 @@ from in_out.email_funcs import EmailError
 from managers.gui import create_gui
 from managers.invoice import get_inv_temp
 from managers.transact import TransactionContext
+from in_out.file_management import print_file
 
 
 def main(args):
@@ -20,17 +21,18 @@ def main(args):
         hire_inv = tm.hire_to_invoice(hire)
     out_file = DFLT_PATHS.INV_OUT_DIR / f'{hire_inv.inv_num}.docx'
     template, temp_file = get_inv_temp(hire_inv)
-    opened = ot.doc_handler.open_document(temp_file)
 
     if args.doall:
         do_all(temp_file, out_file, hire, ot)
     else:
-        event_loop(out_file, hire, opened, ot)
+        event_loop(temp_file, out_file, hire, ot)
 
 
-def event_loop(outfile, hire, open_res, ot: OfficeTools):
+def event_loop(temp_file, outfile, hire, ot: OfficeTools):
     window = create_gui()
-    doc = open_res[1] or outfile
+    opened = ot.doc_handler.open_document(temp_file)
+
+    doc = opened[1] or outfile
 
     while True:
         event, values = window.read()
@@ -57,11 +59,16 @@ def event_loop(outfile, hire, open_res, ot: OfficeTools):
 
 
 def do_all(temp_file, outfile, hire, ot: OfficeTools):
-    sg.popup_quick_message('Saving...')
-    saved = ot.doc_handler.save_document(temp_file, outfile, keep_open=False)
-    sg.popup_quick_message('Converting...')
+    opened = ot.doc_handler.open_document(temp_file)
+    doc = opened[1] or outfile
+
+    # sg.popup_quick_message('Saving...')
+    saved = ot.doc_handler.save_document(doc, outfile, keep_open=False)
+
+
+    # sg.popup_quick_message('Converting...')
     converted = ot.pdf_converter.from_docx(outfile)
-    sg.popup_quick_message('Emailing...')
+    # sg.popup_quick_message('Emailing...')
     email_ = DFLT_EMAIL_O
     email_.attachment_path = converted
     try:
@@ -69,14 +76,15 @@ def do_all(temp_file, outfile, hire, ot: OfficeTools):
     except EmailError as e:
         sg.popup_error(f"Email failed with error: {e}")
 
-    sg.popup_quick_message('Printing...')
-    # print_file(doc.with_suffix('.pdf'))
-    sg.popup_quick_message('Logging to CMC...')
+    # sg.popup_quick_message('Printing...')
+    # print_file(outfile.with_suffix('.pdf'))
+    # sg.popup_quick_message('Logging to CMC...')
     package = {'Invoice': outfile}
-    try:
-        edit_hire(hire['Name'], package)
-    except CmcError as e:
-        sg.popup_error(f"Failed to log to CMC with error: {e}")
+    if sg.popup_ok_cancel(f'Log {hire["Name"]} to CMC?') == 'OK':
+        try:
+            edit_hire(hire['Name'], package)
+        except CmcError as e:
+            sg.popup_error(f"Failed to log to CMC with error: {e}")
     sg.popup_ok('Done!')
 
     ...

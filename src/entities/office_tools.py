@@ -1,5 +1,5 @@
-from in_out.email_funcs import GmailSender, OutlookSender
-from in_out.file_management import LibreConverter, LibreHandler, WordConverter, WordHandler
+from in_out.email_funcs import OutlookSender, GmailSender
+from in_out.file_management import WordHandler, WordConverter, LibreConverter, LibreHandler
 
 
 class OfficeTools:

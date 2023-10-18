@@ -77,15 +77,17 @@ def do_all(temp_file, outfile, hire, ot: OfficeTools):
         sg.popup_error(f"Email failed with error: {e}")
 
     # sg.popup_quick_message('Printing...')
-    # print_file(outfile.with_suffix('.pdf'))
+    print_file(outfile.with_suffix('.pdf'))
     # sg.popup_quick_message('Logging to CMC...')
     package = {'Invoice': outfile}
-    if sg.popup_ok_cancel(f'Log {hire["Name"]} to CMC?') == 'OK':
-        try:
-            edit_hire(hire['Name'], package)
-        except CmcError as e:
-            sg.popup_error(f"Failed to log to CMC with error: {e}")
-    sg.popup_ok('Done!')
+    if 'test' not in hire['Name'].lower():
+        if sg.popup_ok_cancel(f'Log {hire["Name"]} to CMC?') != 'OK':
+            return
+    try:
+        edit_hire(hire['Name'], package)
+    except CmcError as e:
+        sg.popup_error(f"Failed to log to CMC with error: {e}")
+    # sg.popup_ok('Done!')
 
     ...
 

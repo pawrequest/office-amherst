@@ -79,16 +79,16 @@ class TransactionManager:
         self.df_hire = df_hire
         self.df_sale = df_sale
 
-    def hire_to_invoice(self, hire: dict) -> HireInvoice:
+    def hire_invoice(self, hire: dict) -> HireInvoice:
         if 'Delivery Cost' not in hire or not hire['Delivery Cost']:
             shipping = 0
         else:
             shipping = hire['Delivery Cost']
 
-        line_items: Tuple[List, List] = lines_from_hire(self.df_bands, self.df_hire, hire)
+        line_items = lines_from_hire(self.df_bands, self.df_hire, hire)
         if not any([line_items[0], line_items[1]]):
             raise ValueError(f"No line items found for hire {hire['Name']}")
-        hire_order = HireOrder(customer=hire['To Customer'], line_items=line_items[0], free_items=line_items[1],
+        hire_order = HireOrder(customer=hire['customer'], line_items=line_items[0], free_items=line_items[1],
                                shipping=shipping,
                                duration=hire['Weeks'])
         return HireInvoice.from_hire(hire, hire_order)
@@ -101,7 +101,7 @@ class TransactionManager:
     #     invoice.generate()
 
 
-def get_description(df_bands, df_hire, item_name: str):
+def hire_item_description(df_bands, df_hire, item_name: str):
     desc = df_hire.loc[df_hire['Name'].str.lower() == item_name.lower(), 'Description']
     if desc.empty:
         desc = df_bands.loc[df_bands['Name'].str.lower() == item_name.lower(), 'Description']
@@ -142,23 +142,23 @@ def hire_lineitems_pay(df_h: pd.DataFrame, pay_items: dict, duration: int, df_ba
     for name, qty in pay_items.items():
         if not qty:
             continue
-        description = get_description(df_bands=df_bands, df_hire=df_h, item_name=name)
+        description = hire_item_description(df_bands=df_bands, df_hire=df_h, item_name=name)
         price = get_hire_price(df_hire=df_h, product_name=name, quantity=qty, duration=duration)
         long_name = f'{name}_hire_{duration}_weeks'
         line_items.append(LineItem(name=long_name, description=description, price_each=price, quantity=int(qty)))
     return line_items
 
 
-def hire_lineitems_free(df_bands: pd.DataFrame, df_hire: pd.DataFrame, duration: int, free_items: dict):
+def hire_lineitems_free(df_bands: pd.DataFrame, df_hire: pd.DataFrame, duration: int, free_items: dict) -> list :
     line_items = []
     for name, qty in free_items.items():
-        description = get_description(df_bands, df_hire, name)
+        description = hire_item_description(df_bands, df_hire, name)
         long_name = f'{name}_hire_{duration}_weeks'
         line_items.append(FreeItem(name=long_name, description=description, quantity=qty))
     return line_items
 
 
-def lines_from_hire(df_bands, df_hire, hire: dict):
+def lines_from_hire(df_bands, df_hire, hire: dict )-> Tuple[list,list]:
     duration = hire['Weeks']
     hire_itms = items_dict_from_hire(hire)
     free = {k: v for k, v in hire_itms.items() if k in FIELDS.FREE_ITEMS}

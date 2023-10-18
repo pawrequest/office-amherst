@@ -3,7 +3,6 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import List, Optional
 
-from cmc.commence import CmcContext
 from managers.invoice_number import next_inv_num
 
 
@@ -119,11 +118,8 @@ class HireInvoice(SaleInvoice):
 
     @classmethod
     def from_hire(cls, hire: dict, order: HireOrder, inv_num: Optional[str] = None):
-        with CmcContext() as cmc:
-            customer = cmc.get_customer(hire['To Customer'])
         inv_num = inv_num or next_inv_num()
-
-        del_add, inv_add = addresses_from_hire_and_cust(customer, hire)
+        del_add, inv_add = addresses_from_hire(hire)
         dates = HireDates.from_hire(hire)
         return cls(inv_num=inv_num, dates=dates, inv_add=inv_add, del_add=del_add, order=order)
 
@@ -144,9 +140,9 @@ def addresses_from_sale(sale: dict) -> (Address1, Address1):
     return del_add, inv_add
 
 
-def addresses_from_hire_and_cust(customer: dict, hire: dict):
-    i_add = customer['Address']
-    i_pc = customer['Postcode']
+def addresses_from_hire(hire: dict):
+    i_add = hire['customer']['Address']
+    i_pc = hire['customer']['Postcode']
     d_add = hire['Delivery Address']
     d_pc = hire['Delivery Postcode']
     inv_add = Address1(add=i_add, pc=i_pc)

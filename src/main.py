@@ -25,10 +25,10 @@ def main(args):
     if args.doall:
         do_all(temp_file, out_file, hire, ot)
     else:
-        event_loop(temp_file, out_file, hire, opened, ot)
+        event_loop(out_file, hire, opened, ot)
 
 
-def event_loop(temp_file, outfile, hire, open_res, ot: OfficeTools):
+def event_loop(outfile, hire, open_res, ot: OfficeTools):
     window = create_gui()
     doc = open_res[1] or outfile
 

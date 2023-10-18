@@ -6,7 +6,7 @@ from cmc import commence
 from cmc.cmc_entities import CmcError
 from cmc.commence import edit_hire
 from entities.dflt import DFLT_EMAIL_O, DFLT_PATHS
-from entities.office_tools import OfficeTools
+from entities.office_tools import OfficeTools, get_tools
 from in_out.email_funcs import EmailError
 from managers.gui import create_gui
 from managers.invoice import get_inv_temp
@@ -14,7 +14,7 @@ from managers.transact import TransactionContext
 
 
 def main(args):
-    ot = OfficeTools.get_tools(args.microsoft)
+    ot=get_tools(args.microsoft)
     hire = commence.get_hire(args.hire_name)
     with TransactionContext() as tm:
         hire_inv = tm.hire_to_invoice(hire)

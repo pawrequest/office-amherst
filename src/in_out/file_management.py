@@ -12,13 +12,13 @@ from docx2pdf import convert as convert_word
 
 
 # convert doc to pdf
-class PdfConverter(ABC):
+class PDFConverter(ABC):
     @abstractmethod
     def from_docx(self, out_file: Path):
         raise NotImplementedError
 
 
-class WordConverter(PdfConverter):
+class WordConverter(PDFConverter):
     def from_docx(self, doc_file: Path):
         try:
             convert_word(doc_file, output_path=doc_file.parent, keep_active=True)
@@ -29,7 +29,7 @@ class WordConverter(PdfConverter):
             raise e
 
 
-class LibreConverter(PdfConverter):
+class LibreConverter(PDFConverter):
     def from_docx(self, doc_file: Path):
         try:
             subprocess.run(f'soffice --headless --convert-to pdf {str(doc_file)} --outdir {str(doc_file.parent)}')

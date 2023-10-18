@@ -1,4 +1,5 @@
 import argparse
+from pathlib import Path
 
 import PySimpleGUI as sg
 
@@ -17,16 +18,16 @@ def main(args):
     ot = OfficeTools.libre() if args.libre else OfficeTools.microsoft()
 
     with CmcContext() as cmc:
-        hire = cmc.get_hire(args.hire_name)
-    with TransactionContext() as tm:
-        hire_inv = tm.hire_invoice(hire)
-    out_file = DFLT_PATHS.INV_OUT_DIR / f'{hire_inv.inv_num}.docx'
-    template, temp_file = get_inv_temp(hire_inv)
+        hire = cmc.get_record_with_customer('Hire', args.hire_name)
+        with TransactionContext() as tm:
+            hire_inv = tm.hire_invoice(hire)
+            out_file = (DFLT_PATHS.INV_OUT_DIR / hire_inv.inv_num).with_suffix('.docx')
+            template, temp_file = get_inv_temp(hire_inv)
 
-    if args.doall:
-        do_all(cmc, temp_file, out_file, hire, ot)
-    else:
-        event_loop(cmc, temp_file, out_file, hire, ot)
+            if args.doall:
+                do_all(cmc, temp_file, out_file, hire, ot)
+            else:
+                event_loop(cmc, temp_file, out_file, hire, ot)
 
 
 def event_loop(cmc, temp_file, outfile, hire, ot: OfficeTools):
@@ -38,12 +39,14 @@ def event_loop(cmc, temp_file, outfile, hire, ot: OfficeTools):
             break
         elif event == 'Submit':
             if values['-SAVE-']:
-                saved = ot.doc.save_document(temp_file, outfile)
-                converted = ot.pdf.from_docx(outfile)
+                saved_docx = ot.doc.save_document(temp_file, outfile)
+                if not saved_docx:
+                    raise FileNotFoundError(f'Failed to save {temp_file} to {outfile}')
+                pdf_file = ot.pdf.from_docx(outfile)
                 if values['-EMAIL-']:
-                    do_email(converted, ot)
+                    do_email(pdf_file, ot)
                 if values['-PRINT-']:
-                    print_file(converted)
+                    print_file(pdf_file)
                 if values['-CMC-']:
                     do_cmc(cmc, hire, outfile)
             if values['-OPEN-']:
@@ -53,21 +56,12 @@ def event_loop(cmc, temp_file, outfile, hire, ot: OfficeTools):
 
 
 def do_all(cmc, temp_file, outfile, hire, ot: OfficeTools):
-    opened = ot.doc.open_document(temp_file)
-    doc = opened[1] or temp_file
-    saved = ot.doc.save_document(doc, outfile)
-    converted = ot.pdf.from_docx(outfile)
+    saved_docx = ot.doc.save_document(temp_file, outfile)
+    pdf_file = ot.pdf.from_docx(outfile)
     # print_file(outfile.with_suffix('.pdf'))
     do_cmc(cmc, hire, outfile)
-
-    # if 'test' not in hire['Name'].lower():
-    #     if sg.popup_ok_cancel(f'Log {hire["Name"]} to CMC?') != 'OK':
-    #         return
-    # try:
-    #     cmc.edit_hire(hire['Name'], package)
-    # except CmcError as e:
-    #     sg.popup_error(f"Failed to log to CMC with error: {e}")
-    do_email(converted, ot)
+    do_email(pdf_file, ot)
+    opened = ot.doc.open_document(saved_docx or temp_file)
 
     ...
 def do_cmc(cmc, hire, outfile):
@@ -82,9 +76,8 @@ def do_cmc(cmc, hire, outfile):
     else:
         return True
 
-def do_email(converted, ot):
-    email_ = DFLT_HIRE_EMAIL
-    email_.attachment_path = converted
+def do_email(attachment:Path, ot, email_ = DFLT_HIRE_EMAIL):
+    email_.attachment_path = attachment
     try:
         ot.email.send_email(email_)
 

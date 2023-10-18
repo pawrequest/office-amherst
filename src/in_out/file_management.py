@@ -48,9 +48,13 @@ class DocHandler(ABC):
     def open_document(self, doc_path: Path) -> Tuple[Any, Any]:
         raise NotImplementedError
 
-    @abstractmethod
     def save_document(self, doc, out_file: Path):
-        raise NotImplementedError
+        if out_file.exists():
+            if sg.popup_ok_cancel(f'{out_file} already exists, overwrite?') != 'OK':
+                raise FileExistsError(f"File already exists: {out_file}")
+        shutil.copy(doc, out_file)
+        print(f"Saved {out_file}")
+        return out_file
 
 
 class WordHandler(DocHandler):
@@ -67,14 +71,6 @@ class WordHandler(DocHandler):
         except Exception as e:
             raise e
 
-    def save_document(self, doc, out_file: Path):
-        if out_file.exists():
-            if sg.popup_ok_cancel(f'{out_file} already exists, overwrite?') != 'OK':
-                raise FileExistsError(f"File already exists: {out_file}")
-        shutil.copy(doc, out_file)
-        print(f"Saved {out_file}")
-        return out_file
-
 
 class LibreHandler(DocHandler):
     def open_document(self, doc_path: Path) -> Tuple[Any, Any]:
@@ -83,15 +79,6 @@ class LibreHandler(DocHandler):
         except Exception as e:
             raise e
         return process, None
-
-    def save_document(self, doc, out_file):
-        if not doc.is_file():
-            raise FileNotFoundError(f"File not found: {doc} you should pass a path")
-        if out_file.exists():
-            raise FileExistsError(f"File already exists: {out_file}")
-        shutil.copy(doc, out_file)
-        print(f"Saved {out_file}")
-        return out_file
 
 
 def print_file(file_path: Path):

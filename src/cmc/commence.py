@@ -48,6 +48,15 @@ class CmcManager:
         sale['customer'] = customer
         return sale
 
+    def get_record_with_customer(self, table, record_name: str) -> dict:
+        cleaner = clean_hire_dict if table == 'Hire' else clean_dict
+        qs = qs_from_name(self.cmc, table, record_name)
+        trans = cleaner(qs_to_dicts(qs, 1)[0])
+        qs2 = qs_from_name(self.cmc, 'Customer', trans['To Customer'])
+        customer = clean_dict(qs_to_dicts(qs2, 1)[0])
+        trans['customer'] = customer
+        return trans
+
 
     def sales_by_customer(self, customer_name: str, cmc=None) -> List[dict]:
         connection = Connection_e.CUSTOMER_SALES

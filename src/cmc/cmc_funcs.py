@@ -42,7 +42,7 @@ def connected_records_to_qs(cmc, connect: Connection_e, item_name: str, max_res=
     if qs.RowCount == 0:
         return
     if max_res and qs.RowCount > max_res:
-        raise ValueError(f"Query set has {qs.RowCount} rows, more than {max_res} rows requested")
+        raise ValueError(f"Query set has {qs.RowCount} rows, when {max_res} was set as max")
     return qs
 
 

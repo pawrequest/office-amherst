@@ -33,9 +33,9 @@ class OutlookSender(EmailSender):
             mail.Body = email.body
             if email.attachment_path:
                 mail.Attachments.Add(str(email.attachment_path))
-            mail.Display()
-            mail = None
-            # mail.Send()
+            # mail.Display()
+            # mail = None
+            mail.Send()
             return True
         except com_error as e:
             msg = f"Outlook not installed - {e.args[0]}"

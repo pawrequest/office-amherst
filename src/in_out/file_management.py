@@ -49,7 +49,7 @@ class DocHandler(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def save_document(self, doc, out_file: Path, keep_open: bool = False):
+    def save_document(self, doc, out_file: Path):
         raise NotImplementedError
 
 
@@ -67,33 +67,33 @@ class WordHandler(DocHandler):
         except Exception as e:
             raise e
 
-    def save_document(self, doc, out_file: Path, keep_open: bool = False):
+    def save_document(self, doc, out_file: Path):
         if out_file.exists():
             if sg.popup_ok_cancel(f'{out_file} already exists, overwrite?') != 'OK':
                 raise FileExistsError(f"File already exists: {out_file}")
-        doc.SaveAs(str(out_file))
+        shutil.copy(doc, out_file)
+        # doc.SaveAs(str(out_file))
         print(f"Saved {out_file}")
-        if not keep_open:
-            doc.Close()
+        # if not keep_open:
+        #     doc.Close()
         return out_file
 
 
 class LibreHandler(DocHandler):
     def open_document(self, doc_path: Path) -> Tuple[Any, Any]:
-        return None, None
+        try:
+            process = subprocess.Popen(['soffice', str(doc_path)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        except Exception as e:
+            raise e
+        return process, None
 
-    def save_document(self, doc, out_file, keep_open: bool = False):
+    def save_document(self, doc, out_file):
         if not doc.is_file():
             raise FileNotFoundError(f"File not found: {doc} you should pass a path")
         if out_file.exists():
             raise FileExistsError(f"File already exists: {out_file}")
         shutil.copy(doc, out_file)
         print(f"Saved {out_file}")
-        if keep_open:
-            try:
-                process = subprocess.Popen(['soffice', str(out_file)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            except Exception as e:
-                raise e
         return out_file
 
 

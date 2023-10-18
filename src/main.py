@@ -31,31 +31,23 @@ def main(args):
 
 def event_loop(cmc, temp_file, outfile, hire, ot: OfficeTools):
     window = create_gui()
-    opened = ot.doc_handler.open_document(temp_file)
-
-    doc = opened[1] or outfile
 
     while True:
         event, values = window.read()
         if event == sg.WINDOW_CLOSED:
             break
         elif event == 'Submit':
-
             if values['-SAVE-']:
-                saved = ot.doc_handler.save_document(doc, outfile, keep_open=False)
+                saved = ot.doc_handler.save_document(temp_file, outfile)
                 converted = ot.pdf_converter.from_docx(outfile)
-                # always save if emailing
                 if values['-EMAIL-']:
-                    email_ = DFLT_EMAIL_O
-                    email_.attachment_path = converted
-                    ot.email_sender.send_email(email_)
-            if values['-PRINT-']:
-                # print_file(doc.with_suffix('.pdf'))
-                ...
-            if values['-CMC-']:
-                package = {'Invoice': outfile}
-                cmc.edit_hire(hire['Name'], package)
-                ...
+                    do_email(converted, ot)
+                if values['-PRINT-']:
+                    print_file(converted)
+                if values['-CMC-']:
+                    do_cmc(cmc, hire, outfile)
+            if values['-OPEN-']:
+                opened = ot.doc_handler.open_document(outfile)
             break
 
 
@@ -75,7 +67,7 @@ def do_all(cmc, temp_file, outfile, hire, ot: OfficeTools):
     #     cmc.edit_hire(hire['Name'], package)
     # except CmcError as e:
     #     sg.popup_error(f"Failed to log to CMC with error: {e}")
-    # do_email(converted, ot)
+    do_email(converted, ot)
 
     ...
 def do_cmc(cmc, hire, outfile):
@@ -95,6 +87,7 @@ def do_email(converted, ot):
     email_.attachment_path = converted
     try:
         ot.email_sender.send_email(email_)
+
     except EmailError as e:
         sg.popup_error(f"Email failed with error: {e}")
 

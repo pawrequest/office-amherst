@@ -4,7 +4,7 @@ from typing import List
 from .cmc_entities import Connection_e
 from .cmc_funcs import clean_dict, clean_hire_dict, connected_records_to_qs, filter_by_fieldnew, get_csr, qs_from_name, \
     qs_to_dicts
-
+from win32com.gen_py.auto_cmc import ICommenceCursor, ICommenceDB, ICommenceQueryRowSet, ICommenceEditRowSet
 
 ### functions to call
 
@@ -16,10 +16,6 @@ def get_customer(record_name) -> dict:
 
 def get_hire(record_name: str) -> dict:
     qs = qs_from_name('Hire', record_name)
-    return clean_hire_dict(qs_to_dicts(qs, 1)[0])
-
-def get_hire_edit(record_name: str) -> dict:
-    qs = qs_from_name('Hire', record_name, edit=True)
     return clean_hire_dict(qs_to_dicts(qs, 1)[0])
 
 
@@ -68,25 +64,16 @@ def lots_of_hires(num=20):
 
     return hire_dict
 
-# classes representing commence records:
-# class Hire_cmc:
-#
-#     @classmethod
-#     def hire(cls, record_name: str):
-#         db = get_cmc()
-#         cursor = db.GetCursor(0, 'Hire', 0)
-#         record =  record_to_qs(cursor, record_name)
-#         hire = cls(record)
-#
-#
-# class Sale:
-#     ...
-# class Customer:
-#     ...
-#
-#
 
 
-#
-#
+
+def edit_hire(hire_name, package:dict):
+    edit_set:ICommenceEditRowSet = qs_from_name('Hire', hire_name, edit=True)
+    for key, value in package.items():
+        col_idx = edit_set.GetColumnIndex(key, 0)
+        edit_set.ModifyRow(0, col_idx, str(value), 0)
+        edit_set.Commit(0)
+        ...
+
+
 

@@ -20,7 +20,7 @@ def get_csr(tablename) -> cmc_.ICommenceCursor:
     return cmc.GetCursor(0, tablename, 0)
 
 
-def qs_from_name(table, record, edit=False) -> cmc_.ICommenceQueryRowSet:
+def qs_from_name(table, record, edit=False) -> cmc_.ICommenceQueryRowSet|cmc_.ICommenceEditRowSet:
     csr = get_csr(table)
     # filter_by_field(csr, 'Name', 'Equals', value=record)
     filter_by_field_old(csr, 'Name', record)

@@ -1,45 +1,54 @@
 import argparse
+import asyncio
+
 import PySimpleGUI as sg
+
 from cmc import commence
 from cmc.commence import hires_by_customer
-from entities.const import DFLT
-from in_out.email_funcs import GmailSender, OutlookSender
-from in_out.file_management import LibreConverter, LibreOpener, WordOpener
-from managers.invoice import create_gui, get_inv_temp
+from in_out.email_funcs import send_outlook
+from in_out.file_management import LibreConverter, print_file
+from managers.invoice import get_inv_temp
+from managers.gui import create_gui
 from managers.transact import TransactionContext
+from entities.dflt import DFLT_EMAIL_O, get_tools, DFLT_PATHS
 
-from src import DFLT_EMAIL_O
-def main(args):
+DOC_HANDLER, EMAIL_SENDER, PDF_CONVERTER = get_tools()
+
+async def main(args):
     with TransactionContext() as tm:
         hire = commence.get_hire(args.hire_name)
         invoice = tm.hire_to_invoice(hire)
         invoice.generate(prnt=args.print, open_file=args.openfile)
 
 
-def otherfunc():
-    # many = lots_of_hires()
-    # customrs = get_customer('Test')
+async def wait_for_process(process):
+    while True:
+        res = process.poll()
+        if res is not None:
+            break
+        await asyncio.sleep(3)
+    print("Process has finished.")
+
+
+async def otherfunc():
     hires = hires_by_customer('Test')
     hire = hires[0]
 
-    # doc_handler = WordOpener()
-    # email_sender = OutlookSender()
-    doc_handler = LibreOpener()
-    email_sender = GmailSender()
 
     with TransactionContext() as tm:
         inv_obj = tm.hire_to_invoice(hire)
+
+
     template, temp_file = get_inv_temp(inv_obj)
-    doc_handler.open_document(temp_file)
+    process = DOC_HANDLER.open_document(temp_file)[0]
+    wait_task = asyncio.create_task(wait_for_process(process))
+
+    avar = event_loop( temp_file, DFLT_PATHS.INV_OUT_DIR / 'test_invoice.docx')
 
 
-    pdf_converter = LibreConverter()
-    pdf_converter.convert(temp_file.with_suffix('.pdf'))
 
 
-    email_ = DFLT_EMAIL_O
-    email_.attachment_path = temp_file.with_suffix('.pdf')
-    email_sender.send_email(email_)
+    await wait_task
 
 
 otherfunc()
@@ -49,6 +58,7 @@ if __name__ == '__main__':
     parser.add_argument('hire_name', help='The name of the hire')
     parser.add_argument('--print', action='store_true', help='Print the invoice after generating.')
     parser.add_argument('--openfile', action='store_true', help='Open the file.')
+    parser.add_argument('--microsoft', action='store_true', help='Use Microsoft tools.')
 
     args = parser.parse_args()
     main(args)
@@ -56,6 +66,7 @@ if __name__ == '__main__':
 
 def event_loop(word_doc, out_file):
     window = create_gui()
+    opened_doc = DOC_HANDLER.open_document(out_file)[0]
     while True:
         event, values = window.read()
         if event == sg.WINDOW_CLOSED:
@@ -65,12 +76,14 @@ def event_loop(word_doc, out_file):
             if values['-SAVE-']:
                 word_doc.SaveAs(str(out_file))
                 word_doc.Close()
-                pdf_convert(out_file)
+                PDF_CONVERTER.convert(out_file)
 
             if values['-PRINT-']:
                 print_file(out_file.with_suffix('.pdf'))
 
             if values['-EMAIL-']:
-                send_outlook(out_file.with_suffix('.pdf'))
-            break
+                email_ = DFLT_EMAIL_O
+                email_.attachment_path = out_file.with_suffix('.pdf')
+                EMAIL_SENDER.send_email(email_)
 
+            break

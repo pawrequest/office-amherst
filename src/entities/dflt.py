@@ -1,12 +1,14 @@
 from enum import Enum
 from pathlib import Path
 
-from in_out.email_funcs import Email
+from in_out.email_funcs import Email, GmailSender, OutlookSender
+from in_out.file_management import LibreConverter, LibreOpener, WordConverter, WordOpener
+
+DEBUG = True
+USE_MICROSOFT = False
 
 
-class DFLT:
-
-    DEBUG = True
+class DFLT_PATHS:
     ROOT = Path(__file__).parent.parent
     STATIC = ROOT / 'static'
     DATA = STATIC / 'data'
@@ -22,6 +24,9 @@ class DFLT:
     INV_OUT_DIR = INV_DIR_MOCK
     INV_DIR = Path(r'R:\ACCOUNTS\invoices')
     TEMP_INV = INV_OUT_DIR / '_temp_invoice.docx'
+
+
+class DFLT_CONST:
     MIN_DUR = 'Min Duration'
     MODEL = "Model"
     SERIAL = 'Barcode'
@@ -32,11 +37,25 @@ class DFLT:
     AST_SHEET = 'Sheet1'
     AST_HEAD = 2
     PRC_HEAD = 0
-    INV_EMAIL_OBJ:Email = Email(
-        to_address='pythonsnake48@gmail.com',
-        subject='Invoice',
-        body='Please find attached the invoice for your hire.',
-    )
+
+
+DFLT_EMAIL_O: Email = Email(
+    to_address='pythonsnake48@gmail.com',
+    subject='Invoice',
+    body='Please find attached the invoice for your hire.',
+)
+
+
+class MICROSOFT_TOOLS:
+    DOC_HANDLER = WordOpener()
+    EMAIL_SENDER = OutlookSender()
+    PDF_CONVERTER = WordConverter()
+
+
+class LIBRE_TOOLS:
+    DOC_HANDLER = LibreOpener()
+    EMAIL_SENDER = GmailSender()
+    PDF_CONVERTER = LibreConverter()
 
 
 class FILTER_(Enum):
@@ -44,9 +63,6 @@ class FILTER_(Enum):
     C_TO_ITEM = 'CTI'
     C_TO_CAT_TO_ITEM = 'CTCTI'
     C_TO_CAT_FIELD = 'CTCF'
-
-
-NOT_HIRE = ['Min Duration', 'Closed']
 
 
 class DTYPES:
@@ -95,9 +111,10 @@ class FIELDS:
     ]
     FREE_ITEMS = ['Sgl Charger', 'UHF 6-way', 'Wand Battery']
 
-# class MAPS:
-#     HIRE_ACC_BANDS = {
-#
+
+NOT_HIRE = ['Min Duration', 'Closed']
+
+
 def format_currency(value):
     # return value
     # return f' £ {value:.2f}'
@@ -108,3 +125,8 @@ def format_currency(value):
     return f"£{value:>8.2f}"
 
 
+def get_tools():
+    if USE_MICROSOFT:
+        return MICROSOFT_TOOLS.DOC_HANDLER, MICROSOFT_TOOLS.EMAIL_SENDER, MICROSOFT_TOOLS.PDF_CONVERTER
+    else:
+        return LIBRE_TOOLS.DOC_HANDLER, LIBRE_TOOLS.EMAIL_SENDER, LIBRE_TOOLS.PDF_CONVERTER

@@ -3,8 +3,7 @@ import re
 import sys
 
 # from entities.const import DFLT
-from src import DFLT_PATHS
-
+from entities.dflt import DFLT_PATHS
 
 REAL_INV_FOLDER = r'R:\ACCOUNTS\invoices'
 

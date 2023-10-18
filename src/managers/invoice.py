@@ -1,40 +1,28 @@
 from pathlib import Path
 from typing import Tuple
 
-import PySimpleGUI as sg
 from docxtpl import DocxTemplate
 
-from entities.const import format_currency
-from entities.order import HireInvoice
-from src import DFLT_PATHS
+from entities.dflt import DFLT_PATHS, format_currency
+from entities.trans_ent import HireInvoice
 
 
-def get_inv_temp(inv_obj: HireInvoice, tmplt=DFLT_PATHS.INV_TMPLT, temp_file=DFLT_PATHS.TEMP_INV) -> Tuple[
-    DocxTemplate, Path]:
-    template = render_tmplt(inv_obj, tmplt, temp_file)
-    return template, temp_file
+def get_inv_temp(inv_o: HireInvoice,
+                 tmplt_p=DFLT_PATHS.INV_TMPLT, temp_file_p=DFLT_PATHS.TEMP_INV, out_file=DFLT_PATHS.TEMP_INV) \
+        -> Tuple[DocxTemplate, Path]:
+    template = render_tmplt(inv_o, tmplt_p)
+    template.save(out_file)
+    return template, temp_file_p
 
 
-def render_tmplt(inv_obj: HireInvoice, tmplt=DFLT_PATHS.INV_TMPLT, temp_file=DFLT_PATHS.TEMP_INV) -> DocxTemplate:
+def render_tmplt(inv_o: HireInvoice, tmplt=DFLT_PATHS.INV_TMPLT) -> DocxTemplate:
     try:
         template = DocxTemplate(tmplt)
-        context = invoice_template_context(inv_obj)
+        context = invoice_template_context(inv_o)
         template.render(context)
-        template.save(temp_file)
         return template
     except Exception as e:
         raise e
-
-
-def create_gui():
-    layout = [
-        [sg.Checkbox('Save', default=True, key='-SAVE-')],
-        [sg.Checkbox('Print', default=False, key='-PRINT-')],
-        [sg.Checkbox('Email', default=False, key='-EMAIL-')],
-        [sg.Button('Submit')]
-    ]
-    window = sg.Window('Actions', layout)
-    return window
 
 
 def invoice_template_context(invoice):

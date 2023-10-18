@@ -30,6 +30,6 @@ class OfficeTools:
     @classmethod
     def get_tools(cls, use_microsoft: bool):
         if use_microsoft:
-            return cls(**MIC_TOOLS)
+            return MICROSOFT_TOOLS.doc_handler, MICROSOFT_TOOLS.pdf_converter, MICROSOFT_TOOLS.email_sender
         else:
-            return cls(**LIB_TOOLS)
+            return LIBRE_TOOLS.doc_handler, LIBRE_TOOLS.pdf_converter, LIBRE_TOOLS.email_sender

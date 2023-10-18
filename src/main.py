@@ -7,6 +7,7 @@ from cmc.commence import CmcContext
 from entities.dflt import DFLT_EMAIL_O, DFLT_PATHS
 from entities.office_tools import OfficeTools
 from in_out.email_funcs import EmailError
+from in_out.file_management import print_file
 from managers.gui import create_gui
 from managers.invoice import get_inv_temp
 from managers.transact import TransactionContext
@@ -58,26 +59,26 @@ def event_loop(cmc, temp_file, outfile, hire, ot: OfficeTools):
             break
 
 
+
 def do_all(cmc, temp_file, outfile, hire, ot: OfficeTools):
     opened = ot.doc_handler.open_document(temp_file)
     doc = opened[1] or temp_file
-
-    # sg.popup_quick_message('Saving...')
     saved = ot.doc_handler.save_document(doc, outfile, keep_open=False)
-
-    # sg.popup_quick_message('Converting...')
     converted = ot.pdf_converter.from_docx(outfile)
-    # sg.popup_quick_message('Emailing...')
-    email_ = DFLT_EMAIL_O
-    email_.attachment_path = converted
-    try:
-        ot.email_sender.send_email(email_)
-    except EmailError as e:
-        sg.popup_error(f"Email failed with error: {e}")
-
-    # sg.popup_quick_message('Printing...')
     # print_file(outfile.with_suffix('.pdf'))
-    # sg.popup_quick_message('Logging to CMC...')
+    do_cmc(cmc, hire, outfile)
+
+    # if 'test' not in hire['Name'].lower():
+    #     if sg.popup_ok_cancel(f'Log {hire["Name"]} to CMC?') != 'OK':
+    #         return
+    # try:
+    #     cmc.edit_hire(hire['Name'], package)
+    # except CmcError as e:
+    #     sg.popup_error(f"Failed to log to CMC with error: {e}")
+    # do_email(converted, ot)
+
+    ...
+def do_cmc(cmc, hire, outfile):
     package = {'Invoice': outfile}
     if 'test' not in hire['Name'].lower():
         if sg.popup_ok_cancel(f'Log {hire["Name"]} to CMC?') != 'OK':
@@ -86,9 +87,16 @@ def do_all(cmc, temp_file, outfile, hire, ot: OfficeTools):
         cmc.edit_hire(hire['Name'], package)
     except CmcError as e:
         sg.popup_error(f"Failed to log to CMC with error: {e}")
-    # sg.popup_ok('Done!')
+    else:
+        return True
 
-    ...
+def do_email(converted, ot):
+    email_ = DFLT_EMAIL_O
+    email_.attachment_path = converted
+    try:
+        ot.email_sender.send_email(email_)
+    except EmailError as e:
+        sg.popup_error(f"Email failed with error: {e}")
 
 
 if __name__ == '__main__':

@@ -72,10 +72,7 @@ class WordHandler(DocHandler):
             if sg.popup_ok_cancel(f'{out_file} already exists, overwrite?') != 'OK':
                 raise FileExistsError(f"File already exists: {out_file}")
         shutil.copy(doc, out_file)
-        # doc.SaveAs(str(out_file))
         print(f"Saved {out_file}")
-        # if not keep_open:
-        #     doc.Close()
         return out_file
 
 

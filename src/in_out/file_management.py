@@ -21,7 +21,9 @@ class WordConverter:
     def convert(self, doc_file: Path):
         try:
             convert_word(doc_file, output_path=doc_file.parent, keep_active=True)
-            print(f"Converted {doc_file}")
+            outfile= doc_file.with_suffix('.pdf')
+            print(f"Converted {outfile}")
+            return outfile
         except Exception as e:
             raise e
 
@@ -30,8 +32,9 @@ class LibreConverter:
     def convert(self, doc_file: Path):
         try:
             subprocess.run(f'soffice --headless --convert-to pdf {str(doc_file)} --outdir {str(doc_file.parent)}')
-            print(f"Converted {doc_file}")
-            return True
+            outfile = doc_file.with_suffix('.pdf')
+            print(f"Converted {outfile}")
+            return outfile
         except Exception as e:
             ...
 

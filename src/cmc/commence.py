@@ -18,6 +18,10 @@ def get_hire(record_name: str) -> dict:
     qs = qs_from_name('Hire', record_name)
     return clean_hire_dict(qs_to_dicts(qs, 1)[0])
 
+def get_hire_edit(record_name: str) -> dict:
+    qs = qs_from_name('Hire', record_name, edit=True)
+    return clean_hire_dict(qs_to_dicts(qs, 1)[0])
+
 
 def get_sale(record_name: str) -> dict:
     qs = qs_from_name('Sale', record_name)
@@ -85,3 +89,4 @@ def lots_of_hires(num=20):
 
 #
 #
+

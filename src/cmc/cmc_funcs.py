@@ -20,17 +20,20 @@ def get_csr(tablename) -> cmc_.ICommenceCursor:
     return cmc.GetCursor(0, tablename, 0)
 
 
-def qs_from_name(table, record) -> cmc_.ICommenceQueryRowSet:
+def qs_from_name(table, record, edit=False) -> cmc_.ICommenceQueryRowSet:
     csr = get_csr(table)
     # filter_by_field(csr, 'Name', 'Equals', value=record)
     filter_by_field_old(csr, 'Name', record)
     # use 5 to check for duplicates
-    qs = csr.GetQueryRowSet(5, 0)
-    if qs.RowCount != 1:
-        raise ValueError(f"{qs.RowCount} rows returned")
-    if qs.GetRowValue(0, 0, 0) != record:
-        raise ValueError(f"Expected {record} but got {qs.GetRowValue(0, 0, 0)}")
-    return qs
+    if edit:
+        results = csr.GetEditRowSet(5, 0)
+    else:
+        results = csr.GetQueryRowSet(5, 0)
+    if results.RowCount != 1:
+        raise ValueError(f"{results.RowCount} rows returned")
+    if results.GetRowValue(0, 0, 0) != record:
+        raise ValueError(f"Expected {record} but got {results.GetRowValue(0, 0, 0)}")
+    return results
 
 
 def connected_records_to_qs(connect: Connection_e, item_name: str, max_res=50) -> cmc_.ICommenceQueryRowSet | None:
@@ -154,3 +157,4 @@ def qs_to_dicts(qs: cmc_.ICommenceQueryRowSet, max_rows=None) -> List[dict]:
         dicts.append(row_dict)
 
     return dicts
+

@@ -6,34 +6,29 @@ from cmc import commence
 from cmc.cmc_entities import CmcError
 from cmc.commence import edit_hire
 from entities.dflt import DFLT_EMAIL_O, DFLT_PATHS
-from entities.office_tools import get_tools
-from in_out.email_funcs import EmailError, OutlookSender
-from in_out.file_management import LibreConverter, LibreHandler
+from entities.office_tools import OfficeTools
+from in_out.email_funcs import EmailError
 from managers.gui import create_gui
 from managers.invoice import get_inv_temp
 from managers.transact import TransactionContext
 
-# DOC_HANDLER, EMAIL_SENDER, PDF_CONVERTER = get_tools()
-
-DOC_HANDLER = LibreHandler()
-EMAIL_SENDER = OutlookSender()
-PDF_CONVERTER = LibreConverter()
 
 def main(args):
+    ot = OfficeTools.get_tools(args.microsoft)
     hire = commence.get_hire(args.hire_name)
     with TransactionContext() as tm:
         hire_inv = tm.hire_to_invoice(hire)
     out_file = DFLT_PATHS.INV_OUT_DIR / f'{hire_inv.inv_num}.docx'
     template, temp_file = get_inv_temp(hire_inv)
-    opened = DOC_HANDLER.open_document(temp_file)
+    opened = ot.doc_handler.open_document(temp_file)
 
     if args.doall:
-        do_all(temp_file, out_file, hire)
+        do_all(temp_file, out_file, hire, ot)
     else:
-        event_loop(temp_file, out_file, hire, opened)
+        event_loop(temp_file, out_file, hire, opened, ot)
 
 
-def event_loop(temp_file, outfile, hire, open_res):
+def event_loop(temp_file, outfile, hire, open_res, ot: OfficeTools):
     window = create_gui()
     doc = open_res[1] or outfile
 
@@ -44,13 +39,13 @@ def event_loop(temp_file, outfile, hire, open_res):
         elif event == 'Submit':
 
             if values['-SAVE-']:
-                saved = DOC_HANDLER.save_document(doc, outfile, keep_open=False)
-                converted = PDF_CONVERTER.from_docx(outfile)
+                saved = ot.doc_handler.save_document(doc, outfile, keep_open=False)
+                converted = ot.pdf_converter.from_docx(outfile)
                 # always save if emailing
                 if values['-EMAIL-']:
                     email_ = DFLT_EMAIL_O
                     email_.attachment_path = converted
-                    EMAIL_SENDER.send_email(email_)
+                    ot.email_sender.send_email(email_)
             if values['-PRINT-']:
                 # print_file(doc.with_suffix('.pdf'))
                 ...
@@ -61,16 +56,16 @@ def event_loop(temp_file, outfile, hire, open_res):
             break
 
 
-def do_all(temp_file, outfile, hire):
+def do_all(temp_file, outfile, hire, ot: OfficeTools):
     sg.popup_quick_message('Saving...')
-    saved = DOC_HANDLER.save_document(temp_file, outfile, keep_open=False)
+    saved = ot.doc_handler.save_document(temp_file, outfile, keep_open=False)
     sg.popup_quick_message('Converting...')
-    converted = PDF_CONVERTER.from_docx(outfile)
+    converted = ot.pdf_converter.from_docx(outfile)
     sg.popup_quick_message('Emailing...')
     email_ = DFLT_EMAIL_O
     email_.attachment_path = converted
     try:
-        EMAIL_SENDER.send_email(email_)
+        ot.email_sender.send_email(email_)
     except EmailError as e:
         sg.popup_error(f"Email failed with error: {e}")
 

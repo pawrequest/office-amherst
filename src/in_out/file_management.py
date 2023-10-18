@@ -10,6 +10,7 @@ from comtypes.client import CreateObject
 from docx2pdf import convert as convert_word
 
 
+
 # convert doc to pdf
 class PdfConverter(ABC):
     @abstractmethod
@@ -108,3 +109,4 @@ async def wait_for_process(process):
             break
         await asyncio.sleep(3)
     print("Process has finished.")
+

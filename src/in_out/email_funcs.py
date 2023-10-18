@@ -39,14 +39,15 @@
 
 
 import webbrowser
+from abc import ABC
 from pathlib import Path
-from typing import Optional, Protocol
+from typing import Optional
 
 from win32com.client import Dispatch
 from win32com.universal import com_error
 
 
-class EmailSendingProtocol(Protocol):
+class EmailSender(ABC):
     def send_email(self, email: 'Email') -> None:
         ...
 
@@ -58,11 +59,11 @@ class Email:
         self.subject = subject
         self.body = body
 
-    def send(self, sender: EmailSendingProtocol) -> None:
+    def send(self, sender: EmailSender) -> None:
         sender.send_email(self)
 
 
-class OutlookSender:
+class OutlookSender(EmailSender):
     def send_email(self, email: Email) -> bool:
         try:
             outlook = Dispatch('outlook.application')
@@ -89,7 +90,7 @@ class EmailError(Exception):
     ...
 
 
-class GmailSender:
+class GmailSender(EmailSender):
     def send_email(self, email: Email) -> None:
         compose_link = gmail_compose_link(email)
         webbrowser.open(compose_link)
@@ -103,13 +104,3 @@ def gmail_compose_link(email: Email) -> str:
     return compose_link
 
 
-def send_outlook(email: Email):
-    outlook = Dispatch('outlook.application')
-    mail = outlook.CreateItem(0)
-    mail.To = 'admin@amherst.co.uk'  # replace with recipient's email
-    mail.Subject = 'Invoice Attached'
-    mail.Body = 'Please find the attached invoice.'
-    if email.attachment_path:
-        mail.Attachments.Add(str(email.attachment_path))
-    mail.Display(True)
-    # mail.Send()

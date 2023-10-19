@@ -4,8 +4,9 @@ from typing import List
 
 from win32com.client import Dispatch
 
-from cmc import auto_cmc as cmc_
-from cmc.cmc_entities import Connection_e
+# from cmc import auto_cmc as cmc_
+from win32com.gen_py import auto_cmc as cmc_
+from entities.cmc_entities import Connection_e
 
 
 def get_cmc() -> cmc_.ICommenceDB:

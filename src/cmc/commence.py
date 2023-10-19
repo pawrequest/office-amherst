@@ -1,7 +1,7 @@
 import datetime
 from typing import ContextManager, List
 
-from .cmc_entities import CmcError, Connection_e
+from entities.cmc_entities import CmcError, Connection_e
 from .cmc_funcs import clean_dict, clean_hire_dict, connected_records_to_qs, filter_by_fieldnew, get_cmc, get_csr, \
     qs_from_name, \
     qs_to_dicts
@@ -76,13 +76,13 @@ class CmcManager:
     def edit_hire(self, hire_name, package: dict):
         edit_set: ICommenceEditRowSet = qs_from_name(self.cmc, 'Hire', hire_name, edit=True)
         for key, value in package.items():
-            col_idx = edit_set.GetColumnIndex(key, 0)
             try:
+                col_idx = edit_set.GetColumnIndex(key, 0)
                 edit_set.ModifyRow(0, col_idx, str(value), 0)
             except:
                 raise CmcError(f"Could not modify {key} to {value}")
-            edit_set.Commit(0)
-            ...
+        edit_set.Commit(0)
+        ...
 
 # def lots_of_hires(num=20):
 #     csr = get_csr('Customer')

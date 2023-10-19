@@ -18,6 +18,7 @@ class DFLT_PATHS:
     PRC_WB = DATA / 'prices.xlsx'
     AST_OUT = GENERATED / 'assets_out.xlsx'
     PRC_OUT = GENERATED / 'prices_out.xlsx'
+    PRCS_JSON = PRC_OUT.with_suffix('.json')
     INV_TMPLT = TEMPLATE / 'invoice_tmplt.docx'
     INV_DIR_MOCK = GENERATED / 'mock_invoices'
     INV_OUT_DIR = INV_DIR_MOCK
@@ -34,8 +35,8 @@ class DFLT_CONST:
     MIN_QTY = 'Min Qty'
     PRICE = 'Price'
     AST_SHEET = 'Sheet1'
-    AST_HEAD = 2
-    PRC_HEAD = 0
+    AST_HEAD: int = 2
+    PRC_HEAD: int = 0
 
 
 DFLT_HIRE_EMAIL: Email = Email(
@@ -43,7 +44,6 @@ DFLT_HIRE_EMAIL: Email = Email(
     subject='Radio Hire - Invoice attached',
     body='Please find attached the invoice for your hire.',
 )
-
 
 
 def get_hire_invoice_email(hire: dict) -> Email:
@@ -101,7 +101,8 @@ class FIELDS:
         "Invoice Address",
         'Name',
     ]
-    FREE_ITEMS = ['Sgl Charger', 'UHF 6-way', 'Wand Battery', 'ICOM PSU', 'Megaphone Bat', 'ICOM Car Lead', 'Magmount', 'Clipon Aerial', 'Wand Charger', 'Aerial Adapt']
+    FREE_ITEMS = ['Sgl Charger', 'UHF 6-way', 'Wand Battery', 'ICOM PSU', 'Megaphone Bat', 'ICOM Car Lead', 'Magmount',
+                  'Clipon Aerial', 'Wand Charger', 'Aerial Adapt']
 
 
 NOT_HIRE = ['Min Duration', 'Closed']
@@ -115,5 +116,3 @@ def format_currency(value):
     # if isinstance(value, str):
     #     value = Decimal(value)
     return f"£{value:>8.2f}"
-
-

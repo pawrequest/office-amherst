@@ -8,6 +8,66 @@ from in_out.excel import df_overwrite_wb
 from entities.dflt import DFLT_CONST, DFLT_PATHS, DTYPES, FIELDS
 
 
+
+def transaction_closure(prices_wb=DFLT_PATHS.PRC_WB, prcs_out=DFLT_PATHS.PRC_OUT, jsong_file = DFLT_PATHS.PRCS_JSON, header_row =DFLT_CONST.PRC_HEAD):
+    df_bands, df_pr_hire, df_pr_sale = get_dfs()
+
+
+
+def get_dfs():
+    # df_bands, df_hire, df_sale = dfs_from_json() if json_file.exists() else dfs_from_excel()
+    df_bands, df_hire, df_sale = dfs_from_excel()
+    return df_bands, df_hire, df_sale
+
+def dfs_from_excel(prcs_wb=DFLT_PATHS.PRC_WB):
+    hire = pd.read_excel(prcs_wb, sheet_name='Hire', header=0,
+                         dtype=DTYPES.HIRE_PRICES)
+    sale = pd.read_excel(prcs_wb, sheet_name='Sale', header=0,
+                         dtype=DTYPES.SALE_PRICES)
+    bands = pd.read_excel(prcs_wb, sheet_name='Bands', header=0,
+                          dtype=str)
+
+    return bands, hire, sale
+
+def dfs_from_json(json_file=DFLT_PATHS.PRCS_JSON):
+    with open(json_file, 'r') as json_file2:
+        data = json.load(json_file2)
+    bands = pd.DataFrame(data['df_b'], dtype=str)
+    hire = pd.DataFrame(data['df_hire']).astype(DTYPES.HIRE_PRICES, errors='ignore')
+    sale = pd.DataFrame(data['df_sale']).astype(DTYPES.SALE_PRICES, errors='ignore')
+
+    return bands, hire, sale
+
+def dfs_to_wb(df_pr_hire, df_pr_sale, df_bands):
+    # todo convert back from 100
+    df_overwrite_wb(input_workbook=DFLT_PATHS.PRC_WB, sheet='Hire', header_row=0,
+                    out_file=DFLT_PATHS.PRC_OUT, df=df_pr_hire)
+    df_overwrite_wb(input_workbook=DFLT_PATHS.PRC_WB, sheet='Sale', header_row=0,
+                    out_file=DFLT_PATHS.PRC_OUT, df=df_pr_sale)
+    df_overwrite_wb(input_workbook=DFLT_PATHS.PRC_WB, sheet='Bands', header_row=0,
+                    out_file=DFLT_PATHS.PRC_OUT, df=df_bands)
+
+def dfs_to_json(df_pr_hire, df_pr_sale, df_bands, json_file=DFLT_PATHS.PRCS_JSON):
+    data = {
+        'df_hire': df_pr_hire.astype(str).to_dict(),
+        'df_sale': df_pr_sale.astype(str).to_dict(),
+        'df_b': df_bands.astype(str).to_dict(),
+    }
+    ...
+    with open(json_file, 'w') as jfile:
+        json.dump(data, jfile, indent=4)
+
+
+
+
+
+
+
+
+
+
+
+
 class TransactionContext:
     def __init__(self, header_row=None, out_file=None, prices_wb=None, ):
         self.prcs_wb = prices_wb or DFLT_PATHS.PRC_WB

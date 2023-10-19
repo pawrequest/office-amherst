@@ -19,6 +19,7 @@ def main(args):
 
     with CmcContext() as cmc:
         hire = cmc.get_record_with_customer('Hire', args.hire_name)
+
         with TransactionContext() as tm:
             hire_inv = tm.hire_invoice(hire)
             out_file = (DFLT_PATHS.INV_OUT_DIR / hire_inv.inv_num).with_suffix('.docx')

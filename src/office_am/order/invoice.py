@@ -1,11 +1,11 @@
-import PySimpleGUI as sg
 from pathlib import Path
 from typing import Tuple
 
-
+import PySimpleGUI as sg
 from docxtpl import DocxTemplate
-from office_am.entities.dflt import DFLT_PATHS, format_currency
-from office_am.entities.order_ent import HireInvoice
+
+from .order_ent import HireInvoice
+from ..dflt import DFLT_PATHS, format_currency
 
 
 def get_inv_temp(inv_o: HireInvoice,

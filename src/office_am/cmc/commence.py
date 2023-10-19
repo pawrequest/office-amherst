@@ -3,21 +3,10 @@ from typing import ContextManager, List
 from .cmc_funcs import clean_dict, clean_hire_dict, connected_records_to_qs, get_cmc, qs_from_name, \
     qs_to_dicts
 from .auto_cmc import ICommenceDB, ICommenceEditRowSet
-from .cmc_entities import Connection_e, CmcError
+from .cmc_entities import CONNECTION, CmcError
 
 
 ### functions to call
-
-class CmcContext(ContextManager):
-    def __init__(self, cmc: ICommenceDB = None):
-        self.cmc = cmc or get_cmc()
-
-    def __enter__(self):
-        return CmcManager(self.cmc)
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.cmc = None
-
 
 
 class CmcManager:
@@ -58,22 +47,27 @@ class CmcManager:
 
 
     def sales_by_customer(self, customer_name: str, cmc=None) -> List[dict]:
-        connection = Connection_e.CUSTOMER_SALES
+        connection = CONNECTION.CUSTOMER_SALES
         qs = connected_records_to_qs(self.cmc_db, connection, customer_name)
-        dicts = qs_to_dicts(qs)
-        dicts = [clean_dict(d) for d in dicts]
-        return dicts
+        sales = qs_to_dicts(qs)
+        for sale in sales:
+            sale['customer'] = self.get_customer(sale['To Customer'])
+
+        sales = [clean_dict(d) for d in sales]
+        return sales
 
 
     def hires_by_customer(self, customer_name: str) -> List[dict]:
-        connection = Connection_e.HIRES_CUSTOMER
+        connection = CONNECTION.HIRES_CUSTOMER
         recs = connected_records_to_qs(self.cmc_db, connection, customer_name)
-        dicts = qs_to_dicts(recs)
-        dicts = [clean_hire_dict(d) for d in dicts]
-        return dicts
+        hires = qs_to_dicts(recs)
+        for hire in hires:
+            hire['customer'] = self.get_customer(hire['To Customer'])
+        hires = [clean_hire_dict(d) for d in hires]
+        return hires
 
-    def edit_hire(self, hire_name, package: dict):
-        edit_set: ICommenceEditRowSet = qs_from_name(self.cmc_db, 'Hire', hire_name, edit=True)
+    def edit_record(self, table, hire_name, package: dict):
+        edit_set: ICommenceEditRowSet = qs_from_name(self.cmc_db, table, hire_name, edit=True)
         for key, value in package.items():
             try:
                 col_idx = edit_set.GetColumnIndex(key, 0)
@@ -83,43 +77,15 @@ class CmcManager:
         edit_set.Commit(0)
         ...
 
-# def lots_of_hires(num=20):
-#     csr = get_csr('Customer')
-#     csr = filter_by_fieldnew(csr, 'Hire Customer', 'yes')
-#     csr = filter_by_fieldnew(csr, 'Date Last Contact', 'after', '1/1/2020')
-#     # csr.SeekRow(0, 1000)
-#     qs = csr.GetQueryRowSet(num, 0)
-#     cust = qs_to_dicts(qs)
-#     cust = [clean_hire_dict(d) for d in cust]
-#     hire_dict = {}
-#     wrong = []
-#     for custom in cust:
-#         if 'Has Hired Hire' not in custom.keys():
-#             wrong.append(custom)
-#             continue
-#         if custom['Date Last Contact'] < datetime.date(2020, 1, 1):
-#             wrong.append(custom)
-#             continue
-#         hired_str = custom['Has Hired Hire']
-#         hired = hired_str.split(', ')
-#         hires = [CmcManager.get_hire(h) for h in hired]
-#         hire_dict[custom['Name']] = hires
-#
-#     return hire_dict
 
 
-#
-#
-# def edit_hire(cmc_db, hire_name, package:dict):
-#     edit_set:ICommenceEditRowSet = qs_from_name(cmc_db, 'Hire', hire_name, edit=True)
-#     for key, value in package.items():
-#         col_idx = edit_set.GetColumnIndex(key, 0)
-#         try:
-#             edit_set.ModifyRow(0, col_idx, str(value), 0)
-#         except:
-#             raise CmcError(f"Could not modify {key} to {value}")
-#         edit_set.Commit(0)
-#         ...
-#
-#
-#
+class CmcContext(ContextManager):
+    def __init__(self, cmc_db: ICommenceDB = None):
+        self.cmc_db = cmc_db or get_cmc()
+
+    def __enter__(self) -> CmcManager:
+        return CmcManager(self.cmc_db)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.cmc_db = None
+

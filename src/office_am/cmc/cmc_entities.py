@@ -10,7 +10,7 @@ class Connector:
 
 
 
-class Connection_e(Enum):
+class CONNECTION(Enum):
     CUSTOMER_HIRES = Connector(key_table='Customer', desc="Has Hired", value_table='Hire')
     CUSTOMER_SALES = Connector(key_table='Customer', desc="Involves", value_table='Sale')
     HIRES_CUSTOMER = Connector(key_table='Hire', desc="To", value_table='Customer')

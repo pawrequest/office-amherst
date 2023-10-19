@@ -1,5 +1,10 @@
-from typing import Dict, List
+from typing import Dict, Iterable, List
 
+import pandas as pd
+
+from office_am.cmc.cmc_entities import Connector
+from office_am.dflt import FIELDS
+from office_am.office_tools.dde import get_all_connected, get_conversation_func, get_data, get_record
 
 
 def get_fields(conv, table: str, item: str, fields: List[str] = None, delim=';') -> Dict[str, str]:
@@ -139,3 +144,38 @@ def get_all_fieldnames(conv, table, delim=';'):
     return field_list
 
 
+def get_commence_data(table, name, fields: Iterable[str], connections: Iterable[Connector] = None):
+    results = {}
+    conv = get_conversation_func()
+    record = get_record(conv, table, name)
+    results[table] = get_data(record, fields)
+    results[f'{table}_df'] = pd.DataFrame.from_dict(results[table], orient='index')
+    if not connections:
+        return results
+    for connection in connections:
+        connected_data = get_all_connected(conv, table, name, connection)
+        results[connection.table] = connected_data
+    return results
+
+
+def fire_commence_agent(agent_trigger, category, command):
+    conv = get_conversation_func()
+    conv.Execute(f"[FireTrigger({agent_trigger}, {category}, {command})]")
+
+
+def commence_running():
+    conv = get_conversation_func('Commence', 'System')
+    assert conv.Request("Status") == 'Ready'
+    return True
+
+
+def get_dde_data(record_name, table_name):
+    table_name_enum = FIELDS[table_name.upper()]
+    connection_to = CONNECTION.HIRES_CUSTOMER.value
+    try:
+        data = get_commence_data(table=table_name, name=record_name, fields=table_name_enum.value,
+                                 connections=[connection_to])
+    except Exception as e:
+        raise ValueError(f"Error getting {table_name} data for {record_name}: \n{e}")
+    else:
+        return data

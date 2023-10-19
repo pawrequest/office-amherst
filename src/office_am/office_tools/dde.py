@@ -1,42 +1,10 @@
-from collections import namedtuple
 from typing import Iterable
 
 import pandas as pd
 import win32com.client
 
-from office_am.managers import Connection, FIELDS
-from office_am.in_out import Connections
-
-
-def fire_commence_agent(agent_trigger, category, command):
-    conv = get_conversation_func()
-    conv.Execute(f"[FireTrigger({agent_trigger}, {category}, {command})]")
-
-
-def get_commence_data(table, name, fields: Iterable[str], connections: Iterable[Connection] = None):
-    results = {}
-    conv = get_conversation_func()
-    record = get_record(conv, table, name)
-    results[table] = get_data(record, fields)
-    results[f'{table}_df'] = pd.DataFrame.from_dict(results[table], orient='index')
-    if not connections:
-        return results
-    for connection in connections:
-        connected_data = get_all_connected(conv, table, name, connection)
-        results[connection.table] = connected_data
-    return results
-
-
-def get_dde_data(record_name, table_name):
-    table_name_enum = FIELDS[table_name.upper()]
-    connection_to = Connections.HIRES_CUSTOMER.value
-    try:
-        data = get_commence_data(table=table_name, name=record_name, fields=table_name_enum.value,
-                                 connections=[connection_to])
-    except Exception as e:
-        raise ValueError(f"Error getting {table_name} data for {record_name}: \n{e}")
-    else:
-        return data
+from ..cmc.cmc_entities import Connector
+from ..dflt import FIELDS
 
 
 def get_all_fieldnames(conv, table, delim=';'):
@@ -83,12 +51,6 @@ def get_data(conv, fields: Iterable[str]):
     return data
 
 
-def commence_running():
-    conv = get_conversation_func('Commence', 'System')
-    assert conv.Request("Status") == 'Ready'
-    return True
-
-
 def fields_df(conv, fields: Iterable[str]):
     data = {}
     for field in fields:
@@ -100,19 +62,14 @@ def fields_df(conv, fields: Iterable[str]):
     ...
 
 
-def get_connected_data_limited(conv, connection: Connection, limit=1):
-    connected_name = conv.Request(f"[ViewConnectedItem(1, {connection.desc}, {connection.table}, {limit},)]")
-    connected_conv = get_record(conv, connection.table, connected_name)
-    connected_data = get_data(connected_conv, connection.fields)
-    return connected_data
 
 
-def get_all_connected(conv, from_table: str, from_item: str, connection: Connection):
+def get_all_connected(conv, from_item: str, connection: Connector):
     connected_names = conv.Request(
-        f"[GetConnectedItemNames({from_table}, {from_item}, {connection.desc}, {connection.table}, ;)]")
+        f"[GetConnectedItemNames({connection.key_table}, {from_item}, {connection.desc}, {connection.value_table}, ;)]")
     if not connected_names or connected_names == '(none)':
         raise ValueError(
-            f'{from_table}:  {from_item} has no connected items  "{connection.desc}" in {connection.table}')
+            f'{connection.value_table}:  {from_item} has no connected items  "{connection.desc}" in {connection.key_table}')
     cons = connected_names.split(';')
     results = {}
     for c_name in cons:
@@ -121,11 +78,6 @@ def get_all_connected(conv, from_table: str, from_item: str, connection: Connect
         # results.append(connected_data)
         results[c_name] = connected_data
     return results
-
-
-def get_customer_sales(conv, customer_name):
-    return get_all_connected(conv, 'Customer', customer_name,
-                             Connection(name='Involves', table='Sale', fields=FIELDS.SALE_PRICES.value))
 
 
 def get_conversation_func(topic='Commence', command='ViewData', db_name='Commence'):
@@ -170,21 +122,6 @@ def get_record(conv, table, name):
 def get_table(conv, table):
     conv.Request(f"[ViewCategory({table})]")
 
-
-def display_test_customer_agent():
-    fire_commence_agent(agent_trigger='PYTHON_DDE', category='Customer', command='Test')
-
-
-def stuff():
-    hires_to = Connection(name="Has Hired", table='Hire', fields=FIELDS.HIRE_PRICES.value)
-    sales_to = Connection(name="Involves", table='Sale', fields=FIELDS.SALE_PRICES.value)
-    customer_data = get_commence_data(table="Customer", name="Test", fields=FIELDS.CUSTOMER.value,
-                                      connections=[hires_to, sales_to])
-    ahire = get_dde_data('Test - 16/08/2023 ref 31619', 'Hire')['Hire']
-    return customer_data
-
-
-hire_order_items = namedtuple('hire_order_items', 'product_name, quantity, duration')
 
 #
 # def items_from_hire(hire_name) -> [hire_order_items]:

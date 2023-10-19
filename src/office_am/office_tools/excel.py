@@ -109,18 +109,6 @@ def get_matching(df, key_column, result_column, value):
     return result_values
 
 
-def convert(df, value, key_column, result_column):
-    result_values = get_matching(df=df, key_column=key_column, result_column=result_column, value=value)
-    # if result_values.size == 0 or pd.isna(result_values[0]):
-    #     replacement_value = input(f"No result found for {value}. Enter new value: ")
-    #     if replacement_value:
-    #         df.loc[df[key_column].astype(str) == value, result_column] = replacement_value
-    #         return replacement_value  # return the new value
-    #     raise ValueError(f"No result found for {value}")
-    # if result_values.size != 1:
-    #     raise ValueError(f"Multiple results found for {value}: {', '.join(map(str, result_values))}")
-    return result_values[0]
-
 
 def df_overwrite_wb(input_workbook, sheet, df, header_row, out_file):
     wb = load_workbook(input_workbook)
@@ -144,20 +132,20 @@ def check_paid(df, id_data):
     return get_data_from_excel(df=df, id_header="No.", value_header="Status", id_data=id_data)
 
 
-#
-# def main(args):
-#     if os.path.isfile(args.id_data):
-#         args.id_data = os.path.splitext(os.path.basename(args.id_data))[0]
-#     df = pd.read_excel(args.workbook_ast, sheet_name='Sales', header=2)
-#     print(f"Checking {args.workbook_ast} for {args.id_data}")
-#     result = check_paid(df=df, id_data=args.id_data)
-#     print(f"Value for {args.id_data} is {result}")
-#     input("Press enter to exit...")
-#
-#
-# if __name__ == '__main__':
-#     parser = argparse.ArgumentParser(description='Check Excel file for data.')
-#     parser.add_argument('--workbook', help='The Excel file to check')
-#     parser.add_argument('--id_data', help='List of data to match')
-#     args = parser.parse_args()
-#     main(args)
+
+def main(args):
+    if os.path.isfile(args.id_data):
+        args.id_data = os.path.splitext(os.path.basename(args.id_data))[0]
+    df = pd.read_excel(args.workbook_ast, sheet_name='Sales', header=2)
+    print(f"Checking {args.workbook_ast} for {args.id_data}")
+    result = check_paid(df=df, id_data=args.id_data)
+    print(f"Value for {args.id_data} is {result}")
+    input("Press enter to exit...")
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Check Excel file for data.')
+    parser.add_argument('--workbook', help='The Excel file to check')
+    parser.add_argument('--id_data', help='List of data to match')
+    args = parser.parse_args()
+    main(args)

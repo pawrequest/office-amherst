@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from office_am.managers.transact import TransactionContext
+from ..order.transact import TransactionContext
 
 
 def ass_get_prices():
@@ -11,7 +11,6 @@ def ass_get_prices():
     assert isinstance(price, Decimal)
     assert isinstance(hire_price, Decimal)
     assert hire_price < price
-
 
 # def test_make_sale_order(tm_fxt, sale_cursor_fxt):
 #     sales = cmc_manager.sales_by_customer('Test')
@@ -49,7 +48,6 @@ def ass_get_prices():
 # ass_get_prices()
 # ass_make_hire_order()
 # ass_make_sale_order()
-
 
 
 # def get_con(record, connection: Connection_e):

@@ -3,11 +3,10 @@ import os
 from dataclasses import dataclass, field
 from typing import Optional
 
-import pandas as pd
-from office_am.entities.dflt import DFLT_CONST, DFLT_PATHS
-from pandas import Series
+from pandas import Series, read_excel
 
-from office_am.in_out.excel import df_overwrite_wb
+from ..dflt import DFLT_CONST, DFLT_PATHS
+from ..office_tools.excel import df_overwrite_wb
 
 
 # from word.dde import items_from_hire
@@ -70,7 +69,7 @@ class AssetContext:
                 data = json.load(json_file)
             self.assets = data['df_a']
         else:
-            self.assets = pd.read_excel(self.workbook_ast, sheet_name=self.sheet, header=self.header_row)
+            self.assets = read_excel(self.workbook_ast, sheet_name=self.sheet, header=self.header_row)
 
         self.assets['Number'] = self.assets['Number'].astype(str)
 
@@ -115,19 +114,19 @@ class AssetManager:
         else:
             self.df_a.loc[self.df_a[DFLT_CONST.SERIAL] == id_or_serial, field_name] = value
 
-    def field_from_id_or_serial(self, id_or_serial: str, field: str):
+    def field_from_id_or_serial(self, id_or_serial: str, fieldname: str):
         try:
             if an_id(id_or_serial):
-                return self.df_a.loc[self.df_a[DFLT_CONST.ID] == id_or_serial, field].values[0]
+                return self.df_a.loc[self.df_a[DFLT_CONST.ID] == id_or_serial, fieldname].values[0]
             else:
-                return self.df_a.loc[self.df_a[DFLT_CONST.SERIAL] == id_or_serial, field].values[0]
+                return self.df_a.loc[self.df_a[DFLT_CONST.SERIAL] == id_or_serial, fieldname].values[0]
         except IndexError:
-            raise ValueError(f"Field {field} not found for {id_or_serial}")
+            raise ValueError(f"Field {fieldname} not found for {id_or_serial}")
         except Exception as e:
             raise e
 
     def check_fw(self, id_or_serial: str, fw_version=None):
-        fw_1 = self.field_from_id_or_serial(id_or_serial=id_or_serial, field=DFLT_CONST.FW)
+        fw_1 = self.field_from_id_or_serial(id_or_serial=id_or_serial, fieldname=DFLT_CONST.FW)
         if fw_version is None:
             assert fw_1
         else:

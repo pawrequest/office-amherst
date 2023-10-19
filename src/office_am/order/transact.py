@@ -3,21 +3,21 @@ from typing import List, Tuple
 
 import pandas as pd
 
-from office_am.entities.order_ent import FreeItem, HireInvoice, HireOrder, LineItem
-from office_am.in_out.excel import df_overwrite_wb
-from office_am.entities.dflt import DFLT_CONST, DFLT_PATHS, DTYPES, FIELDS
+from .order_ent import FreeItem, HireInvoice, HireOrder, LineItem
+from ..dflt import DFLT_CONST, DFLT_PATHS, DTYPES, FIELDS
+from ..office_tools.excel import df_overwrite_wb
 
 
-
-def transaction_closure(prices_wb=DFLT_PATHS.PRC_WB, prcs_out=DFLT_PATHS.PRC_OUT, jsong_file = DFLT_PATHS.PRCS_JSON, header_row =DFLT_CONST.PRC_HEAD):
+def transaction_closure(prices_wb=DFLT_PATHS.PRC_WB, prcs_out=DFLT_PATHS.PRC_OUT, jsong_file=DFLT_PATHS.PRCS_JSON,
+                        header_row=DFLT_CONST.PRC_HEAD):
     df_bands, df_pr_hire, df_pr_sale = get_dfs()
-
 
 
 def get_dfs():
     # df_bands, df_hire, df_sale = dfs_from_json() if json_file.exists() else dfs_from_excel()
     df_bands, df_hire, df_sale = dfs_from_excel()
     return df_bands, df_hire, df_sale
+
 
 def dfs_from_excel(prcs_wb=DFLT_PATHS.PRC_WB):
     hire = pd.read_excel(prcs_wb, sheet_name='Hire', header=0,
@@ -29,6 +29,7 @@ def dfs_from_excel(prcs_wb=DFLT_PATHS.PRC_WB):
 
     return bands, hire, sale
 
+
 def dfs_from_json(json_file=DFLT_PATHS.PRCS_JSON):
     with open(json_file, 'r') as json_file2:
         data = json.load(json_file2)
@@ -38,6 +39,7 @@ def dfs_from_json(json_file=DFLT_PATHS.PRCS_JSON):
 
     return bands, hire, sale
 
+
 def dfs_to_wb(df_pr_hire, df_pr_sale, df_bands):
     # todo convert back from 100
     df_overwrite_wb(input_workbook=DFLT_PATHS.PRC_WB, sheet='Hire', header_row=0,
@@ -46,6 +48,7 @@ def dfs_to_wb(df_pr_hire, df_pr_sale, df_bands):
                     out_file=DFLT_PATHS.PRC_OUT, df=df_pr_sale)
     df_overwrite_wb(input_workbook=DFLT_PATHS.PRC_WB, sheet='Bands', header_row=0,
                     out_file=DFLT_PATHS.PRC_OUT, df=df_bands)
+
 
 def dfs_to_json(df_pr_hire, df_pr_sale, df_bands, json_file=DFLT_PATHS.PRCS_JSON):
     data = {
@@ -58,88 +61,13 @@ def dfs_to_json(df_pr_hire, df_pr_sale, df_bands, json_file=DFLT_PATHS.PRCS_JSON
         json.dump(data, jfile, indent=4)
 
 
-
-
-
-
-
-
-
-
-
-
-class TransactionContext:
-    def __init__(self, header_row=None, out_file=None, prices_wb=None, ):
-        self.prcs_wb = prices_wb or DFLT_PATHS.PRC_WB
-        self.prcs_out = out_file or DFLT_PATHS.PRC_OUT
-        self.json_file = self.prcs_out.with_suffix('.json')  # JSON file path with new suffix
-        self.header_row = header_row or int(DFLT_CONST.PRC_HEAD)
-        self.df_bands, self.df_pr_hire, self.df_pr_sale = self.get_dfs()
-
-    def __enter__(self):
-        self.transaction_manager = TransactionManager(df_bands=self.df_bands, df_hire=self.df_pr_hire,
-                                                      df_sale=self.df_pr_sale)
-        return self.transaction_manager
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        # if input("Save changes? (y/n)").lower() != 'y':
-        #     return
-        self.dfs_to_json()
-        # self.dfs_to_wb()
-
-    def get_dfs(self):
-        assert self.prcs_wb.exists()
-
-        # df_bands, df_hire, df_sale = self.dfs_from_json() if self.json_file.exists() else self.dfs_from_excel()
-        df_bands, df_hire, df_sale = self.dfs_from_excel()
-        return df_bands, df_hire, df_sale
-
-    def dfs_from_excel(self):
-        hire = pd.read_excel(self.prcs_wb, sheet_name='Hire', header=0,
-                             dtype=DTYPES.HIRE_PRICES)
-        sale = pd.read_excel(self.prcs_wb, sheet_name='Sale', header=0,
-                             dtype=DTYPES.SALE_PRICES)
-        bands = pd.read_excel(self.prcs_wb, sheet_name='Bands', header=0,
-                              dtype=str)
-
-        return bands, hire, sale
-
-    def dfs_from_json(self):
-        with open(self.json_file, 'r') as json_file2:
-            data = json.load(json_file2)
-        bands = pd.DataFrame(data['df_b'], dtype=str)
-        hire = pd.DataFrame(data['df_hire']).astype(DTYPES.HIRE_PRICES, errors='ignore')
-        sale = pd.DataFrame(data['df_sale']).astype(DTYPES.SALE_PRICES, errors='ignore')
-
-        return bands, hire, sale
-
-    def dfs_to_wb(self):
-        # todo convert back from 100
-        df_overwrite_wb(input_workbook=DFLT_PATHS.PRC_WB, sheet='Hire', header_row=0,
-                        out_file=DFLT_PATHS.PRC_OUT, df=self.df_pr_hire)
-        df_overwrite_wb(input_workbook=DFLT_PATHS.PRC_WB, sheet='Sale', header_row=0,
-                        out_file=DFLT_PATHS.PRC_OUT, df=self.df_pr_sale)
-        df_overwrite_wb(input_workbook=DFLT_PATHS.PRC_WB, sheet='Bands', header_row=0,
-                        out_file=DFLT_PATHS.PRC_OUT, df=self.df_bands)
-
-    def dfs_to_json(self):
-        data = {
-            'df_hire': self.df_pr_hire.astype(str).to_dict(),
-            'df_sale': self.df_pr_sale.astype(str).to_dict(),
-            'df_b': self.df_bands.astype(str).to_dict(),
-        }
-        ...
-        with open(self.json_file, 'w') as json_file:
-            json.dump(data, json_file, indent=4)
-
-
 class TransactionManager:
     def __init__(self, df_bands: pd.DataFrame, df_hire: pd.DataFrame, df_sale: pd.DataFrame):
         self.df_bands = df_bands
         self.df_hire = df_hire
         self.df_sale = df_sale
 
-    def hire_invoice(self, hire: dict) -> HireInvoice:
+    def get_hire_invoice(self, hire: dict) -> HireInvoice:
         if 'Delivery Cost' not in hire or not hire['Delivery Cost']:
             shipping = 0
         else:
@@ -209,7 +137,7 @@ def hire_lineitems_pay(df_h: pd.DataFrame, pay_items: dict, duration: int, df_ba
     return line_items
 
 
-def hire_lineitems_free(df_bands: pd.DataFrame, df_hire: pd.DataFrame, duration: int, free_items: dict) -> list :
+def hire_lineitems_free(df_bands: pd.DataFrame, df_hire: pd.DataFrame, duration: int, free_items: dict) -> list:
     line_items = []
     for name, qty in free_items.items():
         description = hire_item_description(df_bands, df_hire, name)
@@ -218,7 +146,7 @@ def hire_lineitems_free(df_bands: pd.DataFrame, df_hire: pd.DataFrame, duration:
     return line_items
 
 
-def lines_from_hire(df_bands, df_hire, hire: dict )-> Tuple[list,list]:
+def lines_from_hire(df_bands, df_hire, hire: dict) -> Tuple[list, list]:
     duration = hire['Weeks']
     hire_itms = items_dict_from_hire(hire)
     free = {k: v for k, v in hire_itms.items() if k in FIELDS.FREE_ITEMS}
@@ -263,3 +191,68 @@ def items_from_sale(sale: pd.Series):
         item_name, qty = res
         item_tups.append((item_name, int(qty)))
     return item_tups
+
+class TransactionContext:
+    def __init__(self, header_row=None, out_file=None, prices_wb=None, ):
+        self.prcs_wb = prices_wb or DFLT_PATHS.PRC_WB
+        self.prcs_out = out_file or DFLT_PATHS.PRC_OUT
+        self.json_file = self.prcs_out.with_suffix('.json')  # JSON file path with new suffix
+        self.header_row = header_row or int(DFLT_CONST.PRC_HEAD)
+        self.df_bands, self.df_pr_hire, self.df_pr_sale = self.get_dfs()
+
+    def __enter__(self) -> TransactionManager:
+        self.transaction_manager = TransactionManager(df_bands=self.df_bands, df_hire=self.df_pr_hire,
+                                                      df_sale=self.df_pr_sale)
+        return self.transaction_manager
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # if input("Save changes? (y/n)").lower() != 'y':
+        #     return
+        self.dfs_to_json()
+        # self.dfs_to_wb()
+
+    def get_dfs(self):
+        assert self.prcs_wb.exists()
+
+        # df_bands, df_hire, df_sale = self.dfs_from_json() if self.json_file.exists() else self.dfs_from_excel()
+        df_bands, df_hire, df_sale = self.dfs_from_excel()
+        return df_bands, df_hire, df_sale
+
+    def dfs_from_excel(self):
+        hire = pd.read_excel(self.prcs_wb, sheet_name='Hire', header=0,
+                             dtype=DTYPES.HIRE_PRICES)
+        sale = pd.read_excel(self.prcs_wb, sheet_name='Sale', header=0,
+                             dtype=DTYPES.SALE_PRICES)
+        bands = pd.read_excel(self.prcs_wb, sheet_name='Bands', header=0,
+                              dtype=str)
+
+        return bands, hire, sale
+
+    def dfs_from_json(self):
+        with open(self.json_file, 'r') as json_file2:
+            data = json.load(json_file2)
+        bands = pd.DataFrame(data['df_b'], dtype=str)
+        hire = pd.DataFrame(data['df_hire']).astype(DTYPES.HIRE_PRICES, errors='ignore')
+        sale = pd.DataFrame(data['df_sale']).astype(DTYPES.SALE_PRICES, errors='ignore')
+
+        return bands, hire, sale
+
+    def dfs_to_wb(self):
+        # todo convert back from 100
+        df_overwrite_wb(input_workbook=DFLT_PATHS.PRC_WB, sheet='Hire', header_row=0,
+                        out_file=DFLT_PATHS.PRC_OUT, df=self.df_pr_hire)
+        df_overwrite_wb(input_workbook=DFLT_PATHS.PRC_WB, sheet='Sale', header_row=0,
+                        out_file=DFLT_PATHS.PRC_OUT, df=self.df_pr_sale)
+        df_overwrite_wb(input_workbook=DFLT_PATHS.PRC_WB, sheet='Bands', header_row=0,
+                        out_file=DFLT_PATHS.PRC_OUT, df=self.df_bands)
+
+    def dfs_to_json(self):
+        data = {
+            'df_hire': self.df_pr_hire.astype(str).to_dict(),
+            'df_sale': self.df_pr_sale.astype(str).to_dict(),
+            'df_b': self.df_bands.astype(str).to_dict(),
+        }
+        ...
+        with open(self.json_file, 'w') as json_file:
+            json.dump(data, json_file, indent=4)
+

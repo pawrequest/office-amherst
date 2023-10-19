@@ -3,15 +3,15 @@ from pathlib import Path
 
 import PySimpleGUI as sg
 
-from office_am.cmc.commence import CmcContext
-from office_am.cmc.cmc_entities import CmcError
-from office_am.entities.dflt import DFLT_HIRE_EMAIL, DFLT_PATHS
-from office_am.entities.office_tools import OfficeTools
-from office_am.in_out.email_funcs import EmailError
-from office_am.in_out.file_management import print_file
-from office_am.managers.gui import create_gui
-from office_am.managers.invoice import get_inv_temp
-from office_am.managers.transact import TransactionContext
+from office_am.office_tools.email_handler import EmailError
+from office_am.office_tools.o_tool import OfficeTools
+from .asset_man.gui import create_gui
+from .cmc.cmc_entities import CmcError
+from .cmc.commence import CmcContext
+from .dflt import DFLT_HIRE_EMAIL, DFLT_PATHS
+from .office_tools.file_management import print_file
+from .order.invoice import get_inv_temp
+from .order.transact import TransactionContext
 
 
 def main(args):
@@ -21,7 +21,7 @@ def main(args):
         hire = cmc.get_record_with_customer('Hire', args.hire_name)
 
         with TransactionContext() as tm:
-            hire_inv = tm.hire_invoice(hire)
+            hire_inv = tm.get_hire_invoice(hire)
             out_file = (DFLT_PATHS.INV_OUT_DIR / hire_inv.inv_num).with_suffix('.docx')
             template, temp_file = get_inv_temp(hire_inv)
 
@@ -49,35 +49,37 @@ def event_loop(cmc, temp_file, outfile, hire, ot: OfficeTools):
                 if values['-PRINT-']:
                     print_file(pdf_file)
                 if values['-CMC-']:
-                    do_cmc(cmc, hire, outfile)
+                    do_cmc(cmc, 'Hire', hire, outfile)
             if values['-OPEN-']:
                 opened = ot.doc.open_document(outfile if outfile.exists() else temp_file)
             break
-
 
 
 def do_all(cmc, temp_file, outfile, hire, ot: OfficeTools):
     saved_docx = ot.doc.save_document(temp_file, outfile)
     pdf_file = ot.pdf.from_docx(outfile)
     # print_file(outfile.with_suffix('.pdf'))
-    do_cmc(cmc, hire, outfile)
+    do_cmc(cmc, 'Hire', hire, outfile)
     do_email(pdf_file, ot)
     opened = ot.doc.open_document(saved_docx or temp_file)
 
     ...
-def do_cmc(cmc, hire, outfile):
+
+
+def do_cmc(cmc, table, transaction, outfile):
     package = {'Invoice': outfile}
-    if 'test' not in hire['Name'].lower():
-        if sg.popup_ok_cancel(f'Log {hire["Name"]} to CMC?') != 'OK':
+    if 'test' not in transaction['Name'].lower():
+        if sg.popup_ok_cancel(f'Log {transaction["Name"]} to CMC?') != 'OK':
             return
     try:
-        cmc.edit_hire(hire['Name'], package)
+        cmc.edit_record(table, transaction['Name'], package)
     except CmcError as e:
         sg.popup_error(f"Failed to log to CMC with error: {e}")
     else:
         return True
 
-def do_email(attachment:Path, ot, email_ = DFLT_HIRE_EMAIL):
+
+def do_email(attachment: Path, ot, email_=DFLT_HIRE_EMAIL):
     email_.attachment_path = attachment
     try:
         ot.email.send_email(email_)

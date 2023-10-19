@@ -6,9 +6,9 @@ import pytest
 from openpyxl.reader.excel import load_workbook
 from pandas import Series
 
-from office_am.in_out import get_rows
-from office_am.managers import AssetContext, AssetManager
-from office_am.entities.dflt import DFLT_CONST
+from office_am.office_tools.excel import get_rows
+from office_am.asset_man.assets import AssetContext, AssetManager
+from office_am.dflt import DFLT_CONST
 
 
 def top_three_rows(in_wb, out_wb):
@@ -28,7 +28,7 @@ def manager_context_fxt():
 
 @pytest.fixture
 def am_fxt(manager_context_fxt) -> AssetManager:
-    am = manager_context_fxt[0]
+    am = manager_context_fxt
     yield am
 
 
@@ -38,21 +38,6 @@ def df_asset_fxt(am_fxt):
     yield asset
 
 
-# def test_am_context(am_fxt):
-#     fd, temp_filepath = tempfile.mkstemp(suffix='.xlsx')
-#     os.close(fd)
-#     temp_path = Path(temp_filepath)
-#     # df_overwrite_wb(DFLT.WB_AST.value, DFLT.SHEET_AST.value, am_context.df_a, DFLT.HEAD_AST.value, temp_path)
-#     # assert styles_match(DFLT.WB_AST.value, temp_path)
-#     linky = DFLT.WB_AST.value
-#     assert linky.exists()
-#     df1 = am_fxt.df_a
-#     with AssetManagerContext(out_file=temp_path) as am2:
-#         df2 = am2.df_a
-#     assert df1.equals(df2)
-#     assert styles_match(DFLT.WB_AST.value, temp_path)
-#     temp_path.unlink()
-#
 
 def styles_match(in_wb, out_wb) -> bool:
     in_styles = get_styles(in_wb)
@@ -69,7 +54,7 @@ def get_styles(filename: Path, start=0, end=3):
 
 
 def test_id(df_asset_fxt):
-    id_num = df_asset_fxt[DFLT_CONST.ID.value]
+    id_num = df_asset_fxt[DFLT_CONST.ID]
     assert id_num == '1111'
 
 

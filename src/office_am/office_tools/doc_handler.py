@@ -1,47 +1,12 @@
-import PySimpleGUI as sg
-import asyncio
-import os
 import shutil
 import subprocess
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Tuple
 
+import PySimpleGUI as sg
 from comtypes.client import CreateObject
-from docx2pdf import convert as convert_word
 
-
-
-# convert doc to pdf
-class PDFConverter(ABC):
-    @abstractmethod
-    def from_docx(self, out_file: Path):
-        raise NotImplementedError
-
-
-class WordConverter(PDFConverter):
-    def from_docx(self, doc_file: Path):
-        try:
-            convert_word(doc_file, output_path=doc_file.parent, keep_active=True)
-            outfile = doc_file.with_suffix('.pdf')
-            print(f"Converted {outfile}")
-            return outfile
-        except Exception as e:
-            raise e
-
-
-class LibreConverter(PDFConverter):
-    def from_docx(self, doc_file: Path):
-        try:
-            subprocess.run(f'soffice --headless --convert-to pdf {str(doc_file)} --outdir {str(doc_file.parent)}')
-            outfile = doc_file.with_suffix('.pdf')
-            print(f"Converted {outfile}")
-            return outfile
-        except Exception as e:
-            ...
-
-
-# open doc
 
 class DocHandler(ABC):
     @abstractmethod
@@ -79,22 +44,3 @@ class LibreHandler(DocHandler):
         except Exception as e:
             raise e
         return process, None
-
-
-def print_file(file_path: Path):
-    try:
-        os.startfile(str(file_path), "print")
-        return True
-    except Exception as e:
-        print(f"Failed to print: {e}")
-        return False
-
-
-async def wait_for_process(process):
-    while True:
-        res = process.poll()
-        if res is not None:
-            break
-        await asyncio.sleep(3)
-    print("Process has finished.")
-

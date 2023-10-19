@@ -1,14 +1,14 @@
 from enum import Enum
 from pathlib import Path
 
-from office_am.in_out.email_funcs import Email
+from .office_tools.email_handler import Email
 
 DEBUG = True
 USE_MICROSOFT = False
 
 
 class DFLT_PATHS:
-    ROOT = Path(__file__).parent.parent
+    ROOT = Path(__file__).parent.parent.parent
     STATIC = ROOT / 'static'
     DATA = STATIC / 'data'
     GENERATED = STATIC / 'generated'

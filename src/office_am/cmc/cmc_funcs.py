@@ -5,7 +5,7 @@ from typing import List
 from win32com.client import Dispatch
 
 from . import auto_cmc
-from .cmc_entities import Connection_e
+from .cmc_entities import CONNECTION
 
 
 def get_cmc() -> auto_cmc.ICommenceDB:
@@ -35,7 +35,7 @@ def qs_from_name(cmc, table, record, edit=False) -> auto_cmc.ICommenceQueryRowSe
     return results
 
 
-def connected_records_to_qs(cmc, connect: Connection_e, item_name: str, max_res=50) -> auto_cmc.ICommenceQueryRowSet | None:
+def connected_records_to_qs(cmc, connect: CONNECTION, item_name: str, max_res=50) -> auto_cmc.ICommenceQueryRowSet | None:
     cursor = get_csr(cmc, connect.value.key_table)
     filter_by_connection(cursor, item_name, connect)
     qs = cursor.GetQueryRowSet(max_res, 0)
@@ -118,7 +118,7 @@ def filter_by_field_old(cursor: auto_cmc.ICommenceCursor, field_name: str, value
         raise ValueError(f"Could not set filter for {field_name} {rationale} {value}")
 
 
-def filter_by_connection(cursor: auto_cmc.ICommenceCursor, item_name: str, connection: Connection_e):
+def filter_by_connection(cursor: auto_cmc.ICommenceCursor, item_name: str, connection: CONNECTION):
     filter_str = f'[ViewFilter(1, CTI,, {connection.value.desc}, {connection.value.value_table}, {item_name})]'
     res = cursor.SetFilter(filter_str, 0)
     if not res:

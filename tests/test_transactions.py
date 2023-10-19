@@ -12,13 +12,12 @@
 #
 import pytest
 
-import cmc.cmc_funcs
-from in_out import commence
+import office_am.cmc.cmc_funcs
 
 
 @pytest.fixture
 def commence_fxt():
-    yield cmc.cmc_funcs.get_cmc()
+    yield office_am.cmc.cmc_funcs.get_cmc()
 # @pytest.fixture
 # def hire_cursor_fxt(commence_fxt):
 #     cursor = commence_fxt.GetCursor(0, 'Hire', 0)

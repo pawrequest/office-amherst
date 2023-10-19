@@ -1,5 +1,5 @@
-from in_out import commence
-from managers.transact import TransactionContext
+from office_am.in_out import commence
+from office_am.managers.transact import TransactionContext
 
 
 def test_get_customer(customer_name):

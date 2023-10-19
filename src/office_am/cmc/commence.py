@@ -1,11 +1,9 @@
-import datetime
 from typing import ContextManager, List
 
-from entities.cmc_entities import CmcError, Connection_e
-from .cmc_funcs import clean_dict, clean_hire_dict, connected_records_to_qs, filter_by_fieldnew, get_cmc, get_csr, \
-    qs_from_name, \
+from office_am.entities.cmc_entities import CmcError, Connection_e
+from .cmc_funcs import clean_dict, clean_hire_dict, connected_records_to_qs, get_cmc, qs_from_name, \
     qs_to_dicts
-from win32com.gen_py.auto_cmc import ICommenceCursor, ICommenceDB, ICommenceQueryRowSet, ICommenceEditRowSet
+from win32com.gen_py.auto_cmc import ICommenceDB, ICommenceEditRowSet
 
 ### functions to call
 

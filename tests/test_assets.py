@@ -6,9 +6,9 @@ import pytest
 from openpyxl.reader.excel import load_workbook
 from pandas import Series
 
-from in_out.excel import get_rows
-from managers.assets import AssetContext, AssetManager
-from entities.dflt import DFLT_CONST
+from office_am.in_out import get_rows
+from office_am.managers import AssetContext, AssetManager
+from office_am.entities.dflt import DFLT_CONST
 
 
 def top_three_rows(in_wb, out_wb):

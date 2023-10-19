@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import List, Optional
 
-from managers.invoice_number import next_inv_num
+from office_am.managers.invoice_number import next_inv_num
 
 
 @dataclass

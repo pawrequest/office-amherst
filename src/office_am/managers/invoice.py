@@ -4,8 +4,8 @@ from typing import Tuple
 
 
 from docxtpl import DocxTemplate
-from entities.dflt import DFLT_PATHS, format_currency
-from entities.order_ent import HireInvoice
+from office_am.entities.dflt import DFLT_PATHS, format_currency
+from office_am.entities.order_ent import HireInvoice
 
 
 def get_inv_temp(inv_o: HireInvoice,

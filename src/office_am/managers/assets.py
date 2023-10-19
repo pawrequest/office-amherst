@@ -4,10 +4,10 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 import pandas as pd
-from entities.dflt import DFLT_CONST, DFLT_PATHS
+from office_am.entities.dflt import DFLT_CONST, DFLT_PATHS
 from pandas import Series
 
-from in_out.excel import df_overwrite_wb
+from office_am.in_out.excel import df_overwrite_wb
 
 
 # from word.dde import items_from_hire

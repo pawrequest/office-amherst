@@ -3,9 +3,9 @@ from typing import List, Tuple
 
 import pandas as pd
 
-from entities.order_ent import FreeItem, HireInvoice, HireOrder, LineItem
-from in_out.excel import df_overwrite_wb
-from entities.dflt import DFLT_CONST, DFLT_PATHS, DTYPES, FIELDS
+from office_am.entities.order_ent import FreeItem, HireInvoice, HireOrder, LineItem
+from office_am.in_out.excel import df_overwrite_wb
+from office_am.entities.dflt import DFLT_CONST, DFLT_PATHS, DTYPES, FIELDS
 
 
 

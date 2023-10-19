@@ -3,15 +3,15 @@ from pathlib import Path
 
 import PySimpleGUI as sg
 
-from cmc.cmc_entities import CmcError
-from cmc.commence import CmcContext
-from entities.dflt import DFLT_HIRE_EMAIL, DFLT_PATHS
-from entities.office_tools import OfficeTools
-from in_out.email_funcs import EmailError
-from in_out.file_management import print_file
-from managers.gui import create_gui
-from managers.invoice import get_inv_temp
-from managers.transact import TransactionContext
+from office_am.cmc.commence import CmcContext
+from office_am.entities.cmc_entities import CmcError
+from office_am.entities.dflt import DFLT_HIRE_EMAIL, DFLT_PATHS
+from office_am.entities.office_tools import OfficeTools
+from office_am.in_out.email_funcs import EmailError
+from office_am.in_out.file_management import print_file
+from office_am.managers.gui import create_gui
+from office_am.managers.invoice import get_inv_temp
+from office_am.managers.transact import TransactionContext
 
 
 def main(args):

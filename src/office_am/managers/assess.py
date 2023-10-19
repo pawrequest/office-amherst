@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from managers.transact import TransactionContext
+from office_am.managers.transact import TransactionContext
 
 
 def ass_get_prices():

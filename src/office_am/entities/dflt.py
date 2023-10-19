@@ -1,19 +1,18 @@
 from enum import Enum
 from pathlib import Path
 
-from in_out.email_funcs import Email
+from office_am.in_out.email_funcs import Email
 
 DEBUG = True
 USE_MICROSOFT = False
 
 
 class DFLT_PATHS:
-    ROOT = Path(__file__).parent.parent.parent
+    ROOT = Path(__file__).parent.parent
     STATIC = ROOT / 'static'
     DATA = STATIC / 'data'
     GENERATED = STATIC / 'generated'
     TEMPLATE = STATIC / 'templates'
-    FW_VERSION = 'XXXX'
     AST_WB = DATA / 'assets.xlsx'
     PRC_WB = DATA / 'prices.xlsx'
     AST_OUT = GENERATED / 'assets_out.xlsx'
@@ -27,6 +26,7 @@ class DFLT_PATHS:
 
 
 class DFLT_CONST:
+    FW_VERSION = 'XXXX'
     MIN_DUR = 'Min Duration'
     MODEL = "Model"
     SERIAL = 'Barcode'

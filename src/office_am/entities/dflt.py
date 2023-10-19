@@ -48,7 +48,10 @@ DFLT_HIRE_EMAIL: Email = Email(
 
 def get_hire_invoice_email(hire: dict) -> Email:
     to_address = hire['Email']
-
+    subject = 'Radio Hire - Invoice attached'
+    nl = '\n'
+    body = f'Thanks for hiring from amherst, your order contains the following: {nl*2}{hire["Hire Sheet Text"]}'
+    return Email(to_address, subject, body)
 
 class FILTER_(Enum):
     FIELD = 'F'

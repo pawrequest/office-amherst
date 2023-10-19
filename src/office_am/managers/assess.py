@@ -20,8 +20,8 @@ def ass_get_prices():
 
 
 # def get_many_customers():
-#     cmc = get_cmc()
-#     csr: auto_cmc.ICommenceCursor = cmc.GetCursor(0, 'Customer', 0)
+#     cmc_db = get_cmc()
+#     csr: auto_cmc.ICommenceCursor = cmc_db.GetCursor(0, 'Customer', 0)
 #     csr.SeekRow(0, 1000)
 #     qs = csr.GetQueryRowSet(20, 0)
 #     # for i in range(qs.RowCount):
@@ -31,7 +31,7 @@ def ass_get_prices():
 
 
 # def assess_get_customer_methods(hire):
-#     with CmcContext() as cmc:
+#     with CmcContext() as cmc_db:
 #         hire_name = hire.Name
 #     # customer = commence.qs_sngl(cuurs, hire['To Customer'])
 #     custoemr2 = get_customer(hire['To Customer'])

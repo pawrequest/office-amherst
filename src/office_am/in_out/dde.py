@@ -131,7 +131,7 @@ def get_customer_sales(conv, customer_name):
 def get_conversation_func(topic='Commence', command='ViewData', db_name='Commence'):
     try:
 
-        # cmc = win32com.client.Dispatch(f"{topic}.DB")
+        # cmc_db = win32com.client.Dispatch(f"{topic}.DB")
         cmc = win32com.client.Dispatch(f"{db_name}.DB")
         conv = cmc.GetConversation(f"{topic}", f"{command}")
     except Exception as e:

@@ -4,23 +4,22 @@ from typing import List
 
 from win32com.client import Dispatch
 
-# from cmc import auto_cmc as cmc_
-from win32com.gen_py import auto_cmc as cmc_
-from office_am.entities.cmc_entities import Connection_e
+from . import auto_cmc
+from .cmc_entities import Connection_e
 
 
-def get_cmc() -> cmc_.ICommenceDB:
+def get_cmc() -> auto_cmc.ICommenceDB:
     try:
         return Dispatch(f"Commence.DB")
     except Exception as e:
         raise e
 
 
-def get_csr(cmc, tablename) -> cmc_.ICommenceCursor:
+def get_csr(cmc, tablename) -> auto_cmc.ICommenceCursor:
     return cmc.GetCursor(0, tablename, 0)
 
 
-def qs_from_name(cmc, table, record, edit=False) -> cmc_.ICommenceQueryRowSet | cmc_.ICommenceEditRowSet:
+def qs_from_name(cmc, table, record, edit=False) -> auto_cmc.ICommenceQueryRowSet | auto_cmc.ICommenceEditRowSet:
     csr = get_csr(cmc, table)
     # filter_by_field(csr, 'Name', 'Equals', value=record)
     filter_by_field_old(csr, 'Name', record)
@@ -36,7 +35,7 @@ def qs_from_name(cmc, table, record, edit=False) -> cmc_.ICommenceQueryRowSet | 
     return results
 
 
-def connected_records_to_qs(cmc, connect: Connection_e, item_name: str, max_res=50) -> cmc_.ICommenceQueryRowSet | None:
+def connected_records_to_qs(cmc, connect: Connection_e, item_name: str, max_res=50) -> auto_cmc.ICommenceQueryRowSet | None:
     cursor = get_csr(cmc, connect.value.key_table)
     filter_by_connection(cursor, item_name, connect)
     qs = cursor.GetQueryRowSet(max_res, 0)
@@ -97,11 +96,11 @@ def get_fieldnames(qs) -> list:
     return field_names
 
 
-def filter_by_date(cursor: cmc_.ICommenceCursor, field_name: str, date: datetime.date, after=True):
+def filter_by_date(cursor: auto_cmc.ICommenceCursor, field_name: str, date: datetime.date, after=True):
     filter_str = f"[ViewFilter(1, F,, Date Last Contact, After, {date})]"
 
 
-def filter_by_fieldnew(cursor: cmc_.ICommenceCursor, field_name: str, condition, value=None):
+def filter_by_fieldnew(cursor: auto_cmc.ICommenceCursor, field_name: str, condition, value=None):
     # filter_str = f'[ViewFilter(1, F,, "{field_name}", "{condition}", "{value})]'
     val_cond = f', "{value}"' if value else ""
     filter_str = f'[ViewFilter(1, F,, {field_name}, {condition}{val_cond})]'
@@ -111,7 +110,7 @@ def filter_by_fieldnew(cursor: cmc_.ICommenceCursor, field_name: str, condition,
     return cursor
 
 
-def filter_by_field_old(cursor: cmc_.ICommenceCursor, field_name: str, value, contains=False):
+def filter_by_field_old(cursor: auto_cmc.ICommenceCursor, field_name: str, value, contains=False):
     rationale = 'Contains' if contains else 'Equal To'
     filter_str = f'[ViewFilter(1, F,, "{field_name}", "{rationale}", "{value}")]'
     res = cursor.SetFilter(filter_str, 0)
@@ -119,7 +118,7 @@ def filter_by_field_old(cursor: cmc_.ICommenceCursor, field_name: str, value, co
         raise ValueError(f"Could not set filter for {field_name} {rationale} {value}")
 
 
-def filter_by_connection(cursor: cmc_.ICommenceCursor, item_name: str, connection: Connection_e):
+def filter_by_connection(cursor: auto_cmc.ICommenceCursor, item_name: str, connection: Connection_e):
     filter_str = f'[ViewFilter(1, CTI,, {connection.value.desc}, {connection.value.value_table}, {item_name})]'
     res = cursor.SetFilter(filter_str, 0)
     if not res:
@@ -140,7 +139,7 @@ def qs_to_lists(qs, max_rows=None) -> List:
     return rows
 
 
-def qs_to_dicts(qs: cmc_.ICommenceQueryRowSet, max_rows=None) -> List[dict]:
+def qs_to_dicts(qs: auto_cmc.ICommenceQueryRowSet, max_rows=None) -> List[dict]:
     row_count = qs.RowCount
     if row_count == 0:
         raise ValueError("Query set is empty")

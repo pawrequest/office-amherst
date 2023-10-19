@@ -14,10 +14,10 @@ class EmailSender(ABC):
 
 class Email:
     def __init__(self, to_address: str, subject: str, body: str, attachment_path: Optional[Path] = None):
-        self.attachment_path = attachment_path
         self.to_address = to_address
         self.subject = subject
         self.body = body
+        self.attachment_path = attachment_path
 
     def send(self, sender: EmailSender) -> None:
         sender.send_email(self)

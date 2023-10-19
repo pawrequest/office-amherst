@@ -4,7 +4,7 @@ from pathlib import Path
 import PySimpleGUI as sg
 
 from office_am.cmc.commence import CmcContext
-from office_am.entities.cmc_entities import CmcError
+from office_am.cmc.cmc_entities import CmcError
 from office_am.entities.dflt import DFLT_HIRE_EMAIL, DFLT_PATHS
 from office_am.entities.office_tools import OfficeTools
 from office_am.in_out.email_funcs import EmailError

@@ -1,7 +1,7 @@
 import PySimpleGUI as sg
 
 
-def create_gui():
+def invoice_gui():
     layout = [
         [sg.Checkbox('Save', default=True, key='-SAVE-')],
         [sg.Checkbox('Open', default=True, key='-OPEN-')],

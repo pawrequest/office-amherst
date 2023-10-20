@@ -1,3 +1,7 @@
+import numbers
+
+import pandas as pd
+
 
 # def clean_empty_string_cols(df):
 #     df2 = df.replace('', np.nan)
@@ -100,3 +104,20 @@
 #     valid_dtypes = {col: dtype for col, dtype in dtype_map.items() if col in df.columns}
 #     return valid_dtypes
 
+def df_is_numeric(col):
+    try:
+        pd.to_numeric(col)
+        return True
+    except:
+        return False
+
+
+def coerce_df_numtype(df: pd.DataFrame, col_header: str, data: str | int | float):
+    if df_is_numeric(df[col_header]) and not isinstance(data, numbers.Number):
+        ans = input(f"TypeMismatch : cast {col_header} ({df[col_header].dtype}) to {type(data)}? 's' to skip")
+        if ans.lower() == 'y':
+            df[col_header] = df[col_header].astype(type(data))
+        elif ans == 's':
+            return
+        else:
+            exit("Aborted.")

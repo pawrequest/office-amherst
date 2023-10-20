@@ -8,7 +8,7 @@ USE_MICROSOFT = False
 
 
 class DFLT_PATHS:
-    ROOT = Path(__file__).parent.parent.parent
+    ROOT = Path(__file__).parent
     STATIC = ROOT / 'static'
     DATA = STATIC / 'data'
     GENERATED = STATIC / 'generated'

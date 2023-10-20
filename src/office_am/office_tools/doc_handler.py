@@ -1,3 +1,5 @@
+from docx import Document
+
 import shutil
 import subprocess
 from abc import ABC, abstractmethod
@@ -13,13 +15,6 @@ class DocHandler(ABC):
     def open_document(self, doc_path: Path) -> Tuple[Any, Any]:
         raise NotImplementedError
 
-    def save_document(self, doc, out_file: Path):
-        if out_file.exists():
-            if sg.popup_ok_cancel(f'{out_file} already exists, overwrite?') != 'OK':
-                raise FileExistsError(f"File already exists: {out_file}")
-        shutil.copy(doc, out_file)
-        print(f"Saved {out_file}")
-        return out_file
 
 
 class WordHandler(DocHandler):
@@ -44,3 +39,15 @@ class LibreHandler(DocHandler):
         except Exception as e:
             raise e
         return process, None
+
+
+
+
+class DocxHandler(DocHandler):
+    def open_document(self, doc_path: Path) -> Tuple[Any, Any]:
+        try:
+            doc = Document(doc_path)
+            return None, doc  # Returning None as there's no application object like in WordHandler
+        except Exception as e:
+            print(f"Failed to open {doc_path} with error: {e}")
+            raise e

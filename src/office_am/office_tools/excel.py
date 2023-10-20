@@ -1,4 +1,3 @@
-import numbers
 import os
 from typing import Union, Iterable
 
@@ -7,32 +6,15 @@ import pandas as pd
 from openpyxl import load_workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 
+from office_am.office_tools.pandas_stuff import coerce_df_numtype
+
 pathy = Union[str, os.PathLike]
 
 
-def df_is_numeric(col):
-    try:
-        pd.to_numeric(col)
-        return True
-    except:
-        return False
-
-
-def coerce_df_numtype(df: pd.DataFrame, col_header: str, data: str | int | float):
-    if df_is_numeric(df[col_header]) and not isinstance(data, numbers.Number):
-        ans = input(f"TypeMismatch : cast {col_header} ({df[col_header].dtype}) to {type(data)}? 's' to skip")
-        if ans.lower() == 'y':
-            df[col_header] = df[col_header].astype(type(data))
-        elif ans == 's':
-            return
-        else:
-            exit("Aborted.")
-
-
-def edit_excel_batch(infile: pathy, outfile: pathy, sheet: str, header_i: int, id_header: str, value_data: Iterable,
+def edit_excel_batch(infile: pathy, outfile: pathy, sheet: str, header_idx: int, id_header: str, value_data: Iterable,
                      value_header: str,
                      data_insert: str):
-    df = pd.read_excel(infile, sheet_name=sheet, header=header_i)
+    df = pd.read_excel(infile, sheet_name=sheet, header=header_idx)
     coerce_df_numtype(df, col_header=value_header, data=data_insert)
 
     skipped = []

@@ -23,6 +23,9 @@ class OfficeTools:
 
     @classmethod
     def auto_select(cls) -> 'OfficeTools':
+
+        if not cls._something_installed():
+            raise EnvironmentError("Neither Microsoft nor LibreOffice tools are installed")
         tools_status = cls._get_tools_status()
 
         word_handler = WordHandler if tools_status['word'] else LibreHandler
@@ -43,12 +46,12 @@ class OfficeTools:
         }
         return tools_status
 
-    def something_installed(self) -> bool:
-        stat = self._get_tools_status()
+    @classmethod
+    def _something_installed(cls) -> bool:
+        stat = cls._get_tools_status()
         doc = any([stat['word'], stat['libre']])
         sheet = any([stat['excel'], stat['libre']])
         return all([doc, sheet])
-
 
     @staticmethod
     @lru_cache(maxsize=None)  # Unbounded cache

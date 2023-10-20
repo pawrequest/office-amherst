@@ -6,8 +6,8 @@ import pytest
 from openpyxl.reader.excel import load_workbook
 from pandas import Series
 
+from office_am.assets import AssetContext, AssetManager
 from office_am.office_tools.excel import get_rows
-from office_am.asset_man.assets import AssetContext, AssetManager
 from office_am.dflt import DFLT_CONST
 
 

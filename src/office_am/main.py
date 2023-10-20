@@ -1,11 +1,12 @@
 import argparse
+import shutil
 from pathlib import Path
 
 import PySimpleGUI as sg
 
-from office_am.office_tools.email_handler import EmailError
-from office_am.office_tools.o_tool import OfficeTools
-from .asset_man.gui import create_gui
+from .office_tools.email_handler import EmailError, EmailHandler
+from .office_tools.o_tool import OfficeTools
+from .gui import invoice_gui
 from .cmc.cmc_entities import CmcError
 from .cmc.commence import CmcContext
 from .dflt import DFLT_HIRE_EMAIL, DFLT_PATHS
@@ -32,7 +33,7 @@ def main(args):
 
 
 def event_loop(cmc, temp_file, outfile, hire, ot: OfficeTools):
-    window = create_gui()
+    window = invoice_gui()
 
     while True:
         event, values = window.read()
@@ -40,12 +41,12 @@ def event_loop(cmc, temp_file, outfile, hire, ot: OfficeTools):
             break
         elif event == 'Submit':
             if values['-SAVE-']:
-                saved_docx = ot.doc.save_document(temp_file, outfile)
+                saved_docx = shutil.copy(temp_file, outfile)
                 if not saved_docx:
                     raise FileNotFoundError(f'Failed to save {temp_file} to {outfile}')
                 pdf_file = ot.pdf.from_docx(outfile)
                 if values['-EMAIL-']:
-                    do_email(pdf_file, ot)
+                    do_email(pdf_file, ot.email)
                 if values['-PRINT-']:
                     print_file(pdf_file)
                 if values['-CMC-']:
@@ -56,11 +57,11 @@ def event_loop(cmc, temp_file, outfile, hire, ot: OfficeTools):
 
 
 def do_all(cmc, temp_file, outfile, hire, ot: OfficeTools):
-    saved_docx = ot.doc.save_document(temp_file, outfile)
+    saved_docx = shutil.copy(temp_file, outfile)
     pdf_file = ot.pdf.from_docx(outfile)
     # print_file(outfile.with_suffix('.pdf'))
     do_cmc(cmc, 'Hire', hire, outfile)
-    do_email(pdf_file, ot)
+    do_email(pdf_file, ot.email)
     opened = ot.doc.open_document(saved_docx or temp_file)
 
     ...
@@ -79,10 +80,10 @@ def do_cmc(cmc, table, transaction, outfile):
         return True
 
 
-def do_email(attachment: Path, ot, email_=DFLT_HIRE_EMAIL):
+def do_email(attachment: Path, handler:EmailHandler, email_=DFLT_HIRE_EMAIL):
     email_.attachment_path = attachment
     try:
-        ot.email.send_email(email_)
+        handler.send_email(email_)
 
     except EmailError as e:
         sg.popup_error(f"Email failed with error: {e}")

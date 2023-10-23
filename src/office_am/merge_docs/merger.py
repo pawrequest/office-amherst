@@ -23,4 +23,15 @@ def get_template_and_path(tmplt, context = None, temp_file = None) -> Tuple[Docx
                 raise e
 
 
+context = dict(
+    date = 'adate',
+    deliver_to = 'delvierto',
+    foa = 'foa',
+    tel = 'tel',
+    packages = 'packages',
+)
 
+
+
+# templat, tempfile = get_template_and_path(tmplt = dflt.DFLT_PATHS.BOX_TMPLT, context=context)
+...

@@ -24,6 +24,7 @@ class DFLT_PATHS:
     INV_DIR = Path(r'R:\ACCOUNTS\invoices')
     TEMP_INV = INV_OUT_DIR / '_temp_invoice.docx'
     TEMP_DOC = GENERATED / '_temp_doc.docx'
+    BOX_TMPLT = TEMPLATE / 'box_tmplt_rebuild.docx'
 
 
 class DFLT_CONST:

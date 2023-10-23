@@ -36,11 +36,11 @@ def main(args):
 
         if args.box:
             context = dict(
-                date=hire['Send Out Date'],
+                date=f"{hire['Send Out Date']:%A %d %B}",
                 method=hire['Send Method'],
                 customer_name=hire['To Customer'],
                 delivery_address=hire['Delivery Address'],
-                deliver_contact=hire['Delivery Contact'],
+                delivery_contact=hire['Delivery Contact'],
                 tel=hire['Delivery Tel'],
                 packages=packages,
             )

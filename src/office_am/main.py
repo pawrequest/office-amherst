@@ -4,15 +4,27 @@ from pathlib import Path
 
 import PySimpleGUI as sg
 
-from .office_tools.email_handler import EmailError, EmailHandler
-from .office_tools.o_tool import OfficeTools
-from .gui import invoice_gui
-from .cmc.cmc_entities import CmcError
-from .cmc.commence import CmcContext
-from .dflt import DFLT_HIRE_EMAIL, DFLT_PATHS
-from .office_tools.file_management import print_file
-from .order.invoice import get_inv_temp
-from .order.transact import TransactionContext
+from office_am.cmc.cmc_entities import CmcError
+from office_am.cmc.commence import CmcContext
+from office_am.dflt import DFLT_PATHS, DFLT_HIRE_EMAIL
+from office_am.gui import invoice_gui
+from office_am.merge_docs.merger import get_template_and_path
+from office_am.office_tools.email_handler import EmailHandler, EmailError
+from office_am.office_tools.file_management import print_file
+from office_am.office_tools.o_tool import OfficeTools
+from office_am.order.invoice import get_inv_temp
+from office_am.order.transact import TransactionContext
+
+
+# from .office_tools.email_handler import EmailError, EmailHandler
+# from .office_tools.o_tool import OfficeTools
+# from .gui import invoice_gui
+# from .cmc.cmc_entities import CmcError
+# from .cmc.commence import CmcContext
+# from .dflt import DFLT_HIRE_EMAIL, DFLT_PATHS
+# from .office_tools.file_management import print_file
+# from .order.invoice import get_inv_temp
+# from .order.transact import TransactionContext
 
 
 def main(args):
@@ -20,6 +32,10 @@ def main(args):
 
     with CmcContext() as cmc:
         hire = cmc.get_record_with_customer('Hire', args.hire_name)
+
+        if args.box:
+            do_boxes(hire, ot)
+            ...
 
         with TransactionContext() as tm:
             hire_inv = tm.get_hire_invoice(hire)
@@ -30,6 +46,41 @@ def main(args):
                 do_all(cmc, temp_file, out_file, hire, ot)
             else:
                 event_loop(cmc, temp_file, out_file, hire, ot)
+
+
+def do_boxes(hire, ot):
+    boxes = int(hire['Boxes'])
+
+
+
+    templates = []
+    # for box in range(int(boxes)):
+    #     packages = f'{box + 1}/{boxes} package{"s" if boxes > 1 else ""}'
+    #     context = dict(
+    #         date=f"{hire['Send Out Date']:%A %d %B}",
+    #         method=hire['Send Method'],
+    #         customer_name=hire['To Customer'],
+    #         delivery_address=hire['Delivery Address'],
+    #         delivery_contact=hire['Delivery Contact'],
+    #         tel=hire['Delivery Tel'],
+    #         packages=packages,
+    #     )
+    #     template, temp_file = get_template_and_path(DFLT_PATHS.BOX_TMPLT, context=context)
+    #     templates.append(template)
+
+
+    context = dict(
+        date=f"{hire['Send Out Date']:%A %d %B}",
+        method=hire['Send Method'],
+        customer_name=hire['To Customer'],
+        delivery_address=hire['Delivery Address'],
+        delivery_contact=hire['Delivery Contact'],
+        tel=hire['Delivery Tel'],
+        boxes=boxes,
+    )
+    template, temp_file = get_template_and_path(DFLT_PATHS.BOX_TMPLT, context=context)
+    pdf_file = ot.pdf.from_docx(temp_file)
+    ...
 
 
 def event_loop(cmc, temp_file, outfile, hire, ot: OfficeTools):
@@ -80,7 +131,7 @@ def do_cmc(cmc, table, transaction, outfile):
         return True
 
 
-def do_email(attachment: Path, handler:EmailHandler, email_=DFLT_HIRE_EMAIL):
+def do_email(attachment: Path, handler: EmailHandler, email_=DFLT_HIRE_EMAIL):
     email_.attachment_path = attachment
     try:
         handler.send_email(email_)
@@ -96,6 +147,7 @@ if __name__ == '__main__':
     parser.add_argument('--openfile', action='store_true', help='Open the file.')
     parser.add_argument('--libre', action='store_true', help='Use Free Office tools.')
     parser.add_argument('--doall', action='store_true', help='save, convert to pdf, print, email, and log to commence.')
+    parser.add_argument('--box', action='store_true', help='Send a box label')
 
     args = parser.parse_args()
     main(args)

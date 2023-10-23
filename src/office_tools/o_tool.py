@@ -7,7 +7,6 @@ from .email_handler import EmailHandler, GmailSender, OutlookSender
 from .system_tools import check_registry
 
 
-
 class OfficeTools:
     def __init__(self, doc: DocHandler, email: EmailHandler):
         self.doc = doc
@@ -32,13 +31,13 @@ class OfficeTools:
         return cls(doc_handler(), email_handler())
 
 
-
 def tools_available() -> bool:
     """ Check if either Microsoft or LibreOffice tools for docs and sheets are installed"""
     libre = check_libre()
     word = check_word()
     excel = check_excel()
     return all([(word or libre), (excel or libre)])
+
 
 @lru_cache(maxsize=None)
 def check_word() -> bool:

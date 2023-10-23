@@ -1,13 +1,11 @@
-from docx import Document
-
-import shutil
 import subprocess
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Tuple
 
-import PySimpleGUI as sg
 from comtypes.client import CreateObject
+from docx import Document
+from docx2pdf import convert as convert_word
 
 
 class DocHandler(ABC):
@@ -15,6 +13,9 @@ class DocHandler(ABC):
     def open_document(self, doc_path: Path) -> Tuple[Any, Any]:
         raise NotImplementedError
 
+    @abstractmethod
+    def to_pdf(self, doc_file: Path) -> Path:
+        raise NotImplementedError
 
 
 class WordHandler(DocHandler):
@@ -31,6 +32,15 @@ class WordHandler(DocHandler):
         except Exception as e:
             raise e
 
+    def to_pdf(self, doc_file: Path) -> Path:
+        try:
+            convert_word(doc_file, output_path=doc_file.parent, keep_active=True)
+            outfile = doc_file.with_suffix('.pdf')
+            print(f"Converted {outfile}")
+            return outfile
+        except Exception as e:
+            raise e
+
 
 class LibreHandler(DocHandler):
     def open_document(self, doc_path: Path) -> Tuple[Any, Any]:
@@ -40,7 +50,16 @@ class LibreHandler(DocHandler):
             raise e
         return process, None
 
-
+    def to_pdf(self, doc_file: Path) -> Path:
+        try:
+            subprocess.run(f'soffice --headless --convert-to pdf {str(doc_file)} --outdir {str(doc_file.parent)}')
+            outfile = doc_file.with_suffix('.pdf')
+            print(f"Converted {outfile}")
+            return outfile
+        except FileNotFoundError as e:
+            print('Is LibreOffice installed?')
+        except Exception as e:
+            ...
 
 
 class DocxHandler(DocHandler):

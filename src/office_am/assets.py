@@ -6,7 +6,7 @@ from typing import Optional
 from pandas import Series, read_excel
 
 from .dflt import DFLT_CONST, DFLT_PATHS
-from .office_tools.excel import df_overwrite_wb
+from office_tools.excel import df_overwrite_wb
 
 
 # from word.dde import items_from_hire

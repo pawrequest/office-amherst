@@ -1,7 +1,7 @@
 from enum import Enum
 from pathlib import Path
 
-from .office_tools.email_handler import Email
+from office_tools.email_handler import Email
 
 DEBUG = True
 USE_MICROSOFT = False

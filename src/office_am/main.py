@@ -4,31 +4,21 @@ from pathlib import Path
 
 import PySimpleGUI as sg
 
-from office_am.cmc.cmc_entities import CmcError
-from office_am.cmc.commence import CmcContext
-from office_am.dflt import DFLT_PATHS, DFLT_HIRE_EMAIL
+from cmc.cmc_entities import CmcError
+from cmc.commence import CmcContext
+from office_am.dflt import DFLT_HIRE_EMAIL, DFLT_PATHS
 from office_am.gui import invoice_gui
-from office_am.merge_docs.merger import get_template_and_path
-from office_am.office_tools.email_handler import EmailHandler, EmailError
-from office_am.office_tools.file_management import print_file
-from office_am.office_tools.o_tool import OfficeTools
 from office_am.order.invoice import get_inv_temp
 from office_am.order.transact import TransactionContext
-
-
-# from .office_tools.email_handler import EmailError, EmailHandler
-# from .office_tools.o_tool import OfficeTools
-# from .gui import invoice_gui
-# from .cmc.cmc_entities import CmcError
-# from .cmc.commence import CmcContext
-# from .dflt import DFLT_HIRE_EMAIL, DFLT_PATHS
-# from .office_tools.file_management import print_file
-# from .order.invoice import get_inv_temp
-# from .order.transact import TransactionContext
+from office_tools.email_handler import EmailError, EmailHandler
+from office_tools.system_tools import print_file
+from office_tools.merger import get_template_and_path
+from office_tools.o_tool import OfficeTools
 
 
 def main(args):
-    ot = OfficeTools.libre() if args.libre else OfficeTools.microsoft()
+    # ot = OfficeTools.libre() if args.libre else OfficeTools.microsoft()
+    ot = OfficeTools.auto_select()
 
     with CmcContext() as cmc:
         hire = cmc.get_record_with_customer('Hire', args.hire_name)
@@ -51,8 +41,6 @@ def main(args):
 def do_boxes(hire, ot):
     boxes = int(hire['Boxes'])
 
-
-
     templates = []
     # for box in range(int(boxes)):
     #     packages = f'{box + 1}/{boxes} package{"s" if boxes > 1 else ""}'
@@ -68,7 +56,6 @@ def do_boxes(hire, ot):
     #     template, temp_file = get_template_and_path(DFLT_PATHS.BOX_TMPLT, context=context)
     #     templates.append(template)
 
-
     context = dict(
         date=f"{hire['Send Out Date']:%A %d %B}",
         method=hire['Send Method'],
@@ -79,7 +66,7 @@ def do_boxes(hire, ot):
         boxes=boxes,
     )
     template, temp_file = get_template_and_path(DFLT_PATHS.BOX_TMPLT, context=context)
-    pdf_file = ot.pdf.from_docx(temp_file)
+    pdf_file = ot.doc.to_pdf(temp_file)
     ...
 
 
@@ -95,7 +82,8 @@ def event_loop(cmc, temp_file, outfile, hire, ot: OfficeTools):
                 saved_docx = shutil.copy(temp_file, outfile)
                 if not saved_docx:
                     raise FileNotFoundError(f'Failed to save {temp_file} to {outfile}')
-                pdf_file = ot.pdf.from_docx(outfile)
+                # pdf_file = ot.pdf.from_docx(outfile)
+                pdf_file = ot.doc.to_pdf(outfile)
                 if values['-EMAIL-']:
                     do_email(pdf_file, ot.email)
                 if values['-PRINT-']:
@@ -109,7 +97,7 @@ def event_loop(cmc, temp_file, outfile, hire, ot: OfficeTools):
 
 def do_all(cmc, temp_file, outfile, hire, ot: OfficeTools):
     saved_docx = shutil.copy(temp_file, outfile)
-    pdf_file = ot.pdf.from_docx(outfile)
+    pdf_file = ot.doc.to_pdf(outfile)
     # print_file(outfile.with_suffix('.pdf'))
     do_cmc(cmc, 'Hire', hire, outfile)
     do_email(pdf_file, ot.email)
@@ -118,10 +106,17 @@ def do_all(cmc, temp_file, outfile, hire, ot: OfficeTools):
     ...
 
 
+def check_really_edit(transaction):
+    if 'test' not in transaction['Name'].lower():
+        raise ValueError(f"dev safety check - Transaction {transaction['Name']} does not contain 'test'")
+        # if sg.popup_ok_cancel(f'Log {transaction["Name"]} to CMC?') != 'OK':
+        #     return False
+    return True
+
+
 def do_cmc(cmc, table, transaction, outfile):
     package = {'Invoice': outfile}
-    if 'test' not in transaction['Name'].lower():
-        if sg.popup_ok_cancel(f'Log {transaction["Name"]} to CMC?') != 'OK':
+    if not check_really_edit(transaction):
             return
     try:
         cmc.edit_record(table, transaction['Name'], package)

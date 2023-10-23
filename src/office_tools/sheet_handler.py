@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
-from office_am.office_tools.excel import pathy
+from office_tools.excel import pathy
 
 
 def one_exists(idx: int or None, id: str or None) -> None:

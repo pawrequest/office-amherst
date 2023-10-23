@@ -6,7 +6,7 @@ import pandas as pd
 from openpyxl import load_workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 
-from office_am.office_tools.pandas_stuff import coerce_df_numtype
+from office_tools.pandas_stuff import coerce_df_numtype
 
 pathy = Union[str, os.PathLike]
 

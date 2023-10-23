@@ -2,9 +2,9 @@ from typing import Dict, Iterable, List
 
 import pandas as pd
 
-from office_am.cmc.cmc_entities import Connector
+from .cmc_entities import Connector
 from office_am.dflt import FIELDS
-from office_am.office_tools.dde import get_all_connected, get_conversation_func, get_data, get_record
+from office_tools.dde import get_all_connected, get_conversation_func, get_data, get_record
 
 
 def get_fields(conv, table: str, item: str, fields: List[str] = None, delim=';') -> Dict[str, str]:

@@ -32,19 +32,9 @@ def main(args):
 
     with CmcContext() as cmc:
         hire = cmc.get_record_with_customer('Hire', args.hire_name)
-        packages = ['mock package string']
 
         if args.box:
-            context = dict(
-                date=f"{hire['Send Out Date']:%A %d %B}",
-                method=hire['Send Method'],
-                customer_name=hire['To Customer'],
-                delivery_address=hire['Delivery Address'],
-                delivery_contact=hire['Delivery Contact'],
-                tel=hire['Delivery Tel'],
-                packages=packages,
-            )
-            template, temp_file = get_template_and_path(DFLT_PATHS.BOX_TMPLT, context=context)
+            do_boxes(hire)
             ...
 
         with TransactionContext() as tm:
@@ -56,6 +46,21 @@ def main(args):
                 do_all(cmc, temp_file, out_file, hire, ot)
             else:
                 event_loop(cmc, temp_file, out_file, hire, ot)
+
+
+def do_boxes(hire):
+    boxes = hire['Boxes']
+    for box in range(boxes):
+        context = dict(
+            date=f"{hire['Send Out Date']:%A %d %B}",
+            method=hire['Send Method'],
+            customer_name=hire['To Customer'],
+            delivery_address=hire['Delivery Address'],
+            delivery_contact=hire['Delivery Contact'],
+            tel=hire['Delivery Tel'],
+            packages=boxes,
+        )
+        template, temp_file = get_template_and_path(DFLT_PATHS.BOX_TMPLT, context=context)
 
 
 def event_loop(cmc, temp_file, outfile, hire, ot: OfficeTools):

@@ -8,7 +8,7 @@ from cmc.cmc_entities import CmcError
 from cmc.commence import CmcContext
 from office_am.dflt import DFLT_HIRE_EMAIL, DFLT_PATHS
 from office_am.gui import invoice_gui
-from office_am.merge_docs.box_label import box_labels
+from office_am.merge_docs.box_label import box_labels_aio_tmplt
 from office_am.order.invoice import get_inv_temp
 from office_am.order.transact import TransactionContext
 from office_tools.email_handler import EmailError, EmailHandler
@@ -24,7 +24,7 @@ def main(args):
         hire = cmc.get_record_with_customer('Hire', args.hire_name)
 
         if args.box:
-            box_labels(hire, ot.doc)
+            box_labels_aio_tmplt(hire, ot.doc)
             return
 
         with TransactionContext() as tm:

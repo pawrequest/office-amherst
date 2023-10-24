@@ -1,13 +1,8 @@
-from PyPDF2 import PdfReader, PdfWriter
-
-from docx import Document
 from docxtpl import DocxTemplate
-from fitz_new import fitz
 
 from office_am import dflt
 from office_am.dflt import DFLT_PATHS
 from office_tools.doc_handler import DocHandler
-from office_tools.merger import templt_to_pdf
 
 def address_rows_limited(address:str):
     add_lst = address.split('\r\n')
@@ -15,13 +10,10 @@ def address_rows_limited(address:str):
         add_lst = add_lst[:4]
     add_str = '\r\n'.join(add_lst)
     return add_str
+
 def box_labels(hire, doc_handler: DocHandler):
     tmplt = DFLT_PATHS.BOX_TMPLT
     temp_file = dflt.DFLT_PATHS.TEMP_DOC
-    temp_dir = DFLT_PATHS.GENERATED / 'box_labels'
-    pdf_files = []
-
-    merger = PdfWriter()
 
     del_add=address_rows_limited(hire['Delivery Address'])
     boxes = int(hire['Boxes'])
@@ -40,42 +32,3 @@ def box_labels(hire, doc_handler: DocHandler):
     template.save(temp_file)
     ...
 
-    #
-    #
-    # templates = []
-    # for i in range(boxes):
-    #     box = i + 1
-    #     package = f"Package {box}/{boxes}"
-    #     context = dict(
-    #         date=f"{hire['Send Out Date']:%A %d %B}",
-    #         method=hire['Send Method'],
-    #         customer_name=hire['To Customer'],
-    #         delivery_address=hire['Delivery Address'],
-    #         delivery_contact=hire['Delivery Contact'],
-    #         tel=hire['Delivery Tel'],
-    #         package=package,
-    #     )
-    #
-    #     template = DocxTemplate(tmplt)
-    #     template.render(context)
-    #     template.save(temp_file)
-    #     pdf_file = doc_handler.to_pdf(temp_file)
-    #     pdf1 = fitz.open(pdf_file)
-
-    #
-    #
-    # pdf1 = fitz.open(pdf_files[0])
-    # for template in templates[1:]:
-    #     template.save(temp_file)
-    #     pdf_file = doc_handler.to_pdf(temp_file)
-    #     pdf2 = fitz.open(pdf_file)
-    #     pdf_files.append(pdf_file)
-
-    # doc_b = fitz.open("b.pdf")  # open the 2nd document
-    # doc_a.insert_pdf(doc_b)  # merge the docs
-    # doc_a.save("a+b.pdf")  # save the merged document with a new filename
-
-    # merger.write(temp_file.with_suffix('.pdf'))
-
-    # merger.close()
-    ...

@@ -8,11 +8,11 @@ from cmc.cmc_entities import CmcError
 from cmc.commence import CmcContext
 from office_am.dflt import DFLT_HIRE_EMAIL, DFLT_PATHS
 from office_am.gui import invoice_gui
+from office_am.merge_docs.box_label import box_labels
 from office_am.order.invoice import get_inv_temp
 from office_am.order.transact import TransactionContext
 from office_tools.email_handler import EmailError, EmailHandler
 from office_tools.system_tools import print_file
-from office_tools.merger import get_template_and_path
 from office_tools.o_tool import OfficeTools
 
 
@@ -24,8 +24,8 @@ def main(args):
         hire = cmc.get_record_with_customer('Hire', args.hire_name)
 
         if args.box:
-            do_boxes(hire, ot)
-            ...
+            box_labels(hire, ot.doc)
+            return
 
         with TransactionContext() as tm:
             hire_inv = tm.get_hire_invoice(hire)
@@ -36,38 +36,6 @@ def main(args):
                 do_all(cmc, temp_file, out_file, hire, ot)
             else:
                 event_loop(cmc, temp_file, out_file, hire, ot)
-
-
-def do_boxes(hire, ot):
-    boxes = int(hire['Boxes'])
-
-    templates = []
-    # for box in range(int(boxes)):
-    #     packages = f'{box + 1}/{boxes} package{"s" if boxes > 1 else ""}'
-    #     context = dict(
-    #         date=f"{hire['Send Out Date']:%A %d %B}",
-    #         method=hire['Send Method'],
-    #         customer_name=hire['To Customer'],
-    #         delivery_address=hire['Delivery Address'],
-    #         delivery_contact=hire['Delivery Contact'],
-    #         tel=hire['Delivery Tel'],
-    #         packages=packages,
-    #     )
-    #     template, temp_file = get_template_and_path(DFLT_PATHS.BOX_TMPLT, context=context)
-    #     templates.append(template)
-
-    context = dict(
-        date=f"{hire['Send Out Date']:%A %d %B}",
-        method=hire['Send Method'],
-        customer_name=hire['To Customer'],
-        delivery_address=hire['Delivery Address'],
-        delivery_contact=hire['Delivery Contact'],
-        tel=hire['Delivery Tel'],
-        boxes=boxes,
-    )
-    template, temp_file = get_template_and_path(DFLT_PATHS.BOX_TMPLT, context=context)
-    pdf_file = ot.doc.to_pdf(temp_file)
-    ...
 
 
 def event_loop(cmc, temp_file, outfile, hire, ot: OfficeTools):

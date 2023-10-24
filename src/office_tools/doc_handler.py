@@ -34,7 +34,7 @@ class WordHandler(DocHandler):
 
     def to_pdf(self, doc_file: Path) -> Path:
         try:
-            convert_word(doc_file, output_path=doc_file.parent, keep_active=True)
+            pdf_file = convert_word(doc_file, output_path=doc_file.parent)
             outfile = doc_file.with_suffix('.pdf')
             print(f"Converted {outfile}")
             return outfile

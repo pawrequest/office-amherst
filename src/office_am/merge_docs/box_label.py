@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from docxtpl import DocxTemplate
 
 from office_am import dflt
@@ -10,7 +12,7 @@ def address_rows_limited(address:str):
         add_lst = add_lst[:4]
     add_str = '\r\n'.join(add_lst)
     return add_str
-def box_labels_aio_tmplt(hire, doc_handler: DocHandler):
+def box_labels_aio_tmplt(hire) -> Path:
     tmplt = DFLT_PATHS.BOX_TMPLT
     temp_file = dflt.DFLT_PATHS.TEMP_DOC
 
@@ -29,7 +31,7 @@ def box_labels_aio_tmplt(hire, doc_handler: DocHandler):
     template = DocxTemplate(tmplt)
     template.render(context)
     template.save(temp_file)
-    ...
+    return temp_file
 #
 #
 # def box_labels_sep(hire, doc_handler: DocHandler):

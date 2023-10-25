@@ -24,7 +24,7 @@ def main(args):
         hire = cmc.get_record_with_customer('Hire', args.hire_name)
 
         if args.box:
-            box_labels_aio_tmplt(hire, ot.doc)
+            box_labels_aio_tmplt(hire)
             return
 
         with TransactionContext() as tm:

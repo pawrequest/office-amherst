@@ -14,5 +14,6 @@ dependencies = [
     "pandas>=2.1.1",
     "pysimplegui>=4.53.0",
     "python-dotenv",
-    "commence-py"
+    "commence-py",
+    "office-tools",
 ]

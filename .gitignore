@@ -1,1 +1,4 @@
 /src/office_am/static/generated/
+/build/
+/venv11/
+/venv/

@@ -2,3 +2,5 @@
 /build/
 /venv11/
 /venv/
+*.egg-info/
+*.pyc

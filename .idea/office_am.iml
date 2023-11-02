@@ -12,8 +12,10 @@
       <excludeFolder url="file://$MODULE_DIR$/venv32_11" />
       <excludeFolder url="file://$MODULE_DIR$/src/office_am/static/generated" />
       <excludeFolder url="file://$MODULE_DIR$/venv11" />
+      <excludeFolder url="file://$MODULE_DIR$/venv2" />
+      <excludeFolder url="file://$MODULE_DIR$/venv4" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.11" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.10 (office_am)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="PackageRequirementsSettings">

@@ -3,39 +3,35 @@ import shutil
 from pathlib import Path
 
 import PySimpleGUI as sg
+from office_tools.o_tool import OfficeTools
 
-from cmc.cmc_entities import CmcError
-from cmc.commence import CmcContext
 from office_am.dflt import DFLT_HIRE_EMAIL, DFLT_PATHS
 from office_am.gui import invoice_gui
 from office_am.merge_docs.box_label import box_labels_aio_tmplt
 from office_am.order.invoice import get_inv_temp
 from office_am.order.transact import TransactionContext
-from office_tools.email_handler import EmailError, EmailHandler
-from office_tools.system_tools import print_file
-from office_tools.o_tool import OfficeTools
-
+from commence_py import CmcDB
 
 def main(args):
     # ot = OfficeTools.libre() if args.libre else OfficeTools.microsoft()
     ot = OfficeTools.auto_select()
+    db = CmcDB()
+    csr = db.get_cursor('Hire')
+    hire = csr.get_record(args.hire_name)
 
-    with CmcContext() as cmc:
-        hire = cmc.get_record_with_customer('Hire', args.hire_name)
+    if args.box:
+        box_labels_aio_tmplt(hire)
+        return
 
-        if args.box:
-            box_labels_aio_tmplt(hire)
-            return
+    with TransactionContext() as tm:
+        hire_inv = tm.get_hire_invoice(hire)
+        out_file = (DFLT_PATHS.INV_OUT_DIR / hire_inv.inv_num).with_suffix('.docx')
+        template, temp_file = get_inv_temp(hire_inv)
 
-        with TransactionContext() as tm:
-            hire_inv = tm.get_hire_invoice(hire)
-            out_file = (DFLT_PATHS.INV_OUT_DIR / hire_inv.inv_num).with_suffix('.docx')
-            template, temp_file = get_inv_temp(hire_inv)
-
-            if args.doall:
-                do_all(cmc, temp_file, out_file, hire, ot)
-            else:
-                event_loop(cmc, temp_file, out_file, hire, ot)
+        if args.doall:
+            do_all(temp_file, out_file, hire, ot)
+        else:
+            event_loop(cmc, temp_file, out_file, hire, ot)
 
 
 def event_loop(cmc, temp_file, outfile, hire, ot: OfficeTools):

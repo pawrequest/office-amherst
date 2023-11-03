@@ -4,6 +4,7 @@ build-backend = "setuptools.build_meta"
 
 
 [project]
+name = 'office-am'
 dependencies = [
     "docxtpl",
     "pywin32",

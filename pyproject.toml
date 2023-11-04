@@ -1,16 +1,31 @@
-[build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
-
-
 [project]
-name = 'office-am'
-dependencies = [
-    "docxtpl",
-    "pywin32",
-    "xlrd",
-    "openpyxl",
-    "docx2pdf",
-    "pysimplegui",
-    "python-dotenv",
+name = "office_am"
+version = "0.0.1"
+description = "Add your description here"
+authors = [
+    { name = "prosodyspeaks", email = "prosodyspeaks@gmail.com" }
 ]
+dependencies = [
+    "docx2pdf>=0.1.8",
+    "docxtpl>=0.16.7",
+    "openpyxl>=3.1.2",
+    "pandas>=2.1.1",
+    "pysimplegui>=4.53.0",
+    "pywin32",
+    "xlrd>=2.0.1",
+]
+readme = "README.md"
+requires-python = ">= 3.8"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = [
+    "pytest>=7.4.0",
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true

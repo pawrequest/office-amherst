@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = 'office-am'
+dependencies = [
+    "docxtpl",
+    "pywin32",
+    "xlrd",
+    "openpyxl",
+    "docx2pdf",
+    "pysimplegui",
+    "python-dotenv",
+]

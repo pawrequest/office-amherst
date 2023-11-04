@@ -1,10 +1,3 @@
-docxtpl
-pywin32
-xlrd
-openpyxl
-docx2pdf
-pysimplegui
-python-dotenv
 -e git+file:///C:/psdev/commence_py/.git@master#egg=commence_py
 -e git+file:///C:/psdev/office_tools/.git@master#egg=office_tools
 

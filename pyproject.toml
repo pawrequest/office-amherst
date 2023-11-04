@@ -1,7 +1,7 @@
 [project]
-name = "amherst_office"
+name = "office-amherst"
 version = "0.0.1"
-description = "Add your description here"
+description = "officetools for amherst"
 authors = [
     { name = "prosodyspeaks", email = "prosodyspeaks@gmail.com" }
 ]
@@ -11,7 +11,6 @@ dependencies = [
     "openpyxl>=3.1.2",
     "pandas>=2.1.1",
     "pysimplegui>=4.53.0",
-    "pytest>=7.4.0",
     "pywin32",
     "xlrd>=2.0.1",
 ]
@@ -24,7 +23,16 @@ build-backend = "hatchling.build"
 
 [tool.rye]
 managed = true
-dev-dependencies = []
+dev-dependencies = [
+    "pytest>=7.4.0",
+]
 
 [tool.hatch.metadata]
 allow-direct-references = true
+
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    'ignore:datetime\.datetime\.utcfromtimestamp\(\) is deprecated and scheduled for removal in a future version\.:DeprecationWarning',
+    'ignore:datetime\.datetime\.utcnow\(\) is deprecated and scheduled for removal in a future version\.:DeprecationWarning'
+]
